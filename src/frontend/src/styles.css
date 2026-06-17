@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-background: var(--fabric-background);
+  --color-foreground: var(--fabric-text);
+  --color-primary: var(--fabric-primary);
+  --color-muted-foreground: var(--fabric-text-muted);
+  --color-error: var(--fabric-error);
+  --color-danger: var(--fabric-danger);
+  --color-success: var(--fabric-success);
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  --fabric-background: #f8fafc;
+  --fabric-primary: #2563eb;
+  --fabric-text: #111827;
+  --fabric-text-muted: #6b7280;
+  --fabric-error: #dc2626;
+  --fabric-danger: #b91c1c;
+  --fabric-success: #16a34a;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--fabric-background);
+  color: var(--fabric-text);
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
