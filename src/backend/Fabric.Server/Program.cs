@@ -1,4 +1,5 @@
 using Fabric.Server.Infrastructure;
+using Fabric.Server.Locations;
 using Fabric.Server.Reception;
 using Fabric.Server.Sagas;
 using Fabric.Server.Visitors;
@@ -21,6 +22,7 @@ builder.Services
 builder.Services
     .SetupVisitors(builder.Configuration)
     .SetupSagas(builder.Configuration)
+    .SetupLocations(builder.Configuration)
     .SetupReception(builder.Configuration);
 
 builder.Services.AddHostedService<MigrationsRunner>();

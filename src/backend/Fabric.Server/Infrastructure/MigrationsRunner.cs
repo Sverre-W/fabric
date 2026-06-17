@@ -1,3 +1,4 @@
+using Fabric.Server.Locations.Persistence;
 using Fabric.Server.Reception.Persistence;
 using Fabric.Server.Sagas;
 using Fabric.Server.Visitors.Persistence;
@@ -9,7 +10,7 @@ internal class MigrationRunner<T>(IServiceScope scope) where T : DbContext
 {
     public async Task RunMigrationsAsync(CancellationToken cancellationToken)
     {
-        T dbContext =  scope.ServiceProvider.GetRequiredService<T>();
+        T dbContext = scope.ServiceProvider.GetRequiredService<T>();
         await dbContext.Database.MigrateAsync(cancellationToken);
     }
 }
@@ -21,11 +22,9 @@ public class MigrationsRunner(IServiceScopeFactory scopeFactory) : IHostedServic
         using IServiceScope scope = scopeFactory.CreateScope();
         await new MigrationRunner<VisitorsDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<SagasDbContext>(scope).RunMigrationsAsync(cancellationToken);
+        await new MigrationRunner<LocationsDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<ReceptionDbContext>(scope).RunMigrationsAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
