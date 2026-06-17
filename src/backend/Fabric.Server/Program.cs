@@ -1,3 +1,4 @@
+using Fabric.Server.AccessPolicies;
 using Fabric.Server.Infrastructure;
 using Fabric.Server.Locations;
 using Fabric.Server.Reception;
@@ -20,6 +21,7 @@ builder.Services
     .AddTransient<TimeProvider>(x => TimeProvider.System);
 
 builder.Services
+    .SetupAccessPolicies(builder.Configuration)
     .SetupVisitors(builder.Configuration)
     .SetupSagas(builder.Configuration)
     .SetupLocations(builder.Configuration)
