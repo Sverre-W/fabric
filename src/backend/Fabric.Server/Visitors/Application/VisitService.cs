@@ -1,0 +1,191 @@
+using Fabric.Server.Core;
+using Fabric.Server.Visitors.Domain;
+using Fabric.Server.Visitors.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace Fabric.Server.Visitors.Application;
+
+public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
+{
+    private async Task<Visit?> GetVisitAggregate(Guid visitId, CancellationToken cancellationToken = default)
+    {
+        return await db.Visits
+            .Include(x => x.Invitations)
+            .SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
+    }
+
+    public async Task<Result<Visit, VisitErrors>> Create(
+            Guid organizerId,
+            string summary,
+            DateTimeOffset start,
+            DateTimeOffset end,
+            Guid? locationId,
+            CancellationToken cancellationToken = default)
+    {
+        Organizer? organizer = await db.Organizers.AsNoTracking().SingleOrDefaultAsync(x => x.Id == organizerId, cancellationToken);
+
+        if (organizer is null)
+            return Result.Failure<Visit, VisitErrors>(VisitErrors.OrganizerNotFound);
+
+        Result<Visit, VisitErrors> result = Visit.Create(organizerId, summary, start, end, locationId, timeProvider.GetUtcNow());
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<Result<VisitErrors>> ReassignOrganizer(Guid visitId, Guid organizerId,
+        CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+
+        Organizer? organizer = await db.Organizers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == organizerId, cancellationToken);
+
+        if (organizer is null)
+            return Result.Failure(VisitErrors.OrganizerNotFound);
+
+        Result<VisitErrors> result = visit.ReassignOrganizer(organizer.Id);
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+
+    }
+
+    public async Task<Result<VisitErrors>> Cancel(Guid visitId, CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+
+        Result<VisitErrors> result = visit.Cancel();
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<Result<VisitErrors>> Complete(Guid visitId, CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+        Result<VisitErrors> result = visit.Complete();
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+
+    public async Task<Result<VisitErrors>> Reschedule(Guid visitId, DateTimeOffset start, DateTimeOffset end,
+        CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+
+        Result<VisitErrors> result = visit.Reschedule(start, end, timeProvider.GetUtcNow());
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<Result<VisitErrors>> Relocate(Guid visitId, Guid locationId,
+        CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+
+        Result<VisitErrors> result = visit.Relocate(locationId);
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<Result<VisitInvitation, VisitErrors>> Invite(Guid visitId, string firstName, string lastName,
+        string email, string company, CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure<VisitInvitation, VisitErrors>(VisitErrors.VisitNotFound);
+
+        Result<VisitInvitation, VisitErrors> result = visit.AddInvitation(firstName, lastName, email, company);
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+
+    public async Task<Result<VisitErrors>> RejectInvitation(Guid visitId, Guid invitationId,
+        CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+
+        Result<VisitErrors> result = visit.RejectParticipation(invitationId, timeProvider.GetUtcNow());
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<Result<Visitor, VisitErrors>> AcceptInvitation(Guid visitId, Guid invitationId,
+        string firstName, string lastName, string email, string company, ModeOfTransport transport, string? licensePlate, CancellationToken cancellationToken = default)
+    {
+
+        Visitor? visitor = await db.Visitors
+            .Where(x => x.Email == email)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        Guid visitorId = visitor?.Id ?? Guid.NewGuid();
+
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure<Visitor, VisitErrors>(VisitErrors.VisitNotFound);
+
+        Result<VisitErrors> result = visit.ConfirmParticipation(invitationId, visitorId, transport, licensePlate,
+            timeProvider.GetUtcNow());
+
+        if (result.IsFailure(out VisitErrors error))
+            return Result.Failure<Visitor, VisitErrors>(error);
+
+
+        if (visitor is null)
+        {
+            visitor = Visitor.Create(visitorId, firstName, lastName, email, company);
+            db.Visitors.Add(visitor);
+        }
+        else
+        {
+            visitor.UpdateProfile(firstName, lastName, email, company);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Result.Success<Visitor, VisitErrors>(visitor);
+    }
+
+}
