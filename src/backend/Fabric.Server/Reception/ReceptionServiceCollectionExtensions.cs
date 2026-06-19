@@ -14,6 +14,9 @@ public static class ReceptionServiceCollectionExtensions
                 x => x.MigrationsHistoryTable("__EFMigrationsHistory", ReceptionDbContext.Schema));
         });
 
+        collection.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.TypeInfoResolverChain.Add(ReceptionJsonSerializerContext.Default));
+
         collection.AddScoped<ReceptionService>();
         return collection;
     }

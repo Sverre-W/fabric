@@ -7,14 +7,36 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Visitors.Endpoints;
 
-[ApiController]
-public class OrganizerController
+public static class OrganizerEndpoints
 {
-    [HttpGet("/api/visitors/organizers")]
-    [ProducesResponseType(typeof(IPaged<Organizer>), StatusCodes.Status200OK)]
-    public async Task<IResult> ListOrganizers(
-        [FromQuery] ListOrganizerRequest request,
-        [FromServices] VisitorsDbContext db,
+    public static IEndpointRouteBuilder MapOrganizerEndpoints(this IEndpointRouteBuilder app)
+    {
+        RouteGroupBuilder group = app.MapGroup("/api/visitors/organizers");
+
+        group.MapGet("", ListOrganizers)
+            .Produces<Page<OrganizerResponse>>();
+        group.MapGet("/{organizerId:guid}", GetOrganizer)
+            .Produces<OrganizerResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+        group.MapPost("", CreateOrganizer)
+            .Produces<OrganizerResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status409Conflict);
+        group.MapDelete("/{organizerId:guid}", DeactivateOrganizer)
+            .WithDescription("Deactivate organizer")
+            .WithSummary("Deactivate organizer")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+        group.MapPut("/{organizerId:guid}", UpdateOrganizer)
+            .Produces<OrganizerResponse>()
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
+
+        return app;
+    }
+
+    private static async Task<IResult> ListOrganizers(
+        [AsParameters] ListOrganizerRequest request,
+        VisitorsDbContext db,
         CancellationToken ct
     )
     {
@@ -30,15 +52,12 @@ public class OrganizerController
         }
 
         IPaged<Organizer> result = await query.GetPageAsync(request.Page, request.PageSize, ct);
-        return Results.Ok(result);
+        return Results.Ok(result.Map(ToResponse));
     }
 
-    [HttpGet("/api/visitors/organizers/{organizerId}")]
-    [ProducesResponseType(typeof(Organizer), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IResult> GetOrganizer(
+    private static async Task<IResult> GetOrganizer(
         Guid organizerId,
-        [FromServices] VisitorsDbContext db,
+        VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
@@ -47,15 +66,12 @@ public class OrganizerController
             cancellationToken
         );
 
-        return organizer is null ? Results.NotFound() : Results.Ok(organizer);
+        return organizer is null ? Results.NotFound() : Results.Ok(ToResponse(organizer));
     }
 
-    [HttpPost("/api/visitors/organizers")]
-    [ProducesResponseType(typeof(IPaged<Organizer>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(IResult), StatusCodes.Status201Created)]
-    public async Task<IResult> CreateOrganizer(
+    private static async Task<IResult> CreateOrganizer(
         [FromBody] AddOrganizerRequest request,
-        [FromServices] VisitorsDbContext db,
+        VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
@@ -80,17 +96,12 @@ public class OrganizerController
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        return Results.Created($"/api/visitors/organizers/{organizer.Id}", organizer);
+        return Results.Created($"/api/visitors/organizers/{organizer.Id}", ToResponse(organizer));
     }
 
-    [HttpDelete("/api/visitors/organizers/{organizerId}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [EndpointDescription("Deactivate organizer")]
-    [EndpointSummary("Deactivate organizer")]
-    public async Task<IResult> DeactivateOrganizer(
+    private static async Task<IResult> DeactivateOrganizer(
         Guid organizerId,
-        [FromServices] VisitorsDbContext db,
+        VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
@@ -108,14 +119,10 @@ public class OrganizerController
         return Results.NoContent();
     }
 
-    [HttpPut("/api/visitors/organizers/{organizerId}")]
-    [ProducesResponseType(typeof(Organizer), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IResult> UpdateOrganizer(
+    private static async Task<IResult> UpdateOrganizer(
         Guid organizerId,
         [FromBody] UpdateOrganizerRequest request,
-        [FromServices] VisitorsDbContext db,
+        VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
@@ -138,6 +145,9 @@ public class OrganizerController
         organizer.UpdateProfile(request.FirstName, request.LastName, request.Email);
 
         await db.SaveChangesAsync(cancellationToken);
-        return Results.Ok(organizer);
+        return Results.Ok(ToResponse(organizer));
     }
+
+    private static OrganizerResponse ToResponse(Organizer organizer) =>
+        new(organizer.Id, organizer.FirstName, organizer.LastName, organizer.Email);
 }

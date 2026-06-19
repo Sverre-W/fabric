@@ -8,30 +8,90 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Locations.Endpoints;
 
-[ApiController]
-public class LocationsController
+public static class LocationEndpoints
 {
-    [HttpGet("/api/locations/locations/{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [EndpointDescription("Retrieve a site, building, or room by id")]
-    [EndpointSummary("Retrieve a location by id")]
-    public async Task<IResult> GetLocationById(
+    public static IEndpointRouteBuilder MapLocationEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/locations/locations/{id:guid}", GetLocationById)
+            .WithDescription("Retrieve a site, building, or room by id")
+            .WithSummary("Retrieve a location by id")
+            .Produces<LocationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        RouteGroupBuilder sites = app.MapGroup("/api/locations/sites");
+
+        sites.MapGet("", ListSites)
+            .WithDescription("List all sites")
+            .WithSummary("List sites")
+            .Produces<Page<SiteResponse>>();
+        sites.MapGet("/{siteId:guid}/buildings", ListBuildings)
+            .WithDescription("List buildings for a site")
+            .WithSummary("List site buildings")
+            .Produces<BuildingResponse[]>()
+            .Produces(StatusCodes.Status404NotFound);
+        sites.MapGet("/{siteId:guid}/buildings/{buildingId:guid}/rooms", ListRooms)
+            .WithDescription("List rooms for a building")
+            .WithSummary("List building rooms")
+            .Produces<RoomResponse[]>()
+            .Produces(StatusCodes.Status404NotFound);
+        sites.MapPost("", CreateSite)
+            .WithDescription("Create a site")
+            .WithSummary("Create site")
+            .Produces<LocationResponse>(StatusCodes.Status201Created);
+        sites.MapPost("/{siteId:guid}/buildings", AddBuilding)
+            .WithDescription("Add a building to a site")
+            .WithSummary("Add building")
+            .Produces<LocationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        sites.MapPut("/{siteId:guid}", UpdateSite)
+            .WithDescription("Update a site's name")
+            .WithSummary("Update site")
+            .Produces<LocationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        sites.MapPut("/{siteId:guid}/buildings/{buildingId:guid}", UpdateBuilding)
+            .WithDescription("Update a building's name")
+            .WithSummary("Update building")
+            .Produces<LocationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        sites.MapDelete("/{siteId:guid}/buildings/{buildingId:guid}", RemoveBuilding)
+            .WithDescription("Remove a building from a site")
+            .WithSummary("Remove building")
+            .Produces<LocationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        sites.MapPost("/{siteId:guid}/buildings/{buildingId:guid}/rooms", AddRoom)
+            .WithDescription("Add a room to a building")
+            .WithSummary("Add room")
+            .Produces<LocationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        sites.MapPut("/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}", UpdateRoom)
+            .WithDescription("Update a room")
+            .WithSummary("Update room")
+            .Produces<LocationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        sites.MapDelete("/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}", RemoveRoom)
+            .WithDescription("Remove a room from a building")
+            .WithSummary("Remove room")
+            .Produces<LocationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        return app;
+    }
+
+    private static async Task<IResult> GetLocationById(
         Guid id,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Location? location = await locationService.GetLocationById(id, cancellationToken);
         return location is null ? Results.NotFound() : Results.Ok(location.ToResponse());
     }
 
-    [HttpGet("/api/locations/sites")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<SiteResponse>))]
-    [EndpointDescription("List all sites")]
-    [EndpointSummary("List sites")]
-    public async Task<IResult> ListSites(
-        [FromQuery] ListSitesRequest request,
-        [FromServices] LocationsDbContext db,
+    private static async Task<IResult> ListSites(
+        [AsParameters] ListSitesRequest request,
+        LocationsDbContext db,
         CancellationToken cancellationToken = default)
     {
         IQueryable<Site> query = db.Sites.AsNoTracking().OrderBy(site => site.Name);
@@ -39,14 +99,9 @@ public class LocationsController
         return Results.Ok(result.Map(site => site.ToResponse()));
     }
 
-    [HttpGet("/api/locations/sites/{siteId:guid}/buildings")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<BuildingResponse>))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [EndpointDescription("List buildings for a site")]
-    [EndpointSummary("List site buildings")]
-    public async Task<IResult> ListBuildings(
+    private static async Task<IResult> ListBuildings(
         Guid siteId,
-        [FromServices] LocationsDbContext db,
+        LocationsDbContext db,
         CancellationToken cancellationToken = default)
     {
         Site? site = await db.Sites
@@ -60,15 +115,10 @@ public class LocationsController
         return Results.Ok(site.Buildings.OrderBy(x => x.Name).Select(x => x.ToResponse()).ToArray());
     }
 
-    [HttpGet("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<RoomResponse>))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [EndpointDescription("List rooms for a building")]
-    [EndpointSummary("List building rooms")]
-    public async Task<IResult> ListRooms(
+    private static async Task<IResult> ListRooms(
         Guid siteId,
         Guid buildingId,
-        [FromServices] LocationsDbContext db,
+        LocationsDbContext db,
         CancellationToken cancellationToken = default)
     {
         Site? site = await db.Sites
@@ -84,13 +134,9 @@ public class LocationsController
         return Results.Ok(building.Rooms.OrderBy(x => x.Name).Select(x => x.ToResponse()).ToArray());
     }
 
-    [HttpPost("/api/locations/sites")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(LocationResponse))]
-    [EndpointDescription("Create a site")]
-    [EndpointSummary("Create site")]
-    public async Task<IResult> CreateSite(
+    private static async Task<IResult> CreateSite(
         [FromBody] CreateSiteRequest request,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.CreateSite(
@@ -104,16 +150,10 @@ public class LocationsController
             error => MapError(error).ToResult());
     }
 
-    [HttpPost("/api/locations/sites/{siteId:guid}/buildings")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Add a building to a site")]
-    [EndpointSummary("Add building")]
-    public async Task<IResult> AddBuilding(
+    private static async Task<IResult> AddBuilding(
         Guid siteId,
         [FromBody] AddBuildingRequest request,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.AddBuilding(
@@ -125,32 +165,21 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPut("/api/locations/sites/{siteId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Update a site's name")]
-    [EndpointSummary("Update site")]
-    public async Task<IResult> UpdateSite(
+    private static async Task<IResult> UpdateSite(
         Guid siteId,
         [FromBody] UpdateSiteRequest request,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.UpdateSite(siteId, request.Name, cancellationToken);
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPut("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Update a building's name")]
-    [EndpointSummary("Update building")]
-    public async Task<IResult> UpdateBuilding(
+    private static async Task<IResult> UpdateBuilding(
         Guid siteId,
         Guid buildingId,
         [FromBody] UpdateBuildingRequest request,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.UpdateBuilding(
@@ -162,32 +191,21 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Remove a building from a site")]
-    [EndpointSummary("Remove building")]
-    public async Task<IResult> RemoveBuilding(
+    private static async Task<IResult> RemoveBuilding(
         Guid siteId,
         Guid buildingId,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.RemoveBuilding(siteId, buildingId, cancellationToken);
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Add a room to a building")]
-    [EndpointSummary("Add room")]
-    public async Task<IResult> AddRoom(
+    private static async Task<IResult> AddRoom(
         Guid siteId,
         Guid buildingId,
         [FromBody] AddRoomRequest request,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.AddRoom(
@@ -201,17 +219,12 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPut("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Update a room")]
-    [EndpointSummary("Update room")]
-    public async Task<IResult> UpdateRoom(
+    private static async Task<IResult> UpdateRoom(
         Guid siteId,
         Guid buildingId,
         Guid roomId,
         [FromBody] UpdateRoomRequest request,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.UpdateRoom(
@@ -226,16 +239,11 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Remove a room from a building")]
-    [EndpointSummary("Remove room")]
-    public async Task<IResult> RemoveRoom(
+    private static async Task<IResult> RemoveRoom(
         Guid siteId,
         Guid buildingId,
         Guid roomId,
-        [FromServices] LocationService locationService,
+        LocationService locationService,
         CancellationToken cancellationToken = default)
     {
         Result<Location, LocationErrors> result = await locationService.RemoveRoom(siteId, buildingId, roomId, cancellationToken);

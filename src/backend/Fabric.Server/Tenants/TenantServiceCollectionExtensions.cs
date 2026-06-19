@@ -13,6 +13,9 @@ public static class TenantServiceCollectionExtensions
                 x => x.MigrationsHistoryTable("__EFMigrationsHistory", TenantsDbContext.Schema));
         });
 
+        collection.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.TypeInfoResolverChain.Add(TenantsJsonSerializerContext.Default));
+
         return collection;
     }
 }

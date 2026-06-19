@@ -14,6 +14,9 @@ public static class AccessPolicyServiceCollectionExtensions
                 x => x.MigrationsHistoryTable("__EFMigrationsHistory", AccessPoliciesDbContext.Schema));
         });
 
+        collection.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.TypeInfoResolverChain.Add(AccessPoliciesJsonSerializerContext.Default));
+
         collection.AddScoped<AccessPolicyService>();
         collection.AddScoped<AccessControlSystemService>();
 

@@ -11,6 +11,8 @@ public static class TenancyServiceCollectionExtensions
                 "Tenancy:DefaultTenant:Id is required in SingleTenant mode.")
             .Validate(options => options.Mode != TenancyMode.SingleTenant || IsValidOidcOptions(options.DefaultTenant.Oidc),
                 "Tenancy:DefaultTenant:Oidc must include MetadataUrl and ClientId. MetadataUrl must be HTTPS unless RequireHttpsMetadata is false.")
+            .Validate(options => options.Mode != TenancyMode.SingleTenant || options.DefaultTenant.GraphEmail is null || options.DefaultTenant.GraphEmail.IsConfigured(),
+                "Tenancy:DefaultTenant:GraphEmail must include FromEmail, FromName, AzureTenantId, ApplicationId and Secret when configured.")
             .ValidateOnStart();
 
         services.AddOptions<AdminOidcOptions>()

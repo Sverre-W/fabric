@@ -23,8 +23,7 @@ public class SagasDbContext : TenantDbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SagasDbContext).Assembly,
-                t => t.Namespace == typeof(VisitorPreOnboardingSagaConfiguration).Namespace);
+        modelBuilder.ApplyConfiguration(new VisitorPreOnboardingSagaConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 }

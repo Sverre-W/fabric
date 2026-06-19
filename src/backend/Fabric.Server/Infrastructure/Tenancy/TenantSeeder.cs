@@ -25,7 +25,8 @@ public sealed class TenantSeeder(TenantsDbContext dbContext, IOptions<TenancyOpt
                 MetadataUrl = defaultTenant.Oidc.MetadataUrl!,
                 ClientId = defaultTenant.Oidc.ClientId!,
                 RequireHttpsMetadata = defaultTenant.Oidc.RequireHttpsMetadata
-            }
+            },
+            GraphEmail = defaultTenant.GraphEmail
         });
 
         dbContext.Tenants.Add(tenant);

@@ -1,18 +1,22 @@
 using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Tenants.Contracts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Fabric.Server.Tenants.Endpoints;
 
-[ApiController]
-public sealed class TenantsController
+public static class TenantsEndpoints
 {
-    [AllowAnonymous]
-    [HttpGet("/api/tenants/settings")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TenantSettingsResponse))]
-    [EndpointDescription("Retrieve tenant settings")]
-    [EndpointSummary("Retrieve tenant settings")]
-    public IResult GetTenantSettings([FromServices] ITenantContext tenantContext) =>
+    public static IEndpointRouteBuilder MapTenantEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/tenants/settings", GetTenantSettings)
+            .AllowAnonymous()
+            .WithDescription("Retrieve tenant settings")
+            .WithSummary("Retrieve tenant settings")
+            .Produces<TenantSettingsResponse>();
+
+        return app;
+    }
+
+    private static IResult GetTenantSettings(ITenantContext tenantContext) =>
         Results.Ok(tenantContext.Configuration.ToResponse());
 }

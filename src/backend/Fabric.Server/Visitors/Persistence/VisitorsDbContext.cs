@@ -17,8 +17,10 @@ public class VisitorsDbContext : TenantDbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(VisitorsDbContext).Assembly,
-                t => t.Namespace == typeof(VisitConfiguration).Namespace);
+        modelBuilder.ApplyConfiguration(new VisitConfiguration());
+        modelBuilder.ApplyConfiguration(new VisitInvitationConfiguration());
+        modelBuilder.ApplyConfiguration(new VisitorConfiguration());
+        modelBuilder.ApplyConfiguration(new OrganizerConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 

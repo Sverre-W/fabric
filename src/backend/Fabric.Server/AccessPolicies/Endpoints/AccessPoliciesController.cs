@@ -8,17 +8,41 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.AccessPolicies.Endpoints;
 
-[ApiController]
-public class AccessPoliciesController
+public static class AccessPolicyEndpoints
 {
-    [HttpGet("/api/access-policies/policies")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<AccessPolicyResponse>))]
-    [EndpointDescription("List access policies")]
-    [EndpointSummary("List access policies")]
-    public async Task<IResult> ListAccessPolicies(
-        [FromQuery] ListAccessPoliciesRequest request,
+    public static IEndpointRouteBuilder MapAccessPolicyEndpoints(this IEndpointRouteBuilder app)
+    {
+        RouteGroupBuilder policies = app.MapGroup("/api/access-policies/policies");
+
+        policies.MapGet("", ListAccessPolicies)
+            .WithDescription("List access policies")
+            .WithSummary("List access policies")
+            .Produces<Page<AccessPolicyResponse>>();
+        policies.MapPost("/credentials", CreateCredentialPolicy)
+            .WithDescription("Create a credential access policy")
+            .WithSummary("Create credential policy")
+            .Produces<AccessPolicyChangeResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        policies.MapPost("/access-levels", CreateAccessPolicy)
+            .WithDescription("Create an access-level policy")
+            .WithSummary("Create access-level policy")
+            .Produces<AccessPolicyChangeResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        policies.MapPost("/{policyId:guid}/retract", RetractPolicy)
+            .WithDescription("Retract an access policy and reconcile subject access")
+            .WithSummary("Retract access policy")
+            .Produces<AccessPolicyChangeResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        return app;
+    }
+
+    private static async Task<IResult> ListAccessPolicies(
+        [AsParameters] ListAccessPoliciesRequest request,
         [FromQuery] Guid[]? ids,
-        [FromServices] AccessPoliciesDbContext db,
+        AccessPoliciesDbContext db,
         CancellationToken cancellationToken = default)
     {
         IQueryable<AccessPolicy> query = AccessPoliciesWithRequirements(db).AsNoTracking();
@@ -49,15 +73,9 @@ public class AccessPoliciesController
         return Results.Ok(result.Map(policy => policy.ToResponse()));
     }
 
-    [HttpPost("/api/access-policies/policies/credentials")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessPolicyChangeResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Create a credential access policy")]
-    [EndpointSummary("Create credential policy")]
-    public async Task<IResult> CreateCredentialPolicy(
+    private static async Task<IResult> CreateCredentialPolicy(
         [FromBody] CreateCredentialPolicyRequest request,
-        [FromServices] AccessPolicyService service,
+        AccessPolicyService service,
         CancellationToken cancellationToken = default)
     {
         Result<AccessPolicyChangeResult, AccessPolicyErrors> result = await service.CreateCredentialPolicy(
@@ -72,15 +90,9 @@ public class AccessPoliciesController
         return result.Map(change => change.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/policies/access-levels")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessPolicyChangeResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Create an access-level policy")]
-    [EndpointSummary("Create access-level policy")]
-    public async Task<IResult> CreateAccessPolicy(
+    private static async Task<IResult> CreateAccessPolicy(
         [FromBody] CreateAccessPolicyRequest request,
-        [FromServices] AccessPolicyService service,
+        AccessPolicyService service,
         CancellationToken cancellationToken = default)
     {
         Result<AccessPolicyChangeResult, AccessPolicyErrors> result = await service.CreateAccessPolicy(
@@ -94,14 +106,9 @@ public class AccessPoliciesController
         return result.Map(change => change.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/policies/{policyId:guid}/retract")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessPolicyChangeResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Retract an access policy and reconcile subject access")]
-    [EndpointSummary("Retract access policy")]
-    public async Task<IResult> RetractPolicy(
+    private static async Task<IResult> RetractPolicy(
         Guid policyId,
-        [FromServices] AccessPolicyService service,
+        AccessPolicyService service,
         CancellationToken cancellationToken = default)
     {
         Result<AccessPolicyChangeResult, AccessPolicyErrors> result = await service.RetractPolicy(policyId, cancellationToken);

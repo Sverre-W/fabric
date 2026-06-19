@@ -3,18 +3,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Sagas.VisitorPreOnboarding;
 
-[ApiController]
-public class VisitorPreOnboardingSagaController
+public static class VisitorPreOnboardingSagaEndpoints
 {
-    [HttpPost("/api/sagas/visitor-pre-onboarding/{id:guid}/retry")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Retry an expired visitor pre-onboarding saga")]
-    [EndpointSummary("Retry saga")]
-    public async Task<IResult> RetrySaga(
+    public static IEndpointRouteBuilder MapVisitorPreOnboardingSagaEndpoints(this IEndpointRouteBuilder app)
+    {
+        RouteGroupBuilder group = app.MapGroup("/api/sagas/visitor-pre-onboarding");
+
+        group.MapPost("/{id:guid}/retry", RetrySaga)
+            .WithDescription("Retry an expired visitor pre-onboarding saga")
+            .WithSummary("Retry saga")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        group.MapGet("/{visitId:guid}", GetOnboardingSagas)
+            .Produces<List<VisitorPreOnboardingSaga>>();
+        group.MapGet("/{visitId:guid}/{invitationId:guid}", GetOnboardingSaga)
+            .Produces<VisitorPreOnboardingSaga>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        return app;
+    }
+
+    private static async Task<IResult> RetrySaga(
         Guid id,
-        [FromServices] VisitorPreOnboardingSagaService service,
+        VisitorPreOnboardingSagaService service,
         CancellationToken cancellationToken = default
     )
     {
@@ -31,11 +43,9 @@ public class VisitorPreOnboardingSagaController
         }
     }
 
-    [HttpGet("/api/sagas/visitor-pre-onboarding/{visitId:guid}")]
-    [ProducesResponseType(typeof(List<VisitorPreOnboardingSaga>), StatusCodes.Status200OK)]
-    public async Task<IResult> GetOnboardingSagas(
+    private static async Task<IResult> GetOnboardingSagas(
         Guid visitId,
-        [FromServices] SagasDbContext dbContext,
+        SagasDbContext dbContext,
         CancellationToken cancellationToken = default
     )
     {
@@ -47,13 +57,10 @@ public class VisitorPreOnboardingSagaController
         return Results.Ok(sagas);
     }
 
-    [HttpGet("/api/sagas/visitor-pre-onboarding/{visitId:guid}/{invitationId:guid}")]
-    [ProducesResponseType(typeof(VisitorPreOnboardingSaga), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IResult> GetOnboardingSaga(
+    private static async Task<IResult> GetOnboardingSaga(
         Guid visitId,
         Guid invitationId,
-        [FromServices] SagasDbContext dbContext,
+        SagasDbContext dbContext,
         CancellationToken cancellationToken = default
     )
     {
@@ -70,4 +77,3 @@ public class VisitorPreOnboardingSagaController
         return Results.Ok(saga);
     }
 }
-

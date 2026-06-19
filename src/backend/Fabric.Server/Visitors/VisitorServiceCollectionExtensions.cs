@@ -14,6 +14,9 @@ public static class VisitorServiceCollectionExtensions
                 x => x.MigrationsHistoryTable("__EFMigrationsHistory", VisitorsDbContext.Schema));
         });
 
+        collection.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.TypeInfoResolverChain.Add(VisitorsJsonSerializerContext.Default));
+
         collection.AddScoped<VisitService>();
         return collection;
     }

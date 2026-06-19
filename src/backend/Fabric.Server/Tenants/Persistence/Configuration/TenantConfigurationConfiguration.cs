@@ -9,9 +9,15 @@ public sealed class TenantConfigurationConfiguration : IEntityTypeConfiguration<
     public void Configure(EntityTypeBuilder<Tenant> builder)
     {
         builder.ToTable("tenants", table =>
+        {
             table.HasCheckConstraint(
                 "ck_tenants_logo_data_max_length",
-                $"logo_data IS NULL OR octet_length(logo_data) <= {LogoSettings.MaxDataLength}"));
+                $"logo_data IS NULL OR octet_length(logo_data) <= {LogoSettings.MaxDataLength}");
+
+            table.HasCheckConstraint(
+                "ck_tenants_graph_email_all_or_none",
+                "(graph_email_from_email IS NULL AND graph_email_from_name IS NULL AND graph_email_azure_tenant_id IS NULL AND graph_email_application_id IS NULL AND graph_email_secret IS NULL AND graph_email_save_sent_items IS NULL) OR (graph_email_from_email IS NOT NULL AND graph_email_from_name IS NOT NULL AND graph_email_azure_tenant_id IS NOT NULL AND graph_email_application_id IS NOT NULL AND graph_email_secret IS NOT NULL AND graph_email_save_sent_items IS NOT NULL)");
+        });
 
         builder.HasKey(tenant => tenant.Id).HasName("pk_tenants");
         builder.Property(tenant => tenant.Id).HasColumnName("id").HasMaxLength(100).ValueGeneratedNever();
@@ -66,6 +72,38 @@ public sealed class TenantConfigurationConfiguration : IEntityTypeConfiguration<
                     .HasColumnName("logo_data")
                     .HasColumnType("bytea")
                     .HasMaxLength(LogoSettings.MaxDataLength)
+                    .IsRequired();
+            });
+
+            configuration.OwnsOne(c => c.GraphEmail, email =>
+            {
+                email.Property(e => e.FromEmail)
+                    .HasColumnName("graph_email_from_email")
+                    .HasMaxLength(320)
+                    .IsRequired();
+
+                email.Property(e => e.FromName)
+                    .HasColumnName("graph_email_from_name")
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                email.Property(e => e.AzureTenantId)
+                    .HasColumnName("graph_email_azure_tenant_id")
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                email.Property(e => e.ApplicationId)
+                    .HasColumnName("graph_email_application_id")
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                email.Property(e => e.Secret)
+                    .HasColumnName("graph_email_secret")
+                    .HasMaxLength(2_000)
+                    .IsRequired();
+
+                email.Property(e => e.SaveSentItems)
+                    .HasColumnName("graph_email_save_sent_items")
                     .IsRequired();
             });
         });

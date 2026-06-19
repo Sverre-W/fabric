@@ -29,8 +29,20 @@ public class AccessPoliciesDbContext : TenantDbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AccessPoliciesDbContext).Assembly,
-            type => type.Namespace == typeof(AccessPolicyConfiguration).Namespace);
+        modelBuilder.ApplyConfiguration(new AccessPolicyConfiguration());
+        modelBuilder.ApplyConfiguration(new PolicyRequirementConfiguration());
+        modelBuilder.ApplyConfiguration(new CredentialRequirementConfiguration());
+        modelBuilder.ApplyConfiguration(new AccessRequirementConfiguration());
+        modelBuilder.ApplyConfiguration(new AccessControlSystemConfiguration());
+        modelBuilder.ApplyConfiguration(new BadgeTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new UnipassBadgeTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new LenelBadgeTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new AccessLevelTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new UnipassAccessLevelTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new LenelAccessLevelTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new UnipassAccessControlSystemConfiguration());
+        modelBuilder.ApplyConfiguration(new LenelAccessControlSystemConfiguration());
+        modelBuilder.ApplyConfiguration(new IdentityMappingConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 }

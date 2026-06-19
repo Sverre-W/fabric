@@ -15,8 +15,9 @@ public class ReceptionDbContext : TenantDbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ReceptionDbContext).Assembly,
-            t => t.Namespace == typeof(ExpectedArrivalConfiguration).Namespace);
+        modelBuilder.ApplyConfiguration(new ExpectedArrivalConfiguration());
+        modelBuilder.ApplyConfiguration(new ArrivalEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new CheckInDocumentConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 

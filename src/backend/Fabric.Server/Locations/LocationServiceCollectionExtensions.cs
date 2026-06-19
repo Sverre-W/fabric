@@ -14,6 +14,9 @@ public static class LocationServiceCollectionExtensions
                 x => x.MigrationsHistoryTable("__EFMigrationsHistory", LocationsDbContext.Schema));
         });
 
+        collection.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.TypeInfoResolverChain.Add(LocationsJsonSerializerContext.Default));
+
         collection.AddScoped<LocationService>();
         return collection;
     }

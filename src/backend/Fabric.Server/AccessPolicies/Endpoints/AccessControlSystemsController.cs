@@ -8,17 +8,62 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.AccessPolicies.Endpoints;
 
-[ApiController]
-public class AccessControlSystemsController
+public static class AccessControlSystemEndpoints
 {
-    [HttpGet("/api/access-policies/access-control-systems")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<AccessControlSystemResponse>))]
-    [EndpointDescription("List access control systems")]
-    [EndpointSummary("List access control systems")]
-    public async Task<IResult> ListAccessControlSystems(
-        [FromQuery] ListAccessControlSystemsRequest request,
+    public static IEndpointRouteBuilder MapAccessControlSystemEndpoints(this IEndpointRouteBuilder app)
+    {
+        RouteGroupBuilder systems = app.MapGroup("/api/access-policies/access-control-systems");
+
+        systems.MapGet("", ListAccessControlSystems)
+            .WithDescription("List access control systems")
+            .WithSummary("List access control systems")
+            .Produces<Page<AccessControlSystemResponse>>();
+        systems.MapGet("/{systemId:guid}", GetAccessControlSystem)
+            .WithDescription("Get an access control system")
+            .WithSummary("Get access control system")
+            .Produces<AccessControlSystemResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+        systems.MapGet("/{systemId:guid}/metadata", FetchMetadata)
+            .WithDescription("Fetch provider metadata for an access control system")
+            .WithSummary("Fetch access control system metadata")
+            .Produces<SystemMetadata>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        systems.MapGet("/{systemId:guid}/identity-mappings", ListIdentityMappings)
+            .WithDescription("List identity mappings for an access control system")
+            .WithSummary("List identity mappings")
+            .Produces<Page<IdentityMappingResponse>>();
+        systems.MapPut("/{systemId:guid}/unipass/config", UpdateUnipassConfig)
+            .WithDescription("Update Unipass system config")
+            .WithSummary("Update Unipass config")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        systems.MapPut("/{systemId:guid}/lenel/config", UpdateLenelConfig)
+            .WithDescription("Update Lenel system config")
+            .WithSummary("Update Lenel config")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+        systems.MapPost("/{systemId:guid}/unipass/badge-types", AddUnipassBadgeType)
+            .Produces<UnipassBadgeTypeResponse>();
+        systems.MapPost("/{systemId:guid}/lenel/badge-types", AddLenelBadgeType)
+            .Produces<LenelBadgeTypeResponse>();
+        systems.MapDelete("/{systemId:guid}/badge-types/{badgeTypeId:guid}", RemoveBadgeType)
+            .Produces(StatusCodes.Status204NoContent);
+        systems.MapPost("/{systemId:guid}/unipass/access-level-types", AddUnipassAccessLevel)
+            .Produces<UnipassAccessLevelTypeResponse>();
+        systems.MapPost("/{systemId:guid}/lenel/access-level-types", AddLenelAccessLevel)
+            .Produces<LenelAccessLevelTypeResponse>();
+        systems.MapDelete("/{systemId:guid}/access-level-types/{accessLevelTypeId:guid}", RemoveAccessLevel)
+            .Produces(StatusCodes.Status204NoContent);
+
+        return app;
+    }
+
+    private static async Task<IResult> ListAccessControlSystems(
+        [AsParameters] ListAccessControlSystemsRequest request,
         [FromQuery] Guid[]? ids,
-        [FromServices] AccessPoliciesDbContext db,
+        AccessPoliciesDbContext db,
         CancellationToken cancellationToken = default)
     {
         IQueryable<AccessControlSystem> query = AccessControlSystemsWithDetails(db).AsNoTracking();
@@ -36,14 +81,9 @@ public class AccessControlSystemsController
         return Results.Ok(result.Map(system => system.ToResponse()));
     }
 
-    [HttpGet("/api/access-policies/access-control-systems/{systemId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessControlSystemResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [EndpointDescription("Get an access control system")]
-    [EndpointSummary("Get access control system")]
-    public async Task<IResult> GetAccessControlSystem(
+    private static async Task<IResult> GetAccessControlSystem(
         Guid systemId,
-        [FromServices] AccessPoliciesDbContext db,
+        AccessPoliciesDbContext db,
         CancellationToken cancellationToken = default)
     {
         AccessControlSystem? system = await AccessControlSystemsWithDetails(db)
@@ -53,29 +93,20 @@ public class AccessControlSystemsController
         return system is null ? Results.NotFound() : Results.Ok(system.ToResponse());
     }
 
-    [HttpGet("/api/access-policies/access-control-systems/{systemId:guid}/metadata")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SystemMetadata))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Fetch provider metadata for an access control system")]
-    [EndpointSummary("Fetch access control system metadata")]
-    public async Task<IResult> FetchMetadata(
+    private static async Task<IResult> FetchMetadata(
         Guid systemId,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<SystemMetadata, AccessControlSystemErrors> result = await service.FetchMetadata(systemId, cancellationToken);
         return result.AsResponse(MapError);
     }
 
-    [HttpGet("/api/access-policies/access-control-systems/{systemId:guid}/identity-mappings")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<IdentityMappingResponse>))]
-    [EndpointDescription("List identity mappings for an access control system")]
-    [EndpointSummary("List identity mappings")]
-    public async Task<IResult> ListIdentityMappings(
+    private static async Task<IResult> ListIdentityMappings(
         Guid systemId,
-        [FromQuery] ListIdentityMappingsRequest request,
+        [AsParameters] ListIdentityMappingsRequest request,
         [FromQuery] Guid[]? subjectIds,
-        [FromServices] AccessPoliciesDbContext db,
+        AccessPoliciesDbContext db,
         CancellationToken cancellationToken = default)
     {
         IQueryable<IdentityMapping> query = db.IdentityMappings
@@ -101,16 +132,10 @@ public class AccessControlSystemsController
         return Results.Ok(result.Map(mapping => mapping.ToResponse()));
     }
 
-    [HttpPut("/api/access-policies/access-control-systems/{systemId:guid}/unipass/config")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Update Unipass system config")]
-    [EndpointSummary("Update Unipass config")]
-    public async Task<IResult> UpdateUnipassConfig(
+    private static async Task<IResult> UpdateUnipassConfig(
         Guid systemId,
         [FromBody] UpdateUnipassConfigRequest request,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<UnipassSystemConfig, AccessControlSystemErrors> config = UnipassSystemConfig.Create(
@@ -127,16 +152,10 @@ public class AccessControlSystemsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPut("/api/access-policies/access-control-systems/{systemId:guid}/lenel/config")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Update Lenel system config")]
-    [EndpointSummary("Update Lenel config")]
-    public async Task<IResult> UpdateLenelConfig(
+    private static async Task<IResult> UpdateLenelConfig(
         Guid systemId,
         [FromBody] UpdateLenelConfigRequest request,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<LenelSystemConfig, AccessControlSystemErrors> config = LenelSystemConfig.Create(
@@ -152,12 +171,10 @@ public class AccessControlSystemsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/unipass/badge-types")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UnipassBadgeTypeResponse))]
-    public async Task<IResult> AddUnipassBadgeType(
+    private static async Task<IResult> AddUnipassBadgeType(
         Guid systemId,
         [FromBody] AddUnipassBadgeTypeRequest request,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<UnipassBadgeType, AccessControlSystemErrors> result = await service.AddUnipassBadgeType(
@@ -170,12 +187,10 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/lenel/badge-types")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LenelBadgeTypeResponse))]
-    public async Task<IResult> AddLenelBadgeType(
+    private static async Task<IResult> AddLenelBadgeType(
         Guid systemId,
         [FromBody] AddLenelBadgeTypeRequest request,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<LenelBadgeType, AccessControlSystemErrors> result = await service.AddLenelBadgeType(
@@ -188,24 +203,20 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/access-policies/access-control-systems/{systemId:guid}/badge-types/{badgeTypeId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IResult> RemoveBadgeType(
+    private static async Task<IResult> RemoveBadgeType(
         Guid systemId,
         Guid badgeTypeId,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<AccessControlSystemErrors> result = await service.RemoveBadgeType(systemId, badgeTypeId, cancellationToken);
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/unipass/access-level-types")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UnipassAccessLevelTypeResponse))]
-    public async Task<IResult> AddUnipassAccessLevel(
+    private static async Task<IResult> AddUnipassAccessLevel(
         Guid systemId,
         [FromBody] AddUnipassAccessLevelTypeRequest request,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<UnipassAccessLevelType, AccessControlSystemErrors> result = await service.AddUnipassAccessLevel(
@@ -219,12 +230,10 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/lenel/access-level-types")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LenelAccessLevelTypeResponse))]
-    public async Task<IResult> AddLenelAccessLevel(
+    private static async Task<IResult> AddLenelAccessLevel(
         Guid systemId,
         [FromBody] AddLenelAccessLevelTypeRequest request,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<LenelAccessLevelType, AccessControlSystemErrors> result = await service.AddLenelAccessLevel(
@@ -238,12 +247,10 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/access-policies/access-control-systems/{systemId:guid}/access-level-types/{accessLevelTypeId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IResult> RemoveAccessLevel(
+    private static async Task<IResult> RemoveAccessLevel(
         Guid systemId,
         Guid accessLevelTypeId,
-        [FromServices] AccessControlSystemService service,
+        AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
         Result<AccessControlSystemErrors> result = await service.RemoveAccessLevel(systemId, accessLevelTypeId, cancellationToken);

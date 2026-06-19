@@ -27,8 +27,10 @@ public class LocationsDbContext : TenantDbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(LocationsDbContext).Assembly,
-            type => type.Namespace == typeof(SiteConfiguration).Namespace);
+        modelBuilder.ApplyConfiguration(new SiteConfiguration());
+        modelBuilder.ApplyConfiguration(new BuildingConfiguration());
+        modelBuilder.ApplyConfiguration(new RoomConfiguration());
+        modelBuilder.ApplyConfiguration(new LocationLookupConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 }

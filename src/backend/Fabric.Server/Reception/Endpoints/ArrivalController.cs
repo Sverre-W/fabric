@@ -8,17 +8,53 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Reception.Endpoints;
 
-[ApiController]
-public class ArrivalController
+public static class ArrivalEndpoints
 {
-    [HttpGet("/api/reception/arrivals/{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ArrivalResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [EndpointDescription("Retrieve an arrival by id")]
-    [EndpointSummary("Retrieve an arrival by id")]
-    public async Task<IResult> GetArrivalById(
+    public static IEndpointRouteBuilder MapReceptionEndpoints(this IEndpointRouteBuilder app)
+    {
+        RouteGroupBuilder arrivals = app.MapGroup("/api/reception/arrivals");
+
+        arrivals.MapGet("/{id:guid}", GetArrivalById)
+            .WithDescription("Retrieve an arrival by id")
+            .WithSummary("Retrieve an arrival by id")
+            .Produces<ArrivalResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+        arrivals.MapGet("", ListArrivals)
+            .WithDescription("List all arrivals matching the criteria")
+            .WithSummary("List arrivals")
+            .Produces<Page<ArrivalResponse>>();
+        arrivals.MapPost("/{id:guid}/onboard", OnboardArrival)
+            .WithDescription("Onboard an arrival with documents")
+            .WithSummary("Onboard arrival")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        arrivals.MapPost("/{id:guid}/offboard", OffboardArrival)
+            .WithDescription("Offboard an arrival")
+            .WithSummary("Offboard arrival")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        arrivals.MapPost("/{id:guid}/check-in", CheckInArrival)
+            .WithDescription("Check in an arrival")
+            .WithSummary("Check in arrival")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        arrivals.MapPost("/{id:guid}/check-out", CheckOutArrival)
+            .WithDescription("Check out an arrival")
+            .WithSummary("Check out arrival")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        return app;
+    }
+
+    private static async Task<IResult> GetArrivalById(
         Guid id,
-        [FromServices] ReceptionDbContext db,
+        ReceptionDbContext db,
         CancellationToken cancellationToken = default)
     {
         ExpectedArrival? arrival = await db.Arrivals
@@ -32,13 +68,9 @@ public class ArrivalController
         return Results.Ok(arrival.ToResponse());
     }
 
-    [HttpGet("/api/reception/arrivals")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<ArrivalResponse>))]
-    [EndpointDescription("List all arrivals matching the criteria")]
-    [EndpointSummary("List arrivals")]
-    public async Task<IResult> ListArrivals(
-        [FromQuery] ListArrivalsRequest request,
-        [FromServices] ReceptionDbContext db,
+    private static async Task<IResult> ListArrivals(
+        [AsParameters] ListArrivalsRequest request,
+        ReceptionDbContext db,
         CancellationToken cancellationToken = default)
     {
         IQueryable<ExpectedArrival> query = db.Arrivals.Include(a => a.Entries).Include(a => a.Documents).AsQueryable();
@@ -61,17 +93,10 @@ public class ArrivalController
         return Results.Ok(result.Map(a => a.ToResponse()));
     }
 
-    [HttpPost("/api/reception/arrivals/{id:guid}/onboard")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Onboard an arrival with documents")]
-    [EndpointSummary("Onboard arrival")]
-    public async Task<IResult> OnboardArrival(
+    private static async Task<IResult> OnboardArrival(
         Guid id,
         [FromBody] OnboardArrivalRequest request,
-        [FromServices] ReceptionService receptionService,
+        ReceptionService receptionService,
         CancellationToken cancellationToken = default)
     {
         List<CheckInDocumentRequirement> requiredDocs = request.RequiredDocuments
@@ -91,45 +116,27 @@ public class ArrivalController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/reception/arrivals/{id:guid}/offboard")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Offboard an arrival")]
-    [EndpointSummary("Offboard arrival")]
-    public async Task<IResult> OffboardArrival(
+    private static async Task<IResult> OffboardArrival(
         Guid id,
-        [FromServices] ReceptionService receptionService,
+        ReceptionService receptionService,
         CancellationToken cancellationToken = default)
     {
         Result<ReceptionErrors> result = await receptionService.Offboard(id, cancellationToken);
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/reception/arrivals/{id:guid}/check-in")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Check in an arrival")]
-    [EndpointSummary("Check in arrival")]
-    public async Task<IResult> CheckInArrival(
+    private static async Task<IResult> CheckInArrival(
         Guid id,
-        [FromServices] ReceptionService receptionService,
+        ReceptionService receptionService,
         CancellationToken cancellationToken = default)
     {
         Result<ReceptionErrors> result = await receptionService.CheckIn(id, cancellationToken);
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/reception/arrivals/{id:guid}/check-out")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Check out an arrival")]
-    [EndpointSummary("Check out arrival")]
-    public async Task<IResult> CheckOutArrival(
+    private static async Task<IResult> CheckOutArrival(
         Guid id,
-        [FromServices] ReceptionService receptionService,
+        ReceptionService receptionService,
         CancellationToken cancellationToken = default)
     {
         Result<ReceptionErrors> result = await receptionService.CheckOut(id, cancellationToken);

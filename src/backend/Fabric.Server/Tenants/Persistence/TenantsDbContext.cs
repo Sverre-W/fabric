@@ -22,7 +22,6 @@ public sealed class TenantsDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(TenantsDbContext).Assembly,
-            t => t.Namespace == typeof(TenantConfigurationConfiguration).Namespace);
+        modelBuilder.ApplyConfiguration(new TenantConfigurationConfiguration());
     }
 }

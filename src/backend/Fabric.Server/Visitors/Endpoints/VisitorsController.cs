@@ -9,17 +9,83 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Visitors.Endpoints;
 
-[ApiController]
-public class VisitorsController
+public static class VisitorEndpoints
 {
-    [HttpGet("/api/visitors/visitors")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<VisitorResponse>))]
-    [EndpointDescription("List visitors")]
-    [EndpointSummary("List visitors")]
-    public async Task<IResult> ListVisitors(
-        [FromQuery] ListVisitorsRequest request,
+    public static IEndpointRouteBuilder MapVisitorEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/visitors/visitors", ListVisitors)
+            .WithDescription("List visitors")
+            .WithSummary("List visitors")
+            .Produces<Page<VisitorResponse>>();
+
+        RouteGroupBuilder visits = app.MapGroup("/api/visitors/visits");
+
+        visits.MapGet("/{id:guid}", GetVisitById)
+            .WithDescription("Retrieve a visit by id")
+            .WithSummary("Retrieve a visit by id")
+            .Produces<VisitResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+        visits.MapGet("", ListVisits)
+            .WithDescription("List all visits matching the criteria")
+            .WithSummary("List visits")
+            .Produces<Page<VisitResponse>>();
+        visits.MapPost("", CreateVisit)
+            .WithDescription("Create a new visit")
+            .WithSummary("Create a new visit")
+            .Produces<VisitResponse>(StatusCodes.Status201Created);
+        visits.MapPost("/{id:guid}/cancel", CancelVisit)
+            .WithDescription("Cancel a visit")
+            .WithSummary("Cancel a visit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        visits.MapPost("/{id:guid}/reschedule", RescheduleVisit)
+            .WithDescription("Reschedule a visit")
+            .WithSummary("Reschedule a visit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        visits.MapPut("/{id:guid}/summary", UpdateVisitSummary)
+            .WithDescription("Update visit summary")
+            .WithSummary("Update visit summary")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        visits.MapPost("/{id:guid}/relocate", RelocateVisit)
+            .WithDescription("Relocate a visit")
+            .WithSummary("Relocate a visit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        visits.MapPost("/{id:guid}/invitations", InviteToVisit)
+            .WithDescription("Invite someone to a visit")
+            .WithSummary("Invite someone to a visit")
+            .Produces<VisitInvitationResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        visits.MapPost("/{visitId:guid}/invitations/{invitationId:guid}/confirm", ConfirmInvitation)
+            .WithDescription("Confirm participation in a visit")
+            .WithSummary("Confirm invitation")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        visits.MapPost("/{visitId:guid}/invitations/{invitationId:guid}/reject", RejectInvitation)
+            .WithDescription("Reject participation in a visit")
+            .WithSummary("Reject invitation")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        return app;
+    }
+
+    private static async Task<IResult> ListVisitors(
+        [AsParameters] ListVisitorsRequest request,
         [FromQuery] Guid[]? ids,
-        [FromServices] VisitorsDbContext db,
+        VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
@@ -47,13 +113,8 @@ public class VisitorsController
         return Results.Ok(result.Map(visitor => visitor.ToResponse()));
     }
 
-    [HttpGet("/api/visitors/visits/{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VisitResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [EndpointDescription("Retrieve a visit by id")]
-    [EndpointSummary("Retrieve a visit by id")]
-    public async Task<IResult> GetVisitById(
-        [FromServices] VisitorsDbContext db,
+    private static async Task<IResult> GetVisitById(
+        VisitorsDbContext db,
         Guid id,
         CancellationToken cancellationToken = default
     )
@@ -73,13 +134,9 @@ public class VisitorsController
         return Results.Ok(visitRow.ToResponse(organizer));
     }
 
-    [HttpGet("/api/visitors/visits")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<VisitResponse>))]
-    [EndpointDescription("List all visits matching the criteria")]
-    [EndpointSummary("List visits")]
-    public async Task<IResult> ListVisits(
-        [FromQuery] ListVisitsRequest request,
-        [FromServices] VisitorsDbContext db,
+    private static async Task<IResult> ListVisits(
+        [AsParameters] ListVisitsRequest request,
+        VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
@@ -110,13 +167,9 @@ public class VisitorsController
         return Results.Ok(result.Map(visit => visit.ToResponse(organizerMap[visit.OrganizerId])));
     }
 
-    [HttpPost("/api/visitors/visits")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(VisitResponse))]
-    [EndpointDescription("Create a new visit")]
-    [EndpointSummary("Create a new visit")]
-    public async Task<IResult> CreateVisit(
+    private static async Task<IResult> CreateVisit(
         [FromBody] CreateVisitRequest request,
-        [FromServices] VisitService visitService,
+        VisitService visitService,
         CancellationToken cancellationToken = default
     )
     {
@@ -132,16 +185,10 @@ public class VisitorsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/visitors/visits/{id:guid}/cancel")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Cancel a visit")]
-    [EndpointSummary("Cancel a visit")]
-    public async Task<IResult> CancelVisit(
+    private static async Task<IResult> CancelVisit(
         Guid id,
-        [FromServices] VisitService visitService,
-        [FromServices] VisitorPreOnboardingSagaService onboardingSagaService,
+        VisitService visitService,
+        VisitorPreOnboardingSagaService onboardingSagaService,
         CancellationToken cancellationToken = default
     )
     {
@@ -155,18 +202,11 @@ public class VisitorsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/visitors/visits/{id:guid}/reschedule")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Reschedule a visit")]
-    [EndpointSummary("Reschedule a visit")]
-    public async Task<IResult> RescheduleVisit(
+    private static async Task<IResult> RescheduleVisit(
         Guid id,
         [FromBody] RescheduleVisitRequest request,
-        [FromServices] VisitService visitService,
-        [FromServices] VisitorPreOnboardingSagaService onboardingSagaService,
+        VisitService visitService,
+        VisitorPreOnboardingSagaService onboardingSagaService,
         CancellationToken cancellationToken = default
     )
     {
@@ -185,17 +225,10 @@ public class VisitorsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPut("/api/visitors/visits/{id:guid}/summary")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Update visit summary")]
-    [EndpointSummary("Update visit summary")]
-    public async Task<IResult> UpdateVisitSummary(
+    private static async Task<IResult> UpdateVisitSummary(
         Guid id,
         [FromBody] UpdateVisitSummaryRequest request,
-        [FromServices] VisitService visitService,
+        VisitService visitService,
         CancellationToken cancellationToken = default
     )
     {
@@ -204,16 +237,10 @@ public class VisitorsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/visitors/visits/{id:guid}/relocate")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Relocate a visit")]
-    [EndpointSummary("Relocate a visit")]
-    public async Task<IResult> RelocateVisit(
+    private static async Task<IResult> RelocateVisit(
         Guid id,
         [FromBody] RelocateVisitRequest request,
-        [FromServices] VisitService visitService,
+        VisitService visitService,
         CancellationToken cancellationToken = default
     )
     {
@@ -222,18 +249,12 @@ public class VisitorsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/visitors/visits/{id:guid}/invitations")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VisitInvitationResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Invite someone to a visit")]
-    [EndpointSummary("Invite someone to a visit")]
-    public async Task<IResult> InviteToVisit(
+    private static async Task<IResult> InviteToVisit(
         Guid id,
         [FromBody] InviteVisitRequest request,
-        [FromServices] VisitService visitService,
-        [FromServices] VisitorPreOnboardingSagaService onboardingSagaService,
-        [FromServices] VisitorsDbContext db,
+        VisitService visitService,
+        VisitorPreOnboardingSagaService onboardingSagaService,
+        VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
@@ -261,20 +282,13 @@ public class VisitorsController
         return result.Map(x => x.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/visitors/visits/{visitId:guid}/invitations/{invitationId:guid}/confirm")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Confirm participation in a visit")]
-    [EndpointSummary("Confirm invitation")]
-    public async Task<IResult> ConfirmInvitation(
+    private static async Task<IResult> ConfirmInvitation(
 
         Guid visitId,
         Guid invitationId,
         [FromBody] ConfirmInvitationRequest request,
-        [FromServices] VisitService visitService,
-        [FromServices] VisitorPreOnboardingSagaService onboardingSagaService,
+        VisitService visitService,
+        VisitorPreOnboardingSagaService onboardingSagaService,
         CancellationToken cancellationToken = default
     )
     {
@@ -298,17 +312,11 @@ public class VisitorsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/visitors/visits/{visitId:guid}/invitations/{invitationId:guid}/reject")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
-    [EndpointDescription("Reject participation in a visit")]
-    [EndpointSummary("Reject invitation")]
-    public async Task<IResult> RejectInvitation(
+    private static async Task<IResult> RejectInvitation(
         Guid visitId,
         Guid invitationId,
-        [FromServices] VisitService visitService,
-        [FromServices] VisitorPreOnboardingSagaService onboardingSagaService,
+        VisitService visitService,
+        VisitorPreOnboardingSagaService onboardingSagaService,
         CancellationToken cancellationToken = default
     )
     {
