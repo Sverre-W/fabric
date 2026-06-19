@@ -74,7 +74,7 @@ public sealed class TenantBearerAuthenticationHandler(
         {
             ValidateIssuer = true,
             ValidIssuer = configuration.Issuer,
-            ValidateAudience = true,
+            ValidateAudience = false, //TODO: Look into why we should validate this and should we make it a seperate config what the audince is?
             ValidAudience = oidcSettings.ClientId,
             ValidateIssuerSigningKey = true,
             IssuerSigningKeys = configuration.SigningKeys,

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.AccessPolicies.Persistence.Migrations
 {
     [DbContext(typeof(AccessPoliciesDbContext))]
-    [Migration("20260619005247_AccessPoliciesInit")]
+    [Migration("20260619022658_AccessPoliciesInit")]
     partial class AccessPoliciesInit
     {
         /// <inheritdoc />

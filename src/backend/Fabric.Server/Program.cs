@@ -68,7 +68,7 @@ WebApplication app = builder.Build();
 // Configure the HTTP request pipeline.
 if (enableSwagger)
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
     app.UseSwagger();
     app.UseSwaggerUI();
 }

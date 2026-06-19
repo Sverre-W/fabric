@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.Reception.Persistence.Migrations
 {
     [DbContext(typeof(ReceptionDbContext))]
-    [Migration("20260619005256_ReceptionInit")]
+    [Migration("20260619022707_ReceptionInit")]
     partial class ReceptionInit
     {
         /// <inheritdoc />

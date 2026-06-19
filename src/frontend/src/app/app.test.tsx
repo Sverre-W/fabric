@@ -1,15 +1,38 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './app';
 import { createAppRouter } from './router';
 
 const apiGetMock = vi.hoisted(() => vi.fn());
+const signinRedirectMock = vi.hoisted(() => vi.fn());
+const signoutRedirectMock = vi.hoisted(() => vi.fn());
+const removeUserMock = vi.hoisted(() => vi.fn());
+const authState = vi.hoisted(() => ({
+  isAuthenticated: true,
+  isLoading: false,
+  activeNavigator: undefined as string | undefined,
+  error: undefined as Error | undefined,
+  user: { access_token: 'access-token' } as { access_token: string } | undefined,
+}));
 
 vi.mock('@/shared/api/client', () => ({
+  apiBaseUrl: 'http://localhost:5245',
+  setAccessToken: vi.fn(),
   api: {
     GET: apiGetMock,
   },
+}));
+
+vi.mock('react-oidc-context', () => ({
+  AuthProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useAuth: () => ({
+    ...authState,
+    signinRedirect: signinRedirectMock,
+    signoutRedirect: signoutRedirectMock,
+    removeUser: removeUserMock,
+  }),
 }));
 
 const emptyVisitPage = {
@@ -21,19 +44,68 @@ const emptyVisitPage = {
   isLastPage: true,
 };
 
+const tenantSettingsResponse = {
+  oidc: {
+    metadataUrl: 'http://localhost:7080/realms/dev/.well-known/openid-configuration',
+    clientId: 'portal',
+    requireHttpsMetadata: false,
+  },
+  theme: {
+    backgroundColor: '#f8f8f8',
+    contentColor: '#ffffff',
+    primaryColor: '#238cff',
+    textColor: '#212529',
+    textMutedColor: '#6c757d',
+    borderColor: '#dddddd',
+    hoverBlueColor: '#eef6ff',
+    activeBlueColor: '#deeeff',
+    hoverGrayColor: '#f3f3f3',
+    errorColor: '#ff6467',
+    errorBackgroundColor: '#feeaea',
+    dangerColor: '#ff6467',
+    successColor: '#00c950',
+    successBackgroundColor: '#e6faeb',
+  },
+  logo: null,
+};
+
 describe('App', () => {
   beforeEach(() => {
     apiGetMock.mockReset();
-    apiGetMock.mockResolvedValue({ data: emptyVisitPage });
+    signinRedirectMock.mockReset();
+    signoutRedirectMock.mockReset();
+    removeUserMock.mockReset();
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+    authState.isAuthenticated = true;
+    authState.isLoading = false;
+    authState.activeNavigator = undefined;
+    authState.error = undefined;
+    authState.user = { access_token: 'access-token' };
     window.sessionStorage.clear();
     window.history.pushState({}, '', '/');
   });
 
-  it('renders module launcher on home page', async () => {
+  it('renders public home page when unauthenticated', async () => {
+    authState.isAuthenticated = false;
+    authState.user = undefined;
+
     render(<App appRouter={createAppRouter()} />);
 
     expect(await screen.findByRole('link', { name: /fabric home/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /select module/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /welcome to your visitor and access workspace/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+  });
+
+  it('renders module launcher on home page when authenticated', async () => {
+    render(<App appRouter={createAppRouter()} />);
+
     expect(await screen.findByRole('heading', { name: /fabric modules/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /visitors management/i })).toBeInTheDocument();
   });
@@ -62,8 +134,12 @@ describe('App', () => {
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 30);
     const stop = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 45);
 
-    apiGetMock.mockResolvedValue({
-      data: {
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      return Promise.resolve({ data: {
         ...emptyVisitPage,
         totalItems: 1,
         items: [
@@ -76,7 +152,7 @@ describe('App', () => {
             invitations: [{ id: 'participant-1' }, { id: 'participant-2' }],
           },
         ],
-      },
+      } });
     });
 
     render(<App appRouter={createAppRouter()} />);
@@ -91,8 +167,8 @@ describe('App', () => {
 
     render(<App appRouter={createAppRouter()} />);
 
-    expect(await screen.findByText('No visits match this interval and filter.')).toBeInTheDocument();
-    expect(screen.getAllByText('No visits').length).toBeGreaterThan(0);
+    expect(await screen.findByRole('heading', { name: /visits/i })).toBeInTheDocument();
+    expect(await screen.findByText('0 visits')).toBeInTheDocument();
   });
 
   it('restores persisted visits view and status filters', async () => {

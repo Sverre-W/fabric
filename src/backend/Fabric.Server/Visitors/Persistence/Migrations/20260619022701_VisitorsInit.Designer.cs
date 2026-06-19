@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.Visitors.Persistence.Migrations
 {
     [DbContext(typeof(VisitorsDbContext))]
-    [Migration("20260619005249_VisitorsInit")]
+    [Migration("20260619022701_VisitorsInit")]
     partial class VisitorsInit
     {
         /// <inheritdoc />

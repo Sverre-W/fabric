@@ -2,9 +2,11 @@ import { Outlet, createRootRoute, createRoute, createRouter } from '@tanstack/re
 import { lazy, Suspense } from 'react';
 
 import { AppLayout } from '@/shared/layout/app-layout';
+import { ProtectedRoute } from '@/shared/auth/protected-route';
 
 const AccessPage = lazy(() => import('@/features/access/access-page'));
 const AuditPage = lazy(() => import('@/features/audit/audit-page'));
+const AuthCallbackPage = lazy(() => import('@/features/auth/auth-callback-page'));
 const CredentialsPage = lazy(() => import('@/features/credentials/credentials-page'));
 const HomePage = lazy(() => import('@/features/home/home-page'));
 const IdentitiesPage = lazy(() => import('@/features/identities/identities-page'));
@@ -34,46 +36,52 @@ const indexRoute = createRoute({
   component: () => <LazyRoute component={<HomePage />} />,
 });
 
+const authCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth/callback',
+  component: () => <LazyRoute component={<AuthCallbackPage />} />,
+});
+
 const identitiesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/identities',
-  component: () => <LazyRoute component={<IdentitiesPage />} />,
+  component: () => <ProtectedLazyRoute component={<IdentitiesPage />} />,
 });
 
 const accessRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/access',
-  component: () => <LazyRoute component={<AccessPage />} />,
+  component: () => <ProtectedLazyRoute component={<AccessPage />} />,
 });
 
 const credentialsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/credentials',
-  component: () => <LazyRoute component={<CredentialsPage />} />,
+  component: () => <ProtectedLazyRoute component={<CredentialsPage />} />,
 });
 
 const organizationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/organizations',
-  component: () => <LazyRoute component={<OrganizationsPage />} />,
+  component: () => <ProtectedLazyRoute component={<OrganizationsPage />} />,
 });
 
 const auditRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/audit',
-  component: () => <LazyRoute component={<AuditPage />} />,
+  component: () => <ProtectedLazyRoute component={<AuditPage />} />,
 });
 
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
-  component: () => <LazyRoute component={<SettingsPage />} />,
+  component: () => <ProtectedLazyRoute component={<SettingsPage />} />,
 });
 
 const visitorsManagementRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/visitors-management',
-  component: () => <LazyRoute component={<VisitorsManagementLayout />} />,
+  component: () => <ProtectedLazyRoute component={<VisitorsManagementLayout />} />,
 });
 
 const visitsIndexRoute = createRoute({
@@ -132,6 +140,7 @@ const visitorReportingRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  authCallbackRoute,
   identitiesRoute,
   accessRoute,
   credentialsRoute,
@@ -157,6 +166,14 @@ declare module '@tanstack/react-router' {
 
 function LazyRoute({ component }: { component: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{component}</Suspense>;
+}
+
+function ProtectedLazyRoute({ component }: { component: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <LazyRoute component={component} />
+    </ProtectedRoute>
+  );
 }
 
 function RouteFallback() {

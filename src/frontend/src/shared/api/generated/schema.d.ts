@@ -2031,6 +2031,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tenants/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve tenant settings
+         * @description Retrieve tenant settings
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantSettingsResponse"];
+                        "application/json": components["schemas"]["TenantSettingsResponse"];
+                        "text/json": components["schemas"]["TenantSettingsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sagas/visitor-pre-onboarding/{id}/retry": {
         parameters: {
             query?: never;
@@ -3179,8 +3220,17 @@ export interface components {
         };
         /** @enum {string} */
         LocationType: "Site" | "Building" | "Room";
+        LogoSettingsResponse: {
+            contentType?: string | null;
+            data?: string | null;
+        };
         /** @enum {string} */
         ModeOfTransport: "Car" | "PublicTransport" | "Bike" | "Walk";
+        OidcSettingsResponse: {
+            metadataUrl?: string | null;
+            clientId?: string | null;
+            requireHttpsMetadata?: boolean;
+        };
         OnboardArrivalRequest: {
             requiredDocuments?: components["schemas"]["CheckInDocumentRequirementDto"][] | null;
             providedDocuments?: components["schemas"]["CheckInDocumentDto"][] | null;
@@ -3292,6 +3342,27 @@ export interface components {
         SystemMetadataObject: {
             id?: string | null;
             name?: string | null;
+        };
+        TenantSettingsResponse: {
+            oidc?: components["schemas"]["OidcSettingsResponse"];
+            theme?: components["schemas"]["ThemeSettingsResponse"];
+            logo?: components["schemas"]["LogoSettingsResponse"];
+        };
+        ThemeSettingsResponse: {
+            backgroundColor?: string | null;
+            contentColor?: string | null;
+            primaryColor?: string | null;
+            textColor?: string | null;
+            textMutedColor?: string | null;
+            borderColor?: string | null;
+            hoverBlueColor?: string | null;
+            activeBlueColor?: string | null;
+            hoverGrayColor?: string | null;
+            errorColor?: string | null;
+            errorBackgroundColor?: string | null;
+            dangerColor?: string | null;
+            successColor?: string | null;
+            successBackgroundColor?: string | null;
         };
         UnipassAccessControlSystemResponse: {
             badgeTypes: components["schemas"]["UnipassBadgeTypeResponse"][] | null;
