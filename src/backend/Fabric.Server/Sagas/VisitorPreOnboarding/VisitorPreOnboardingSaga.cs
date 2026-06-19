@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Fabric.Server.Sagas.VisitorPreOnboarding;
 
 public class VisitorPreOnboardingSaga
@@ -14,6 +16,7 @@ public class VisitorPreOnboardingSaga
     public VisitorPreOnboardingState State { get; set; }
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum VisitorPreOnboardingState
 {
     RegisteringArrival,

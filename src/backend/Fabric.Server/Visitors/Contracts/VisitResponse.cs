@@ -26,6 +26,8 @@ public record VisitInvitationResponse(
     ModeOfTransport? Transport,
     string? LicensePlate);
 
+public record VisitorResponse(Guid Id, string FirstName, string LastName, string Email, string? Company);
+
 [Mapper]
 public static partial class VisitMapper
 {
@@ -44,6 +46,8 @@ public static partial class VisitMapper
 
     [MapperIgnoreSource(nameof(Organizer.Active))]
     public static partial OrganizerResponse ToResponse(this Organizer organizer);
+
+    public static partial VisitorResponse ToResponse(this Visitor visitor);
 
     public static partial VisitInvitationResponse ToResponse(this VisitInvitation invitation);
 }

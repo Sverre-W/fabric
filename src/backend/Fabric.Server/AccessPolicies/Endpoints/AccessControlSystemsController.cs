@@ -11,7 +11,7 @@ namespace Fabric.Server.AccessPolicies.Endpoints;
 [ApiController]
 public class AccessControlSystemsController
 {
-    [HttpGet("/api/access-control-systems")]
+    [HttpGet("/api/access-policies/access-control-systems")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<AccessControlSystemResponse>))]
     [EndpointDescription("List access control systems")]
     [EndpointSummary("List access control systems")]
@@ -36,7 +36,7 @@ public class AccessControlSystemsController
         return Results.Ok(result.Map(system => system.ToResponse()));
     }
 
-    [HttpGet("/api/access-control-systems/{systemId:guid}")]
+    [HttpGet("/api/access-policies/access-control-systems/{systemId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessControlSystemResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [EndpointDescription("Get an access control system")]
@@ -53,7 +53,7 @@ public class AccessControlSystemsController
         return system is null ? Results.NotFound() : Results.Ok(system.ToResponse());
     }
 
-    [HttpGet("/api/access-control-systems/{systemId:guid}/metadata")]
+    [HttpGet("/api/access-policies/access-control-systems/{systemId:guid}/metadata")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SystemMetadata))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [EndpointDescription("Fetch provider metadata for an access control system")]
@@ -67,7 +67,7 @@ public class AccessControlSystemsController
         return result.AsResponse(MapError);
     }
 
-    [HttpGet("/api/access-control-systems/{systemId:guid}/identity-mappings")]
+    [HttpGet("/api/access-policies/access-control-systems/{systemId:guid}/identity-mappings")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<IdentityMappingResponse>))]
     [EndpointDescription("List identity mappings for an access control system")]
     [EndpointSummary("List identity mappings")]
@@ -101,7 +101,7 @@ public class AccessControlSystemsController
         return Results.Ok(result.Map(mapping => mapping.ToResponse()));
     }
 
-    [HttpPut("/api/access-control-systems/{systemId:guid}/unipass/config")]
+    [HttpPut("/api/access-policies/access-control-systems/{systemId:guid}/unipass/config")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -127,7 +127,7 @@ public class AccessControlSystemsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPut("/api/access-control-systems/{systemId:guid}/lenel/config")]
+    [HttpPut("/api/access-policies/access-control-systems/{systemId:guid}/lenel/config")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -152,7 +152,7 @@ public class AccessControlSystemsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-control-systems/{systemId:guid}/unipass/badge-types")]
+    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/unipass/badge-types")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UnipassBadgeTypeResponse))]
     public async Task<IResult> AddUnipassBadgeType(
         Guid systemId,
@@ -170,7 +170,7 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-control-systems/{systemId:guid}/lenel/badge-types")]
+    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/lenel/badge-types")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LenelBadgeTypeResponse))]
     public async Task<IResult> AddLenelBadgeType(
         Guid systemId,
@@ -188,7 +188,7 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/access-control-systems/{systemId:guid}/badge-types/{badgeTypeId:guid}")]
+    [HttpDelete("/api/access-policies/access-control-systems/{systemId:guid}/badge-types/{badgeTypeId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IResult> RemoveBadgeType(
         Guid systemId,
@@ -200,7 +200,7 @@ public class AccessControlSystemsController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-control-systems/{systemId:guid}/unipass/access-level-types")]
+    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/unipass/access-level-types")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UnipassAccessLevelTypeResponse))]
     public async Task<IResult> AddUnipassAccessLevel(
         Guid systemId,
@@ -219,7 +219,7 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-control-systems/{systemId:guid}/lenel/access-level-types")]
+    [HttpPost("/api/access-policies/access-control-systems/{systemId:guid}/lenel/access-level-types")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LenelAccessLevelTypeResponse))]
     public async Task<IResult> AddLenelAccessLevel(
         Guid systemId,
@@ -238,7 +238,7 @@ public class AccessControlSystemsController
         return result.Map(type => type.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/access-control-systems/{systemId:guid}/access-level-types/{accessLevelTypeId:guid}")]
+    [HttpDelete("/api/access-policies/access-control-systems/{systemId:guid}/access-level-types/{accessLevelTypeId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IResult> RemoveAccessLevel(
         Guid systemId,

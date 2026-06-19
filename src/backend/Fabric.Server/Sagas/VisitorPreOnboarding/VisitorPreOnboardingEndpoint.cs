@@ -31,8 +31,24 @@ public class VisitorPreOnboardingSagaController
         }
     }
 
+    [HttpGet("/api/sagas/visitor-pre-onboarding/{visitId:guid}")]
+    [ProducesResponseType(typeof(List<VisitorPreOnboardingSaga>), StatusCodes.Status200OK)]
+    public async Task<IResult> GetOnboardingSagas(
+        Guid visitId,
+        [FromServices] SagasDbContext dbContext,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<VisitorPreOnboardingSaga> sagas = await dbContext
+            .VisitorPreOnboardingSagas.AsNoTracking()
+            .Where(x => x.VisitId == visitId)
+            .ToListAsync(cancellationToken);
+
+        return Results.Ok(sagas);
+    }
+
     [HttpGet("/api/sagas/visitor-pre-onboarding/{visitId:guid}/{invitationId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(VisitorPreOnboardingSaga), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IResult> GetOnboardingSaga(
         Guid visitId,

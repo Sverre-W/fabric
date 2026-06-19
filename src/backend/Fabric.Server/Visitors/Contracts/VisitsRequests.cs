@@ -11,8 +11,13 @@ public record ListVisitsRequest : BaseListRequest
     public DateTimeOffset? Before { get; set; }
 }
 
+public record ListVisitorsRequest : BaseListRequest
+{
+    public string? Query { get; set; }
+}
 
-public record CreateVisitRequest(        
+
+public record CreateVisitRequest(
     Guid Organizer,
     string Summary,
     DateTimeOffset Start,
@@ -26,6 +31,8 @@ public record RescheduleVisitRequest(
 );
 
 public record RelocateVisitRequest(Guid LocationId);
+
+public record UpdateVisitSummaryRequest(string Summary);
 
 public record InviteVisitRequest(
     string FirstName,

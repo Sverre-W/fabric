@@ -29,8 +29,11 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
 
         Result<Visit, VisitErrors> result = Visit.Create(organizerId, summary, start, end, locationId, timeProvider.GetUtcNow());
 
-        if (result.IsSuccess(out _))
+        if (result.IsSuccess(out Visit visit))
+        {
+            db.Visits.Add(visit);
             await db.SaveChangesAsync(cancellationToken);
+        }
 
         return result;
     }
@@ -95,6 +98,22 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
             return Result.Failure(VisitErrors.VisitNotFound);
 
         Result<VisitErrors> result = visit.Reschedule(start, end, timeProvider.GetUtcNow());
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<Result<VisitErrors>> UpdateSummary(Guid visitId, string summary,
+        CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+
+        Result<VisitErrors> result = visit.UpdateSummary(summary);
 
         if (result.IsSuccess(out _))
             await db.SaveChangesAsync(cancellationToken);

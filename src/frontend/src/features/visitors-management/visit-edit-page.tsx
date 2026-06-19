@@ -1,0 +1,495 @@
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams } from '@tanstack/react-router';
+import { ArrowLeft, CalendarX, Mail, Users } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { api } from '@/shared/api/client';
+import type { components } from '@/shared/api/generated/schema';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { Separator } from '@/shared/components/ui/separator';
+import { VisitStatusBadge } from '@/shared/components/visit-status-badge';
+
+import { OnboardingJourney } from './onboarding-journey';
+import { VisitForm, type VisitFormValues } from './visit-form';
+
+type VisitResponse = components['schemas']['VisitResponse'];
+type VisitInvitationResponse = components['schemas']['VisitInvitationResponse'];
+type VisitorPreOnboardingSaga = components['schemas']['VisitorPreOnboardingSaga'];
+
+const visitsQueryKey = ['visitors-management', 'visits'] as const;
+
+function toDatetimeLocal(value: string): string {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function mapVisitToFormValues(visit: VisitResponse): VisitFormValues {
+  return {
+    organizer: visit.organizer?.id ?? '',
+    summary: visit.summary ?? '',
+    start: visit.start ? toDatetimeLocal(visit.start) : '',
+    stop: visit.stop ? toDatetimeLocal(visit.stop) : '',
+  };
+}
+
+function formatInvitationName(invitation: VisitInvitationResponse) {
+  return [invitation.firstName, invitation.lastName].filter(Boolean).join(' ') || invitation.email || 'Unnamed';
+}
+
+export default function VisitEditPage() {
+  const { visitId } = useParams({ from: '/visitors-management/visits/$visitId/edit' });
+  const queryClient = useQueryClient();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteFirstName, setInviteFirstName] = useState('');
+  const [inviteLastName, setInviteLastName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteCompany, setInviteCompany] = useState('');
+
+  const visitQuery = useQuery({
+    queryKey: [...visitsQueryKey, visitId],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/visitors/visits/{id}', {
+        params: { path: { id: visitId } },
+      });
+
+      if (error) {
+        throw new Error('Could not load visit.');
+      }
+
+      return data;
+    },
+  });
+
+  const visit = visitQuery.data;
+  const isCancelledOrCompleted = visit?.status === 'Cancelled' || visit?.status === 'Completed';
+
+  const reschedule = useMutation({
+    mutationFn: async (values: { start: string; stop: string }) => {
+      const { error } = await api.POST('/api/visitors/visits/{id}/reschedule', {
+        params: { path: { id: visitId } },
+        body: {
+          start: new Date(values.start).toISOString(),
+          stop: new Date(values.stop).toISOString(),
+        },
+      });
+
+      if (error) {
+        throw new Error('Could not reschedule visit.');
+      }
+    },
+  });
+
+  const updateSummary = useMutation({
+    mutationFn: async (summary: string) => {
+      const { error } = await api.PUT('/api/visitors/visits/{id}/summary', {
+        params: { path: { id: visitId } },
+        body: { summary },
+      });
+
+      if (error) {
+        throw new Error('Could not update visit summary.');
+      }
+    },
+  });
+
+  const cancelVisit = useMutation({
+    mutationFn: async () => {
+      const { error } = await api.POST('/api/visitors/visits/{id}/cancel', {
+        params: { path: { id: visitId } },
+      });
+
+      if (error) {
+        throw new Error('Could not cancel visit.');
+      }
+    },
+  });
+
+  const inviteVisitor = useMutation({
+    mutationFn: async (values: { firstName: string; lastName: string; email: string; company: string }) => {
+      const { error } = await api.POST('/api/visitors/visits/{id}/invitations', {
+        params: { path: { id: visitId } },
+        body: values,
+      });
+
+      if (error) {
+        throw new Error('Could not send invitation.');
+      }
+    },
+  });
+
+  const visitorsQuery = useQuery({
+    queryKey: ['visitors-management', 'visitors', 'search', inviteEmail],
+    queryFn: async () => {
+      if (!inviteEmail) {
+        return [];
+      }
+
+      const { data, error } = await api.GET('/api/visitors/visitors', {
+        params: { query: { query: inviteEmail, page: 0, pageSize: 10 } },
+      });
+
+      if (error) {
+        throw new Error('Could not search visitors.');
+      }
+
+      return data?.items ?? [];
+    },
+  });
+
+  const sagasQuery = useQuery({
+    queryKey: [...visitsQueryKey, visitId, 'onboarding-sagas'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/sagas/visitor-pre-onboarding/{visitId}', {
+        params: { path: { visitId } },
+      });
+
+      if (error) {
+        throw new Error('Could not load onboarding sagas.');
+      }
+
+      return data ?? [];
+    },
+    enabled: !!visit,
+  });
+
+  const sagasByInvitationId = new Map(
+    (sagasQuery.data ?? []).map((saga) => [saga.invitationId, saga]),
+  );
+
+  const isSaving = reschedule.isPending || updateSummary.isPending;
+
+  async function handleSubmit(formValues: VisitFormValues) {
+    if (!visit) {
+      return;
+    }
+
+    const summaryChanged = formValues.summary !== (visit.summary ?? '');
+    const scheduleChanged = formValues.start !== toDatetimeLocal(visit.start ?? '') || formValues.stop !== toDatetimeLocal(visit.stop ?? '');
+
+    try {
+      if (summaryChanged) {
+        await updateSummary.mutateAsync(formValues.summary);
+      }
+
+      if (scheduleChanged) {
+        await reschedule.mutateAsync({ start: formValues.start, stop: formValues.stop });
+      }
+
+      await queryClient.invalidateQueries({ queryKey: visitsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: [...visitsQueryKey, visitId] });
+      toast.success('Visit updated.');
+    } catch {
+      toast.error('Could not save changes.');
+    }
+  }
+
+  async function handleCancel() {
+    try {
+      await cancelVisit.mutateAsync();
+      await queryClient.invalidateQueries({ queryKey: visitsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: [...visitsQueryKey, visitId] });
+      toast.success('Visit cancelled.');
+      setShowCancelConfirm(false);
+    } catch {
+      toast.error('Could not cancel visit.');
+    }
+  }
+
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!inviteEmail) {
+      return;
+    }
+
+    try {
+      await inviteVisitor.mutateAsync({
+        firstName: inviteFirstName,
+        lastName: inviteLastName,
+        email: inviteEmail,
+        company: inviteCompany,
+      });
+
+      await queryClient.invalidateQueries({ queryKey: [...visitsQueryKey, visitId] });
+      toast.success('Invitation sent.');
+      setInviteFirstName('');
+      setInviteLastName('');
+      setInviteEmail('');
+      setInviteCompany('');
+      setShowInviteForm(false);
+    } catch {
+      toast.error('Could not send invitation.');
+    }
+  }
+
+  const initialFormValues = visit ? mapVisitToFormValues(visit) : undefined;
+
+  const errorMessage = visitQuery.isError
+    ? 'Could not load visit.'
+    : reschedule.isError
+      ? 'Could not reschedule visit.'
+      : updateSummary.isError
+        ? 'Could not update visit summary.'
+        : cancelVisit.isError
+          ? 'Could not cancel visit.'
+          : inviteVisitor.isError
+            ? 'Could not send invitation.'
+            : null;
+
+  return (
+    <div className="grid gap-6">
+      <header className="flex items-start gap-4">
+        <button
+          type="button"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-interactive border border-border bg-content text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
+          aria-label="Go back"
+          onClick={() => window.history.back()}
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+        </button>
+
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h2 className="text-[20px] font-semibold tracking-tight">Edit visit</h2>
+            {visit?.status ? <VisitStatusBadge status={visit.status} /> : null}
+          </div>
+          <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">
+            {visit?.summary || 'Untitled visit'}
+          </p>
+        </div>
+      </header>
+
+      {errorMessage ? (
+        <p className="rounded-interactive border border-error bg-error-background px-4 py-3 text-[14px] text-error" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
+
+      {visitQuery.isLoading ? (
+        <p className="text-[14px] text-muted-foreground">Loading visit...</p>
+      ) : null}
+
+      {!visitQuery.isLoading && !visitQuery.isError && visit && initialFormValues ? (
+        <>
+          <Card className="p-6">
+            <h3 className="mb-4 text-[16px] font-semibold tracking-tight">Visit details</h3>
+
+            <div className="mb-6 grid gap-3 text-[14px] sm:grid-cols-2">
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">Organizer</p>
+                <p className="mt-0.5 text-foreground">
+                  {visit.organizer
+                    ? [visit.organizer.firstName, visit.organizer.lastName].filter(Boolean).join(' ')
+                    : '—'}
+                </p>
+                {visit.organizer?.email ? (
+                  <p className="text-[13px] text-muted-foreground">{visit.organizer.email}</p>
+                ) : null}
+              </div>
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">Participants</p>
+                <p className="mt-0.5 inline-flex items-center gap-1.5 text-foreground">
+                  <Users className="size-3.5" aria-hidden="true" />
+                  {visit.invitations?.length ?? 0} {(visit.invitations?.length ?? 0) === 1 ? 'participant' : 'participants'}
+                </p>
+              </div>
+            </div>
+
+            <h3 className="mb-4 text-[16px] font-semibold tracking-tight">Schedule & summary</h3>
+
+            <VisitForm
+              initialValues={initialFormValues}
+              isSubmitting={isSaving}
+              disableSubmit={isCancelledOrCompleted}
+              submitLabel="Save changes"
+              onSubmit={handleSubmit}
+              disabledFields={isCancelledOrCompleted ? ['organizer', 'summary', 'start', 'stop'] : ['organizer']}
+              footerLeft={
+                !isCancelledOrCompleted && !showCancelConfirm ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-error text-error hover:bg-error-background"
+                    onClick={() => setShowCancelConfirm(true)}
+                  >
+                    <CalendarX className="size-4" aria-hidden="true" />
+                    Cancel visit
+                  </Button>
+                ) : undefined
+              }
+            />
+
+            {showCancelConfirm ? (
+              <div className="-mx-6 -mb-6 mt-6 flex items-center gap-3 border-t border-border bg-error-background px-6 py-4">
+                <p className="flex-1 text-[14px] text-error font-medium">Are you sure you want to cancel this visit?</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCancelConfirm(false)}
+                >
+                  Keep
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-error text-white hover:opacity-90"
+                  onClick={handleCancel}
+                  disabled={cancelVisit.isPending}
+                >
+                  {cancelVisit.isPending ? 'Cancelling...' : 'Yes, cancel'}
+                </Button>
+              </div>
+            ) : null}
+          </Card>
+
+          <Card className="p-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="text-[16px] font-semibold tracking-tight">Invitations</h3>
+              {!isCancelledOrCompleted && !showInviteForm ? (
+                <Button size="sm" onClick={() => setShowInviteForm(true)}>
+                  Invite
+                </Button>
+              ) : null}
+            </div>
+
+            {showInviteForm && !isCancelledOrCompleted ? (
+              <form onSubmit={handleInvite} className="mb-6 rounded-interactive border border-border p-4">
+                <h4 className="mb-4 text-[14px] font-semibold tracking-tight">New invitation</h4>
+                <div className="mb-4 grid gap-3">
+                  <div className="relative">
+                    <label className="mb-1 block text-[13px] font-medium text-foreground">Email</label>
+                    <Input
+                      required
+                      type="email"
+                      placeholder="Email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                    {inviteEmail && visitorsQuery.data && visitorsQuery.data.length > 0 ? (
+                      <div className="absolute z-50 mt-1 w-full rounded-structural border border-border bg-content text-foreground shadow-md">
+                        {visitorsQuery.data.map((visitor) => (
+                          <button
+                            key={visitor.id}
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] transition hover:bg-hover-blue"
+                            onClick={() => {
+                              setInviteEmail(visitor.email ?? '');
+                              setInviteFirstName(visitor.firstName ?? '');
+                              setInviteLastName(visitor.lastName ?? '');
+                              setInviteCompany(visitor.company ?? '');
+                            }}
+                          >
+                            <div>
+                              <p className="font-medium text-foreground">{visitor.email}</p>
+                              {visitor.firstName || visitor.lastName ? (
+                                <p className="text-[12px] text-muted-foreground">
+                                  {[visitor.firstName, visitor.lastName].filter(Boolean).join(' ')}
+                                </p>
+                              ) : null}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-[13px] font-medium text-foreground">First name</label>
+                      <Input
+                        placeholder="First name"
+                        value={inviteFirstName}
+                        onChange={(e) => setInviteFirstName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[13px] font-medium text-foreground">Last name</label>
+                      <Input
+                        placeholder="Last name"
+                        value={inviteLastName}
+                        onChange={(e) => setInviteLastName(e.target.value)}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="mb-1 block text-[13px] font-medium text-foreground">Company</label>
+                      <Input
+                        placeholder="Company"
+                        value={inviteCompany}
+                      onChange={(e) => setInviteCompany(e.target.value)}
+                    />
+                  </div>
+                </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowInviteForm(false);
+                      setInviteFirstName('');
+                      setInviteLastName('');
+                      setInviteEmail('');
+                      setInviteCompany('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="sm" disabled={inviteVisitor.isPending || !inviteEmail}>
+                    {inviteVisitor.isPending ? 'Sending...' : 'Send invitation'}
+                  </Button>
+                </div>
+              </form>
+            ) : null}
+
+            {visit.invitations && visit.invitations.length > 0 ? (
+              <div>
+                {visit.invitations.map((invitation, idx) => (
+                  <div key={invitation.id}>
+                    {idx > 0 ? <Separator /> : null}
+                    <div className="flex flex-col gap-2 px-1 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-hover-blue">
+                            <Mail className="size-4 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-[14px] font-medium text-foreground">
+                              {formatInvitationName(invitation)}
+                            </p>
+                            {invitation.email ? (
+                              <p className="truncate text-[13px] text-muted-foreground">
+                                {invitation.email}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <OnboardingJourney
+                          saga={
+                            invitation.id
+                              ? sagasByInvitationId.get(invitation.id) ?? null
+                              : null
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[14px] text-muted-foreground">No invitations yet.</p>
+            )}
+          </Card>
+        </>
+      ) : null}
+    </div>
+  );
+}

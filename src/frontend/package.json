@@ -6,23 +6,30 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "api:generate": "openapi-typescript http://localhost:5245/swagger/v1/swagger.json -o src/shared/api/generated/schema.d.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@base-ui/react": "^1.5.0",
     "@hookform/resolvers": "latest",
     "@tailwindcss/vite": "latest",
     "@tanstack/react-query": "latest",
     "@tanstack/react-router": "latest",
     "class-variance-authority": "latest",
     "clsx": "latest",
+    "date-fns": "^4.4.0",
     "i18next": "latest",
     "lucide-react": "latest",
+    "openapi-fetch": "^0.17.0",
+    "radix-ui": "^1.6.0",
     "react": "latest",
+    "react-day-picker": "^10.0.1",
     "react-dom": "latest",
     "react-hook-form": "latest",
     "react-i18next": "latest",
+    "sonner": "^2.0.7",
     "tailwind-merge": "latest",
     "tailwindcss": "latest",
     "zod": "latest"
@@ -35,6 +42,7 @@
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
     "jsdom": "latest",
+    "openapi-typescript": "^7.13.0",
     "typescript": "latest",
     "vite": "latest",
     "vitest": "latest"

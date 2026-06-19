@@ -158,6 +158,16 @@ public sealed class Visit
         return Result.Success<VisitErrors>();
     }
 
+    public Result<VisitErrors> UpdateSummary(string summary)
+    {
+        Result<VisitErrors> guard = GuardScheduled();
+        if (guard.IsFailure(out _))
+            return guard;
+
+        Summary = summary;
+        return Result.Success<VisitErrors>();
+    }
+
     private Result<VisitErrors> GuardScheduled()
     {
         return Status switch

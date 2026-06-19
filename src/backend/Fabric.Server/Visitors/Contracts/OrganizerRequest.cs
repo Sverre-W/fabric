@@ -8,3 +8,5 @@ public record ListOrganizerRequest : BaseListRequest
 }
 
 public record AddOrganizerRequest(string FirstName, string LastName, string Email);
+
+public record UpdateOrganizerRequest(string FirstName, string LastName, string Email);

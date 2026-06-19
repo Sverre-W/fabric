@@ -11,7 +11,7 @@ namespace Fabric.Server.AccessPolicies.Endpoints;
 [ApiController]
 public class AccessPoliciesController
 {
-    [HttpGet("/api/access-policies")]
+    [HttpGet("/api/access-policies/policies")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<AccessPolicyResponse>))]
     [EndpointDescription("List access policies")]
     [EndpointSummary("List access policies")]
@@ -49,7 +49,7 @@ public class AccessPoliciesController
         return Results.Ok(result.Map(policy => policy.ToResponse()));
     }
 
-    [HttpPost("/api/access-policies/credentials")]
+    [HttpPost("/api/access-policies/policies/credentials")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessPolicyChangeResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -72,7 +72,7 @@ public class AccessPoliciesController
         return result.Map(change => change.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/access-levels")]
+    [HttpPost("/api/access-policies/policies/access-levels")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessPolicyChangeResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -94,7 +94,7 @@ public class AccessPoliciesController
         return result.Map(change => change.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/access-policies/{policyId:guid}/retract")]
+    [HttpPost("/api/access-policies/policies/{policyId:guid}/retract")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccessPolicyChangeResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [EndpointDescription("Retract an access policy and reconcile subject access")]

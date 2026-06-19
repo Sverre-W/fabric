@@ -24,6 +24,13 @@ public sealed class Organizer()
     public void Deactivate() => Active = false;
 
     public void Activate() => Active = true;
+
+    public void UpdateProfile(string firstName, string lastName, string email)
+    {
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email;
+    }
 }
 
 public sealed class Visitor

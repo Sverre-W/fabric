@@ -11,7 +11,7 @@ namespace Fabric.Server.Locations.Endpoints;
 [ApiController]
 public class LocationsController
 {
-    [HttpGet("/api/locations/{id:guid}")]
+    [HttpGet("/api/locations/locations/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [EndpointDescription("Retrieve a site, building, or room by id")]
@@ -25,7 +25,7 @@ public class LocationsController
         return location is null ? Results.NotFound() : Results.Ok(location.ToResponse());
     }
 
-    [HttpGet("/api/sites")]
+    [HttpGet("/api/locations/sites")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<SiteResponse>))]
     [EndpointDescription("List all sites")]
     [EndpointSummary("List sites")]
@@ -39,7 +39,7 @@ public class LocationsController
         return Results.Ok(result.Map(site => site.ToResponse()));
     }
 
-    [HttpGet("/api/sites/{siteId:guid}/buildings")]
+    [HttpGet("/api/locations/sites/{siteId:guid}/buildings")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<BuildingResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [EndpointDescription("List buildings for a site")]
@@ -60,7 +60,7 @@ public class LocationsController
         return Results.Ok(site.Buildings.OrderBy(x => x.Name).Select(x => x.ToResponse()).ToArray());
     }
 
-    [HttpGet("/api/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms")]
+    [HttpGet("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<RoomResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [EndpointDescription("List rooms for a building")]
@@ -84,7 +84,7 @@ public class LocationsController
         return Results.Ok(building.Rooms.OrderBy(x => x.Name).Select(x => x.ToResponse()).ToArray());
     }
 
-    [HttpPost("/api/sites")]
+    [HttpPost("/api/locations/sites")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(LocationResponse))]
     [EndpointDescription("Create a site")]
     [EndpointSummary("Create site")]
@@ -100,11 +100,11 @@ public class LocationsController
             cancellationToken);
 
         return result.Match(
-            location => Results.Created($"/api/locations/{location.Id}", location.ToResponse()),
+            location => Results.Created($"/api/locations/locations/{location.Id}", location.ToResponse()),
             error => MapError(error).ToResult());
     }
 
-    [HttpPost("/api/sites/{siteId:guid}/buildings")]
+    [HttpPost("/api/locations/sites/{siteId:guid}/buildings")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
@@ -125,7 +125,7 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPut("/api/sites/{siteId:guid}")]
+    [HttpPut("/api/locations/sites/{siteId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [EndpointDescription("Update a site's name")]
@@ -140,7 +140,7 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPut("/api/sites/{siteId:guid}/buildings/{buildingId:guid}")]
+    [HttpPut("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
@@ -162,7 +162,7 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/sites/{siteId:guid}/buildings/{buildingId:guid}")]
+    [HttpDelete("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [EndpointDescription("Remove a building from a site")]
@@ -177,7 +177,7 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPost("/api/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms")]
+    [HttpPost("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
@@ -201,7 +201,7 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpPut("/api/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}")]
+    [HttpPut("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [EndpointDescription("Update a room")]
@@ -226,7 +226,7 @@ public class LocationsController
         return result.Map(location => location.ToResponse()).AsResponse(MapError);
     }
 
-    [HttpDelete("/api/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}")]
+    [HttpDelete("/api/locations/sites/{siteId:guid}/buildings/{buildingId:guid}/rooms/{roomId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LocationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [EndpointDescription("Remove a room from a building")]

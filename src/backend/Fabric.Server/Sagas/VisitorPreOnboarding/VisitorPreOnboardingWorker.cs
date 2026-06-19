@@ -31,15 +31,7 @@ public class VisitorPreOnboardingWorker(
         {
             try
             {
-                SagaStepResult result = await service.StepAsync(saga, cancellationToken);
-
-                if (result == SagaStepResult.Continue && IsRetryableState(saga.State))
-                {
-                    IReadOnlyList<VisitorPreOnboardingSaga> updated = await service.GetRetryableAsync(cancellationToken);
-                    VisitorPreOnboardingSaga? same = updated.FirstOrDefault(x => x.Id == saga.Id);
-                    if (same is not null)
-                        await service.StepAsync(same, cancellationToken);
-                }
+                await service.ProcessAsync(saga, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -58,9 +50,4 @@ public class VisitorPreOnboardingWorker(
             logger.LogInformation("Expired {Count} sagas past their visit date", count);
     }
 
-    private static bool IsRetryableState(VisitorPreOnboardingState state) =>
-        state is VisitorPreOnboardingState.RegisteringArrival
-            or VisitorPreOnboardingState.GeneratingQr
-            or VisitorPreOnboardingState.UpdatingArrivalQr
-            or VisitorPreOnboardingState.SendingInvitation;
 }

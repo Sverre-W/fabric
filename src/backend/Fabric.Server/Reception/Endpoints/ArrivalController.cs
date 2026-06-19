@@ -11,7 +11,7 @@ namespace Fabric.Server.Reception.Endpoints;
 [ApiController]
 public class ArrivalController
 {
-    [HttpGet("/api/arrivals/{id:guid}")]
+    [HttpGet("/api/reception/arrivals/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ArrivalResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [EndpointDescription("Retrieve an arrival by id")]
@@ -32,7 +32,7 @@ public class ArrivalController
         return Results.Ok(arrival.ToResponse());
     }
 
-    [HttpGet("/api/arrivals")]
+    [HttpGet("/api/reception/arrivals")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IPaged<ArrivalResponse>))]
     [EndpointDescription("List all arrivals matching the criteria")]
     [EndpointSummary("List arrivals")]
@@ -61,7 +61,7 @@ public class ArrivalController
         return Results.Ok(result.Map(a => a.ToResponse()));
     }
 
-    [HttpPost("/api/arrivals/{id:guid}/onboard")]
+    [HttpPost("/api/reception/arrivals/{id:guid}/onboard")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -91,7 +91,7 @@ public class ArrivalController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/arrivals/{id:guid}/offboard")]
+    [HttpPost("/api/reception/arrivals/{id:guid}/offboard")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
@@ -106,7 +106,7 @@ public class ArrivalController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/arrivals/{id:guid}/check-in")]
+    [HttpPost("/api/reception/arrivals/{id:guid}/check-in")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]
@@ -121,7 +121,7 @@ public class ArrivalController
         return result.AsResponse(MapError);
     }
 
-    [HttpPost("/api/arrivals/{id:guid}/check-out")]
+    [HttpPost("/api/reception/arrivals/{id:guid}/check-out")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ProblemDetails))]

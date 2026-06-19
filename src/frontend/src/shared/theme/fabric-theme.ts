@@ -23,12 +23,12 @@ export const fabricThemeSchema = z.object({
 });
 
 export const defaultFabricTheme: FabricTheme = {
-  primaryColor: '#2563eb',
-  textColor: '#111827',
-  textMutedColor: '#6b7280',
-  errorColor: '#dc2626',
-  dangerColor: '#b91c1c',
-  successColor: '#16a34a',
+  primaryColor: '#238cff',
+  textColor: '#212529',
+  textMutedColor: '#6c757d',
+  errorColor: '#ff6467',
+  dangerColor: '#ff6467',
+  successColor: '#00c950',
 };
 
 export function isHexColor(value: unknown): value is HexColor {

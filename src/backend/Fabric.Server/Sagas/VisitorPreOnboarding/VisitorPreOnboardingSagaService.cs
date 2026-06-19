@@ -162,6 +162,23 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         return expired.Count;
     }
 
+    public async Task ProcessAsync(VisitorPreOnboardingSaga saga, CancellationToken cancellationToken)
+    {
+        SagaStepResult result;
+        do
+        {
+            result = await StepAsync(saga, cancellationToken);
+        }
+        while (result == SagaStepResult.Continue && IsRetryableState(saga.State));
+    }
+
+    private static bool IsRetryableState(VisitorPreOnboardingState state) =>
+        state is VisitorPreOnboardingState.RegisteringArrival
+            or VisitorPreOnboardingState.GeneratingQr
+            or VisitorPreOnboardingState.UpdatingArrivalQr
+            or VisitorPreOnboardingState.SendingInvitation
+            or VisitorPreOnboardingState.Cancelling;
+
     internal async Task<SagaStepResult> StepAsync(VisitorPreOnboardingSaga saga, CancellationToken cancellationToken)
     {
         return saga.State switch
