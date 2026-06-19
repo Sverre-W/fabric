@@ -39,7 +39,7 @@ public interface IPaged<T>
     /// </summary>
     public bool IsLastPage { get; }
 
-    public IPaged<TTarget> Map<TTarget>(Func<T, TTarget> func)
+    public Page<TTarget> Map<TTarget>(Func<T, TTarget> func)
     {
         return new Page<TTarget>
         {
@@ -83,4 +83,3 @@ public class Pageable : IPageable
     public int Page { get; set; } = 0;
     public int PageSize { get; set; } = 25;
 }
-

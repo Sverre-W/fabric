@@ -135,28 +135,33 @@ public static class VisitorEndpoints
     }
 
     private static async Task<IResult> ListVisits(
-        [AsParameters] ListVisitsRequest request,
+        [FromQuery] VisitStatus[]? withStatus,
+        [FromQuery] Guid? organizerId,
+        [FromQuery] DateTimeOffset? after,
+        [FromQuery] DateTimeOffset? before,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
     {
         IQueryable<Visit> query = db.Visits.Include(x => x.Invitations).AsQueryable();
 
-        if (request.WithStatus.Count > 0)
-            query = query.Where(x => request.WithStatus.Contains(x.Status));
+        if (withStatus is { Length: > 0 })
+            query = query.Where(x => withStatus.Contains(x.Status));
 
-        if (request.OrganizerId.HasValue)
-            query = query.Where(x => request.OrganizerId.Value == x.OrganizerId);
+        if (organizerId.HasValue)
+            query = query.Where(x => organizerId.Value == x.OrganizerId);
 
-        if (request.After.HasValue)
-            query = query.Where(x => x.Start >= request.After.Value);
+        if (after.HasValue)
+            query = query.Where(x => x.Start >= after.Value);
 
-        if (request.Before.HasValue)
-            query = query.Where(x => x.Stop <= request.Before.Value);
+        if (before.HasValue)
+            query = query.Where(x => x.Stop <= before.Value);
 
         query = query.OrderBy(x => x.Start);
 
-        IPaged<Visit> result = await query.GetPageAsync(request.Page, request.PageSize, cancellationToken);
+        IPaged<Visit> result = await query.GetPageAsync(page ?? 0, pageSize ?? 25, cancellationToken);
 
         Guid[] organizerIds = result.Items.Select(x => x.OrganizerId).Distinct().ToArray();
         List<Organizer> organizers = await db.Organizers

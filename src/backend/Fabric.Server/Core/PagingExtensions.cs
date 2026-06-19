@@ -4,7 +4,7 @@ namespace Fabric.Server.Core;
 
 public static class PagingExtensions
 {
-    public static async Task<IPaged<T>> GetPageAsync<T>(this IQueryable<T> query, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public static async Task<Page<T>> GetPageAsync<T>(this IQueryable<T> query, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         int totalCount = await query.CountAsync(cancellationToken);
 
