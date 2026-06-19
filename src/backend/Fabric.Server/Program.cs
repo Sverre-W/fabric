@@ -2,10 +2,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Fabric.Server.AccessPolicies;
 using Fabric.Server.Infrastructure;
+using Fabric.Server.Infrastructure.Authentication;
 using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Locations;
 using Fabric.Server.Reception;
 using Fabric.Server.Sagas;
+using Fabric.Server.Tenants;
 using Fabric.Server.Visitors;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -37,6 +39,7 @@ if (enableSwagger)
 
 builder.Services.AddTransient(_ => TimeProvider.System);
 builder.Services.AddTenancy(builder.Configuration);
+builder.Services.AddFabricAuthentication();
 
 builder.Services.AddCors(options =>
 {
@@ -51,6 +54,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services
+    .SetupTenants(builder.Configuration)
     .SetupAccessPolicies(builder.Configuration)
     .SetupVisitors(builder.Configuration)
     .SetupSagas(builder.Configuration)
@@ -69,10 +73,10 @@ if (enableSwagger)
     app.UseSwaggerUI();
 }
 
-//app.UseAuthorization();
-
 app.UseCors("ApiCors");
 app.UseMiddleware<TenantContextMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

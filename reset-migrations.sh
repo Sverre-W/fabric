@@ -8,6 +8,7 @@ solution="$repo_root/src/backend/Fabric.slnx"
 cd "$server_dir"
 
 migration_dirs=(
+  "Tenants/Persistence/Migrations"
   "AccessPolicies/Persistence/Migrations"
   "Visitors/Persistence/Migrations"
   "Sagas/Persistence/Migrations"
@@ -22,6 +23,7 @@ done
 
 dotnet build "$solution" /bl:{}
 
+dotnet ef migrations add TenantsInit --context TenantsDbContext --output-dir Tenants/Persistence/Migrations --no-build
 dotnet ef migrations add AccessPoliciesInit --context AccessPoliciesDbContext --output-dir AccessPolicies/Persistence/Migrations --no-build
 dotnet ef migrations add VisitorsInit --context VisitorsDbContext --output-dir Visitors/Persistence/Migrations --no-build
 dotnet ef migrations add SagasInit --context SagasDbContext --output-dir Sagas/Persistence/Migrations --no-build

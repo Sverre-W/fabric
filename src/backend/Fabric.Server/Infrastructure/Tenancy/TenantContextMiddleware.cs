@@ -6,16 +6,30 @@ public sealed class TenantContextMiddleware(
     RequestDelegate next,
     IOptions<TenancyOptions> options)
 {
-    public async Task InvokeAsync(HttpContext context, ITenantContextAccessor tenantContext)
+    public async Task InvokeAsync(
+        HttpContext context,
+        ITenantContextAccessor tenantContext,
+        ITenantStore tenantStore)
     {
         string tenantId = options.Value.Mode switch
         {
-            TenancyMode.SingleTenant => TenantContext.DefaultTenantId,
+            TenancyMode.SingleTenant => options.Value.DefaultTenant.Id,
             TenancyMode.MultiTenant => GetTenantFromHost(context.Request.Host.Host),
-            _ => TenantContext.DefaultTenantId,
+            _ => options.Value.DefaultTenant.Id,
         };
 
-        tenantContext.SetTenant(tenantId);
+        TenantInfo? tenant = await tenantStore.GetTenantAsync(tenantId, context.RequestAborted);
+        if (tenant is null)
+        {
+            await Results.Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Tenant not found",
+                    detail: $"Tenant '{tenantId}' does not exist.")
+                .ExecuteAsync(context);
+            return;
+        }
+
+        tenantContext.SetTenant(tenant);
         await next(context);
     }
 

@@ -1,7 +1,9 @@
 using Fabric.Server.AccessPolicies.Persistence;
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Locations.Persistence;
 using Fabric.Server.Reception.Persistence;
 using Fabric.Server.Sagas;
+using Fabric.Server.Tenants.Persistence;
 using Fabric.Server.Visitors.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +23,8 @@ public class MigrationsRunner(IServiceScopeFactory scopeFactory) : IHostedServic
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using IServiceScope scope = scopeFactory.CreateScope();
+        await new MigrationRunner<TenantsDbContext>(scope).RunMigrationsAsync(cancellationToken);
+        await scope.ServiceProvider.GetRequiredService<TenantSeeder>().SeedAsync(cancellationToken);
         await new MigrationRunner<AccessPoliciesDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<VisitorsDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<SagasDbContext>(scope).RunMigrationsAsync(cancellationToken);

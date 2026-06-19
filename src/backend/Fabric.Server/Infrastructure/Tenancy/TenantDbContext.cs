@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Fabric.Server.Tenants.Domain;
 
 namespace Fabric.Server.Infrastructure.Tenancy;
 
@@ -94,5 +95,14 @@ public abstract class TenantDbContext : DbContext
     private sealed class DesignTimeTenantContext : ITenantContext
     {
         public string TenantId => TenantContext.DefaultTenantId;
+        public TenantConfiguration Configuration { get; } = new()
+        {
+            Oidc = new OidcSettings
+            {
+                MetadataUrl = "http://localhost/.well-known/openid-configuration",
+                ClientId = "fabric",
+                RequireHttpsMetadata = false
+            }
+        };
     }
 }

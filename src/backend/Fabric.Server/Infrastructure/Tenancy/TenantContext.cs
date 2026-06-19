@@ -1,3 +1,5 @@
+using Fabric.Server.Tenants.Domain;
+
 namespace Fabric.Server.Infrastructure.Tenancy;
 
 public sealed class TenantContext : ITenantContextAccessor
@@ -5,12 +7,22 @@ public sealed class TenantContext : ITenantContextAccessor
     public const string DefaultTenantId = "main-tenant";
 
     public string TenantId { get; private set; } = DefaultTenantId;
-
-    public void SetTenant(string tenantId)
+    public TenantConfiguration Configuration { get; private set; } = new()
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
-            throw new ArgumentException("Tenant id is required.", nameof(tenantId));
+        Oidc = new OidcSettings
+        {
+            MetadataUrl = "http://localhost/.well-known/openid-configuration",
+            ClientId = "fabric",
+            RequireHttpsMetadata = false
+        }
+    };
 
-        TenantId = tenantId.Trim();
+    public void SetTenant(TenantInfo tenant)
+    {
+        if (string.IsNullOrWhiteSpace(tenant.Id))
+            throw new ArgumentException("Tenant id is required.", nameof(tenant));
+
+        TenantId = tenant.Id.Trim();
+        Configuration = tenant.Configuration;
     }
 }
