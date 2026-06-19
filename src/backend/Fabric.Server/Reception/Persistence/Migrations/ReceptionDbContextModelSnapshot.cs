@@ -29,6 +29,12 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("timestamp");
@@ -45,6 +51,9 @@ namespace Fabric.Server.Reception.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_arrival_entries");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_arrival_entries_tenant_id");
 
                     b.HasIndex("expected_arrival_id")
                         .HasDatabaseName("ix_arrival_entries_expected_arrival_id");
@@ -75,12 +84,21 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<Guid>("expected_arrival_id")
                         .HasColumnType("uuid")
                         .HasColumnName("expected_arrival_id");
 
                     b.HasKey("Id")
                         .HasName("pk_check_in_documents");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_check_in_documents_tenant_id");
 
                     b.HasIndex("expected_arrival_id")
                         .HasDatabaseName("ix_check_in_documents_expected_arrival_id");
@@ -158,6 +176,12 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("status");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -171,18 +195,21 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_expected_arrivals");
 
-                    b.HasIndex("ArrivalCode")
-                        .IsUnique()
-                        .HasDatabaseName("ix_expected_arrivals_arrival_code");
-
                     b.HasIndex("ContractorId")
                         .HasDatabaseName("ix_expected_arrivals_contractor_id");
 
                     b.HasIndex("LocationId")
                         .HasDatabaseName("ix_expected_arrivals_location_id");
 
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_expected_arrivals_tenant_id");
+
                     b.HasIndex("VisitorId")
                         .HasDatabaseName("ix_expected_arrivals_visitor_id");
+
+                    b.HasIndex("TenantId", "ArrivalCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_expected_arrivals_tenant_id_arrival_code");
 
                     b.ToTable("expected_arrivals", "reception");
                 });

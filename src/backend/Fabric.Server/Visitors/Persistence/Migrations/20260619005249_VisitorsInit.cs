@@ -23,7 +23,8 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                     first_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     last_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),
-                    active = table.Column<bool>(type: "boolean", nullable: false)
+                    active = table.Column<bool>(type: "boolean", nullable: false),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -39,7 +40,8 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                     first_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     last_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),
-                    company = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false)
+                    company = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,7 +59,8 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                     status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     start = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     stop = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    location_id = table.Column<Guid>(type: "uuid", nullable: true)
+                    location_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,6 +83,7 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                     confirmed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     transport = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     license_plate = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     visit_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -95,25 +99,55 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_organizers_email",
+                name: "ix_organizers_tenant_id",
                 schema: "visitors",
                 table: "organizers",
-                column: "email",
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_organizers_tenant_id_email",
+                schema: "visitors",
+                table: "organizers",
+                columns: new[] { "tenant_id", "email" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_visit_invitations_visit_id_email",
+                name: "ix_visit_invitations_tenant_id",
                 schema: "visitors",
                 table: "visit_invitations",
-                columns: new[] { "visit_id", "email" },
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_visit_invitations_tenant_id_visit_id_email",
+                schema: "visitors",
+                table: "visit_invitations",
+                columns: new[] { "tenant_id", "visit_id", "email" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_visitors_email",
+                name: "IX_visit_invitations_visit_id",
+                schema: "visitors",
+                table: "visit_invitations",
+                column: "visit_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_visitors_tenant_id",
                 schema: "visitors",
                 table: "visitors",
-                column: "email",
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_visitors_tenant_id_email",
+                schema: "visitors",
+                table: "visitors",
+                columns: new[] { "tenant_id", "email" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_visits_tenant_id",
+                schema: "visitors",
+                table: "visits",
+                column: "tenant_id");
         }
 
         /// <inheritdoc />

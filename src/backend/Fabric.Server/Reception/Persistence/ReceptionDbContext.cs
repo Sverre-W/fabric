@@ -1,10 +1,11 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Reception.Domain;
 using Fabric.Server.Reception.Persistence.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Reception.Persistence;
 
-public class ReceptionDbContext : DbContext
+public class ReceptionDbContext : TenantDbContext
 {
     public const string Schema = "reception";
 
@@ -16,9 +17,11 @@ public class ReceptionDbContext : DbContext
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ReceptionDbContext).Assembly,
             t => t.Namespace == typeof(ExpectedArrivalConfiguration).Namespace);
+        ApplyTenantFilters(modelBuilder);
     }
 
-    public ReceptionDbContext(DbContextOptions<ReceptionDbContext> options) : base(options)
+    public ReceptionDbContext(DbContextOptions<ReceptionDbContext> options, ITenantContext tenantContext)
+        : base(options, tenantContext)
     {
     }
 

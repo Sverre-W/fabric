@@ -1,3 +1,4 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Reception.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -36,7 +37,10 @@ public sealed class ExpectedArrivalConfiguration : IEntityTypeConfiguration<Expe
         builder.HasMany(a => a.Entries).WithOne().HasForeignKey("expected_arrival_id").HasConstraintName("fk_arrival_entries_expected_arrivals_expected_arrival_id").OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(a => a.Documents).WithOne().HasForeignKey("expected_arrival_id").HasConstraintName("fk_check_in_documents_expected_arrivals_expected_arrival_id").OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(a => a.ArrivalCode).IsUnique().HasDatabaseName("ix_expected_arrivals_arrival_code");
+        TenantDbContext.ConfigureTenantProperty(builder);
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(ExpectedArrival.ArrivalCode))
+            .IsUnique()
+            .HasDatabaseName("ix_expected_arrivals_tenant_id_arrival_code");
         builder.HasIndex(a => a.VisitorId).HasDatabaseName("ix_expected_arrivals_visitor_id");
         builder.HasIndex(a => a.ContractorId).HasDatabaseName("ix_expected_arrivals_contractor_id");
         builder.HasIndex(a => a.LocationId).HasDatabaseName("ix_expected_arrivals_location_id");

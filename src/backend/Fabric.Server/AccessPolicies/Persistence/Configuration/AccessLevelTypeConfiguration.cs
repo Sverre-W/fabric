@@ -1,4 +1,5 @@
 using Fabric.Server.AccessPolicies.Domain;
+using Fabric.Server.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,10 +21,11 @@ public sealed class AccessLevelTypeConfiguration : IEntityTypeConfiguration<Acce
             .HasValue<UnipassAccessLevelType>("unipass")
             .HasValue<LenelAccessLevelType>("lenel");
 
+        TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(accessLevel => accessLevel.SystemId).HasDatabaseName("ix_access_level_types_system_id");
-        builder.HasIndex(accessLevel => new { accessLevel.SystemId, accessLevel.Name })
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(AccessLevelType.SystemId), nameof(AccessLevelType.Name))
             .IsUnique()
-            .HasDatabaseName("ix_access_level_types_system_id_name");
+            .HasDatabaseName("ix_access_level_types_tenant_id_system_id_name");
     }
 }
 
@@ -33,9 +35,13 @@ public sealed class UnipassAccessLevelTypeConfiguration : IEntityTypeConfigurati
     {
         builder.Property(accessLevel => accessLevel.SiteId).HasColumnName("site_id").IsRequired();
         builder.Property(accessLevel => accessLevel.AccessRuleId).HasColumnName("access_rule_id").IsRequired();
-        builder.HasIndex(accessLevel => new { accessLevel.SystemId, accessLevel.SiteId, accessLevel.AccessRuleId })
+        builder.HasIndex(
+                TenantDbContext.TenantIdPropertyName,
+                nameof(UnipassAccessLevelType.SystemId),
+                nameof(UnipassAccessLevelType.SiteId),
+                nameof(UnipassAccessLevelType.AccessRuleId))
             .IsUnique()
-            .HasDatabaseName("ix_access_level_types_system_id_site_id_access_rule_id");
+            .HasDatabaseName("ix_access_level_types_tenant_id_system_id_site_id_access_rule_id");
     }
 }
 
@@ -71,8 +77,11 @@ public sealed class LenelAccessLevelTypeConfiguration : IEntityTypeConfiguration
                     join.Property<Guid>("badge_type_id").HasColumnName("badge_type_id");
                 });
 
-        builder.HasIndex(accessLevel => new { accessLevel.SystemId, accessLevel.AccessLevelId })
+        builder.HasIndex(
+                TenantDbContext.TenantIdPropertyName,
+                nameof(LenelAccessLevelType.SystemId),
+                nameof(LenelAccessLevelType.AccessLevelId))
             .IsUnique()
-            .HasDatabaseName("ix_access_level_types_system_id_access_level_id");
+            .HasDatabaseName("ix_access_level_types_tenant_id_system_id_access_level_id");
     }
 }

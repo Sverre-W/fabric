@@ -40,6 +40,12 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<Guid>("site_id")
                         .HasColumnType("uuid")
                         .HasColumnName("site_id");
@@ -47,9 +53,14 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_buildings");
 
-                    b.HasIndex("site_id", "Name")
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_buildings_tenant_id");
+
+                    b.HasIndex("site_id");
+
+                    b.HasIndex("TenantId", "site_id", "Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_buildings_site_id_name");
+                        .HasDatabaseName("ix_buildings_tenant_id_site_id_name");
 
                     b.ToTable("buildings", "locations");
                 });
@@ -70,6 +81,12 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<bool>("WheelchairAccessible")
                         .HasColumnType("boolean")
                         .HasColumnName("wheelchair_accessible");
@@ -81,9 +98,14 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_rooms");
 
-                    b.HasIndex("building_id", "Name")
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_rooms_tenant_id");
+
+                    b.HasIndex("building_id");
+
+                    b.HasIndex("TenantId", "building_id", "Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_rooms_building_id_name");
+                        .HasDatabaseName("ix_rooms_tenant_id_building_id_name");
 
                     b.ToTable("rooms", "locations");
                 });
@@ -105,8 +127,17 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_sites");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_sites_tenant_id");
 
                     b.ToTable("sites", "locations");
                 });
@@ -129,6 +160,12 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("site_id");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -146,6 +183,9 @@ namespace Fabric.Server.Locations.Persistence.Migrations
 
                     b.HasIndex("SiteId")
                         .HasDatabaseName("ix_location_lookup_site_id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_location_lookup_tenant_id");
 
                     b.ToTable("location_lookup", "locations");
                 });

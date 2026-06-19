@@ -1,3 +1,4 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Locations.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -24,6 +25,9 @@ public sealed class BuildingConfiguration : IEntityTypeConfiguration<Building>
             .HasConstraintName("fk_rooms_buildings_building_id")
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex("site_id", nameof(Building.Name)).IsUnique().HasDatabaseName("ix_buildings_site_id_name");
+        TenantDbContext.ConfigureTenantProperty(builder);
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, "site_id", nameof(Building.Name))
+            .IsUnique()
+            .HasDatabaseName("ix_buildings_tenant_id_site_id_name");
     }
 }

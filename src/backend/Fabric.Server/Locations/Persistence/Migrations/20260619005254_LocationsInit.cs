@@ -23,7 +23,8 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                     type = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     site_id = table.Column<Guid>(type: "uuid", nullable: false),
                     building_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    room_id = table.Column<Guid>(type: "uuid", nullable: true)
+                    room_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -37,7 +38,8 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
+                    address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -52,6 +54,7 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     site_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -75,6 +78,7 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     capacity = table.Column<int>(type: "integer", nullable: false),
                     wheelchair_accessible = table.Column<bool>(type: "boolean", nullable: false),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     building_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -90,10 +94,22 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_buildings_site_id_name",
+                name: "IX_buildings_site_id",
                 schema: "locations",
                 table: "buildings",
-                columns: new[] { "site_id", "name" },
+                column: "site_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_buildings_tenant_id",
+                schema: "locations",
+                table: "buildings",
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_buildings_tenant_id_site_id_name",
+                schema: "locations",
+                table: "buildings",
+                columns: new[] { "tenant_id", "site_id", "name" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -115,11 +131,35 @@ namespace Fabric.Server.Locations.Persistence.Migrations
                 column: "site_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_rooms_building_id_name",
+                name: "ix_location_lookup_tenant_id",
+                schema: "locations",
+                table: "location_lookup",
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_rooms_building_id",
                 schema: "locations",
                 table: "rooms",
-                columns: new[] { "building_id", "name" },
+                column: "building_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_rooms_tenant_id",
+                schema: "locations",
+                table: "rooms",
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_rooms_tenant_id_building_id_name",
+                schema: "locations",
+                table: "rooms",
+                columns: new[] { "tenant_id", "building_id", "name" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_sites_tenant_id",
+                schema: "locations",
+                table: "sites",
+                column: "tenant_id");
         }
 
         /// <inheritdoc />

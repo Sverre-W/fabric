@@ -35,7 +35,8 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                     job_assignment_id = table.Column<Guid>(type: "uuid", nullable: true),
                     first_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     last_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    company = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true)
+                    company = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -50,6 +51,7 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     type = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     expected_arrival_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -73,6 +75,7 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     document_type = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     content = table.Column<byte[]>(type: "bytea", nullable: false),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     expected_arrival_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -94,17 +97,22 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                 column: "expected_arrival_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_arrival_entries_tenant_id",
+                schema: "reception",
+                table: "arrival_entries",
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_check_in_documents_expected_arrival_id",
                 schema: "reception",
                 table: "check_in_documents",
                 column: "expected_arrival_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_expected_arrivals_arrival_code",
+                name: "ix_check_in_documents_tenant_id",
                 schema: "reception",
-                table: "expected_arrivals",
-                column: "arrival_code",
-                unique: true);
+                table: "check_in_documents",
+                column: "tenant_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_expected_arrivals_contractor_id",
@@ -117,6 +125,19 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                 schema: "reception",
                 table: "expected_arrivals",
                 column: "location_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_expected_arrivals_tenant_id",
+                schema: "reception",
+                table: "expected_arrivals",
+                column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_expected_arrivals_tenant_id_arrival_code",
+                schema: "reception",
+                table: "expected_arrivals",
+                columns: new[] { "tenant_id", "arrival_code" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_expected_arrivals_visitor_id",

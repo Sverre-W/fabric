@@ -1,3 +1,4 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Visitors.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -25,6 +26,9 @@ public sealed class VisitInvitationConfiguration : IEntityTypeConfiguration<Visi
         builder.Property(invitation => invitation.Transport).HasColumnName("transport").HasConversion<string>().HasMaxLength(50);
         builder.Property(invitation => invitation.LicensePlate).HasColumnName("license_plate").HasMaxLength(50);
 
-        builder.HasIndex("visit_id", nameof(VisitInvitation.Email)).IsUnique().HasDatabaseName("ix_visit_invitations_visit_id_email");
+        TenantDbContext.ConfigureTenantProperty(builder);
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, "visit_id", nameof(VisitInvitation.Email))
+            .IsUnique()
+            .HasDatabaseName("ix_visit_invitations_tenant_id_visit_id_email");
     }
 }

@@ -64,6 +64,12 @@ namespace Fabric.Server.Sagas.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("state");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<Guid>("VisitId")
                         .HasColumnType("uuid")
                         .HasColumnName("visit_id");
@@ -76,6 +82,9 @@ namespace Fabric.Server.Sagas.Persistence.Migrations
 
                     b.HasIndex("State")
                         .HasDatabaseName("ix_visitor_pre_onboarding_sagas_state");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_visitor_pre_onboarding_sagas_tenant_id");
 
                     b.HasIndex("VisitId", "InvitationId")
                         .HasDatabaseName("ix_visitor_pre_onboarding_sagas_visit_invitation");

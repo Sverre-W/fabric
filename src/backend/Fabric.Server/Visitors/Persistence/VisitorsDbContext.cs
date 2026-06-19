@@ -1,10 +1,11 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Visitors.Domain;
 using Fabric.Server.Visitors.Persistence.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Visitors.Persistence;
 
-public class VisitorsDbContext : DbContext
+public class VisitorsDbContext : TenantDbContext
 {
     public const string Schema = "visitors";
     public DbSet<Visit> Visits { get; set; } = null!;
@@ -18,9 +19,11 @@ public class VisitorsDbContext : DbContext
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(VisitorsDbContext).Assembly,
                 t => t.Namespace == typeof(VisitConfiguration).Namespace);
+        ApplyTenantFilters(modelBuilder);
     }
 
-    public VisitorsDbContext(DbContextOptions<VisitorsDbContext> options) : base(options)
+    public VisitorsDbContext(DbContextOptions<VisitorsDbContext> options, ITenantContext tenantContext)
+        : base(options, tenantContext)
     {
     }
 

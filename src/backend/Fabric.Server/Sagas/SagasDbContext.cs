@@ -1,15 +1,17 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Sagas.Persistence.Configuration;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Sagas;
 
-public class SagasDbContext : DbContext
+public class SagasDbContext : TenantDbContext
 {
     public const string Schema = "sagas";
     public DbSet<VisitorPreOnboardingSaga> VisitorPreOnboardingSagas { get; set; } = null!;
 
-    public SagasDbContext(DbContextOptions<SagasDbContext> options) : base(options)
+    public SagasDbContext(DbContextOptions<SagasDbContext> options, ITenantContext tenantContext)
+        : base(options, tenantContext)
     {
     }
 
@@ -23,5 +25,6 @@ public class SagasDbContext : DbContext
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(SagasDbContext).Assembly,
                 t => t.Namespace == typeof(VisitorPreOnboardingSagaConfiguration).Namespace);
+        ApplyTenantFilters(modelBuilder);
     }
 }

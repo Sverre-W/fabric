@@ -1,4 +1,5 @@
 using Fabric.Server.AccessPolicies.Domain;
+using Fabric.Server.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,10 +21,11 @@ public sealed class BadgeTypeConfiguration : IEntityTypeConfiguration<BadgeType>
             .HasValue<UnipassBadgeType>("unipass")
             .HasValue<LenelBadgeType>("lenel");
 
+        TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(badgeType => badgeType.SystemId).HasDatabaseName("ix_badge_types_system_id");
-        builder.HasIndex(badgeType => new { badgeType.SystemId, badgeType.Name })
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(BadgeType.SystemId), nameof(BadgeType.Name))
             .IsUnique()
-            .HasDatabaseName("ix_badge_types_system_id_name");
+            .HasDatabaseName("ix_badge_types_tenant_id_system_id_name");
     }
 }
 
@@ -44,8 +46,11 @@ public sealed class LenelBadgeTypeConfiguration : IEntityTypeConfiguration<Lenel
     public void Configure(EntityTypeBuilder<LenelBadgeType> builder)
     {
         builder.Property(badgeType => badgeType.BadgeTypeId).HasColumnName("badge_type_id").IsRequired();
-        builder.HasIndex(badgeType => new { badgeType.SystemId, badgeType.BadgeTypeId })
+        builder.HasIndex(
+                TenantDbContext.TenantIdPropertyName,
+                nameof(LenelBadgeType.SystemId),
+                nameof(LenelBadgeType.BadgeTypeId))
             .IsUnique()
-            .HasDatabaseName("ix_badge_types_system_id_badge_type_id");
+            .HasDatabaseName("ix_badge_types_tenant_id_system_id_badge_type_id");
     }
 }

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.Visitors.Persistence.Migrations
 {
     [DbContext(typeof(VisitorsDbContext))]
-    [Migration("20260618004257_VisitorsInit")]
+    [Migration("20260619005249_VisitorsInit")]
     partial class VisitorsInit
     {
         /// <inheritdoc />
@@ -54,12 +54,21 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("last_name");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_organizers");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_organizers_tenant_id");
+
+                    b.HasIndex("TenantId", "Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_organizers_email");
+                        .HasDatabaseName("ix_organizers_tenant_id_email");
 
                     b.ToTable("organizers", "visitors");
                 });
@@ -98,8 +107,17 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("summary");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_visits");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_visits_tenant_id");
 
                     b.ToTable("visits", "visitors");
                 });
@@ -153,6 +171,12 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("rejected_at");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.Property<string>("Transport")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
@@ -169,9 +193,14 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_visit_invitations");
 
-                    b.HasIndex("visit_id", "Email")
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_visit_invitations_tenant_id");
+
+                    b.HasIndex("visit_id");
+
+                    b.HasIndex("TenantId", "visit_id", "Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_visit_invitations_visit_id_email");
+                        .HasDatabaseName("ix_visit_invitations_tenant_id_visit_id_email");
 
                     b.ToTable("visit_invitations", "visitors");
                 });
@@ -206,12 +235,21 @@ namespace Fabric.Server.Visitors.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("last_name");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_visitors");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_visitors_tenant_id");
+
+                    b.HasIndex("TenantId", "Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_visitors_email");
+                        .HasDatabaseName("ix_visitors_tenant_id_email");
 
                     b.ToTable("visitors", "visitors");
                 });

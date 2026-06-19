@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Fabric.Server.AccessPolicies;
 using Fabric.Server.Infrastructure;
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Locations;
 using Fabric.Server.Reception;
 using Fabric.Server.Sagas;
@@ -35,6 +36,7 @@ if (enableSwagger)
 }
 
 builder.Services.AddTransient(_ => TimeProvider.System);
+builder.Services.AddTenancy(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
@@ -70,6 +72,7 @@ if (enableSwagger)
 //app.UseAuthorization();
 
 app.UseCors("ApiCors");
+app.UseMiddleware<TenantContextMiddleware>();
 
 app.MapControllers();
 

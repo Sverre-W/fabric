@@ -1,10 +1,11 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Locations.Domain;
 using Fabric.Server.Locations.Persistence.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Locations.Persistence;
 
-public class LocationsDbContext : DbContext
+public class LocationsDbContext : TenantDbContext
 {
     public const string Schema = "locations";
 
@@ -13,7 +14,8 @@ public class LocationsDbContext : DbContext
     public DbSet<Room> Rooms { get; set; } = null!;
     public DbSet<LocationLookup> LocationLookups { get; set; } = null!;
 
-    public LocationsDbContext(DbContextOptions<LocationsDbContext> options) : base(options)
+    public LocationsDbContext(DbContextOptions<LocationsDbContext> options, ITenantContext tenantContext)
+        : base(options, tenantContext)
     {
     }
 
@@ -27,5 +29,6 @@ public class LocationsDbContext : DbContext
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(LocationsDbContext).Assembly,
             type => type.Namespace == typeof(SiteConfiguration).Namespace);
+        ApplyTenantFilters(modelBuilder);
     }
 }

@@ -1,3 +1,4 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Locations.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -18,6 +19,9 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(room => room.Capacity).HasColumnName("capacity").IsRequired();
         builder.Property(room => room.WheelchairAccessible).HasColumnName("wheelchair_accessible").IsRequired();
 
-        builder.HasIndex("building_id", nameof(Room.Name)).IsUnique().HasDatabaseName("ix_rooms_building_id_name");
+        TenantDbContext.ConfigureTenantProperty(builder);
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, "building_id", nameof(Room.Name))
+            .IsUnique()
+            .HasDatabaseName("ix_rooms_tenant_id_building_id_name");
     }
 }

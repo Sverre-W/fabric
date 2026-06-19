@@ -28,7 +28,8 @@ namespace Fabric.Server.Sagas.Persistence.Migrations
                     expires_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     next_retry_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     retry_count = table.Column<int>(type: "integer", nullable: false),
-                    state = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    state = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    tenant_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,6 +47,12 @@ namespace Fabric.Server.Sagas.Persistence.Migrations
                 schema: "sagas",
                 table: "visitor_pre_onboarding_sagas",
                 column: "state");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_visitor_pre_onboarding_sagas_tenant_id",
+                schema: "sagas",
+                table: "visitor_pre_onboarding_sagas",
+                column: "tenant_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_visitor_pre_onboarding_sagas_visit_invitation",

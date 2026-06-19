@@ -1,4 +1,5 @@
 using Fabric.Server.AccessPolicies.Domain;
+using Fabric.Server.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,7 +20,10 @@ public sealed class AccessControlSystemConfiguration : IEntityTypeConfiguration<
             .HasValue<UnipassAccessControlSystem>("unipass")
             .HasValue<LenelAccessControlSystem>("lenel");
 
-        builder.HasIndex(system => system.Name).IsUnique().HasDatabaseName("ix_access_control_systems_name");
+        TenantDbContext.ConfigureTenantProperty(builder);
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(AccessControlSystem.Name))
+            .IsUnique()
+            .HasDatabaseName("ix_access_control_systems_tenant_id_name");
     }
 }
 

@@ -1,3 +1,4 @@
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Visitors.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -17,6 +18,9 @@ public sealed class OrganizerConfiguration : IEntityTypeConfiguration<Organizer>
         builder.Property(organizer => organizer.Email).HasColumnName("email").IsRequired().HasMaxLength(320);
         builder.Property(organizer => organizer.Active).HasColumnName("active").IsRequired();
 
-        builder.HasIndex(organizer => organizer.Email).IsUnique().HasDatabaseName("ix_organizers_email");
+        TenantDbContext.ConfigureTenantProperty(builder);
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(Organizer.Email))
+            .IsUnique()
+            .HasDatabaseName("ix_organizers_tenant_id_email");
     }
 }

@@ -1,10 +1,11 @@
 using Fabric.Server.AccessPolicies.Domain;
 using Fabric.Server.AccessPolicies.Persistence.Configuration;
+using Fabric.Server.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.AccessPolicies.Persistence;
 
-public class AccessPoliciesDbContext : DbContext
+public class AccessPoliciesDbContext : TenantDbContext
 {
     public const string Schema = "access_policies";
 
@@ -15,7 +16,8 @@ public class AccessPoliciesDbContext : DbContext
     public DbSet<AccessLevelType> AccessLevelTypes { get; set; } = null!;
     public DbSet<IdentityMapping> IdentityMappings { get; set; } = null!;
 
-    public AccessPoliciesDbContext(DbContextOptions<AccessPoliciesDbContext> options) : base(options)
+    public AccessPoliciesDbContext(DbContextOptions<AccessPoliciesDbContext> options, ITenantContext tenantContext)
+        : base(options, tenantContext)
     {
     }
 
@@ -29,5 +31,6 @@ public class AccessPoliciesDbContext : DbContext
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AccessPoliciesDbContext).Assembly,
             type => type.Namespace == typeof(AccessPolicyConfiguration).Namespace);
+        ApplyTenantFilters(modelBuilder);
     }
 }
