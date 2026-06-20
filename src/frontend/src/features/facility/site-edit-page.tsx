@@ -246,8 +246,40 @@ function BuildingsList({
   }
 
   return (
-    <div className="overflow-hidden rounded-structural border border-border">
-      <table className="w-full border-collapse text-left text-[14px]">
+    <div className="grid gap-3">
+      <div className="grid gap-3 md:hidden">
+        {buildings.map((building) => (
+          <article key={building.id} className="rounded-structural border border-border p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h4 className="truncate text-[15px] font-semibold text-foreground">{building.name}</h4>
+                <p className="mt-1 text-[14px] text-muted-foreground">{building.address || 'No address'}</p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <Link
+                  to="/facility/locations/$siteId/buildings/$buildingId/edit"
+                  params={{ siteId, buildingId: building.id }}
+                  className="inline-flex size-10 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
+                  aria-label={`Edit ${building.name}`}
+                >
+                  <Pencil className="size-4" aria-hidden="true" />
+                </Link>
+                <button
+                  type="button"
+                  className="inline-flex size-10 items-center justify-center rounded-interactive border border-error text-error transition hover:bg-error-background disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label={`Delete ${building.name}`}
+                  disabled={isDeleting}
+                  onClick={() => onDelete(building)}
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto rounded-structural border border-border md:block">
+      <table className="w-full min-w-[40rem] border-collapse text-left text-[14px]">
         <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground">
           <tr>
             <th className="px-4 py-3 font-semibold">Building</th>
@@ -285,6 +317,7 @@ function BuildingsList({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

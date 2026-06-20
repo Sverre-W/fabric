@@ -73,7 +73,7 @@ export default function TenantSettingsPage() {
 
   return (
     <section className="grid gap-6">
-      <div className="rounded-structural border border-border bg-content p-6">
+      <div className="rounded-structural border border-border bg-content p-4 sm:p-6">
         <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Settings</p>
         <h1 className="mt-3 text-[32px] font-semibold tracking-tight">Tenant</h1>
         <p className="mt-3 max-w-2xl text-[14px] text-muted-foreground">Manage tenant authentication, appearance, and Graph email delivery settings.</p>
@@ -177,7 +177,7 @@ export default function TenantSettingsPage() {
           </SettingsCard>
 
           <div className="flex justify-end border-t border-border pt-6">
-            <Button type="submit" disabled={updateSettings.isPending}>{updateSettings.isPending ? 'Saving...' : 'Save tenant settings'}</Button>
+            <Button type="submit" className="w-full sm:w-auto" disabled={updateSettings.isPending}>{updateSettings.isPending ? 'Saving...' : 'Save tenant settings'}</Button>
           </div>
         </form>
       ) : null}

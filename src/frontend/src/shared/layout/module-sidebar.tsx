@@ -7,6 +7,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
+  useSidebar,
 } from '@/shared/components/ui/sidebar';
 import type { AppModule } from '@/shared/modules/app-modules';
 
@@ -31,6 +32,7 @@ export function ModuleSidebar({ module }: { module: AppModule }) {
 
 function ModuleMenu({ module }: { module: AppModule }) {
   const location = useLocation();
+  const { setIsMobileOpen } = useSidebar();
 
   return (
     <SidebarMenu aria-label={`${module.name} menu`}>
@@ -38,7 +40,7 @@ function ModuleMenu({ module }: { module: AppModule }) {
         const isActive = location.pathname === item.to || (location.pathname === module.to && item.to === module.navigation[0]?.to);
 
         return (
-          <Link key={item.to} to={item.to}>
+          <Link key={item.to} to={item.to} onClick={() => setIsMobileOpen(false)}>
             <SidebarMenuButton isActive={isActive}>{item.label}</SidebarMenuButton>
           </Link>
         );

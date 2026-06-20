@@ -8,7 +8,7 @@ export function ModuleCard({ module }: { module: AppModule }) {
   return (
     <Link
       to={module.to}
-      className="group rounded-interactive border border-border bg-content p-6 transition hover:border-primary hover:bg-hover-blue"
+      className="group rounded-interactive border border-border bg-content p-4 transition hover:border-primary hover:bg-hover-blue sm:p-6"
     >
       <div className="flex items-start gap-4">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-interactive bg-active-blue text-primary transition group-hover:bg-primary group-hover:text-white">

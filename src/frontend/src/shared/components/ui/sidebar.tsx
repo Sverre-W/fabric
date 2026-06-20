@@ -106,7 +106,7 @@ export function SidebarMenuButton({ children, isActive, className }: { children:
   );
 }
 
-function useSidebar() {
+export function useSidebar() {
   const context = useContext(SidebarContext);
 
   if (!context) {

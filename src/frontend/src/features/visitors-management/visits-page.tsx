@@ -91,7 +91,7 @@ export default function VisitsPage() {
         </div>
         <Link
           to="/visitors-management/visits/new"
-          className="inline-flex w-fit items-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90 sm:w-fit"
         >
           <Plus className="size-4" aria-hidden="true" />
           Add visit
@@ -105,7 +105,7 @@ export default function VisitsPage() {
       ) : null}
 
       <section className="rounded-structural border border-border bg-content">
-        <div className="border-b border-border px-6 py-4">
+        <div className="border-b border-border px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between">
             <h3 className="text-[16px] font-semibold tracking-tight">{interval.label}</h3>
             <p className="text-[14px] text-muted-foreground">{visitsQuery.isLoading ? 'Loading visits...' : `${visits.length} visits`}</p>

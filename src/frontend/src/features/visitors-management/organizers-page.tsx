@@ -75,21 +75,21 @@ export default function OrganizersPage() {
 
   return (
     <section className="rounded-structural border border-border bg-content">
-      <div className="flex flex-col gap-4 border-b border-border p-6 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
         <div>
           <h2 className="text-[20px] font-semibold tracking-tight">Organizers</h2>
           <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">Manage hosts and organizers responsible for coordinating visits.</p>
         </div>
         <Link
           to="/visitors-management/organizers/new"
-          className="inline-flex w-fit items-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90 sm:w-fit"
         >
           <Plus className="size-4" aria-hidden="true" />
           Add organizer
         </Link>
       </div>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {deleteOrganizer.isError ? (
           <p className="mb-6 rounded-interactive border border-error bg-error-background px-4 py-3 text-[14px] text-error" role="alert">
             Could not delete organizer.
@@ -114,8 +114,15 @@ export default function OrganizersPage() {
           </Empty>
         ) : (
           <div className="grid gap-4">
-            <div className="overflow-hidden rounded-structural border border-border">
-              <table className="w-full border-collapse text-left text-[14px]">
+            <div className="grid gap-3 md:hidden">
+              {organizersQuery.isLoading ? <p className="rounded-structural border border-border p-4 text-[14px] text-muted-foreground">Loading organizers...</p> : null}
+              {organizersQuery.isError ? <p className="rounded-structural border border-border p-4 text-[14px] text-error">Could not load organizers.</p> : null}
+              {organizers.map((organizer) => (
+                <OrganizerCard key={organizer.id} organizer={organizer} isDeleting={deleteOrganizer.isPending} onDelete={handleDelete} />
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto rounded-structural border border-border md:block">
+              <table className="w-full min-w-[40rem] border-collapse text-left text-[14px]">
                 <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Name</th>
@@ -209,6 +216,42 @@ export default function OrganizersPage() {
         )}
       </div>
     </section>
+  );
+}
+
+function OrganizerCard({ organizer, isDeleting, onDelete }: { readonly organizer: Organizer; readonly isDeleting: boolean; readonly onDelete: (organizer: Organizer) => void }) {
+  const name = getOrganizerName(organizer);
+
+  return (
+    <article className="rounded-structural border border-border p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-[15px] font-semibold text-foreground">{name}</h3>
+          <p className="mt-1 truncate text-[14px] text-muted-foreground">{organizer.email}</p>
+        </div>
+        <div className="flex shrink-0 gap-2">
+          {organizer.id ? (
+            <Link
+              to="/visitors-management/organizers/$organizerId/edit"
+              params={{ organizerId: organizer.id }}
+              className="inline-flex size-10 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
+              aria-label={`Edit ${name}`}
+            >
+              <Pencil className="size-4" aria-hidden="true" />
+            </Link>
+          ) : null}
+          <button
+            type="button"
+            className="inline-flex size-10 items-center justify-center rounded-interactive border border-error text-error transition hover:bg-error-background disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label={`Delete ${name}`}
+            disabled={isDeleting}
+            onClick={() => onDelete(organizer)}
+          >
+            <Trash2 className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }
 

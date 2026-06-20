@@ -277,7 +277,7 @@ export default function VisitEditPage() {
 
       {!visitQuery.isLoading && !visitQuery.isError && visit && initialFormValues ? (
         <>
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h3 className="mb-4 text-[16px] font-semibold tracking-tight">Visit details</h3>
 
             <div className="mb-6 grid gap-3 text-[14px] sm:grid-cols-2">
@@ -326,7 +326,7 @@ export default function VisitEditPage() {
             />
 
             {showCancelConfirm ? (
-              <div className="-mx-6 -mb-6 mt-6 flex items-center gap-3 border-t border-border bg-error-background px-6 py-4">
+              <div className="-mx-4 -mb-4 mt-6 flex flex-col gap-3 border-t border-border bg-error-background px-4 py-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:items-center sm:px-6">
                 <p className="flex-1 text-[14px] text-error font-medium">Are you sure you want to cancel this visit?</p>
                 <Button
                   variant="outline"
@@ -347,7 +347,7 @@ export default function VisitEditPage() {
             ) : null}
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="text-[16px] font-semibold tracking-tight">Invitations</h3>
               {!isCancelledOrCompleted && !showInviteForm ? (
@@ -426,7 +426,7 @@ export default function VisitEditPage() {
                 </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between [&>*]:w-full sm:[&>*]:w-auto">
                   <Button
                     type="button"
                     variant="outline"
@@ -441,7 +441,7 @@ export default function VisitEditPage() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" size="sm" disabled={inviteVisitor.isPending || !inviteEmail}>
+                  <Button type="submit" size="sm" className="w-full sm:w-auto" disabled={inviteVisitor.isPending || !inviteEmail}>
                     {inviteVisitor.isPending ? 'Sending...' : 'Send invitation'}
                   </Button>
                 </div>

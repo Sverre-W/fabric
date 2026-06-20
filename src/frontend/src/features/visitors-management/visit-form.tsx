@@ -189,7 +189,7 @@ export function VisitForm({ initialValues, isSubmitting, submitLabel, onSubmit, 
               return (
                 <FormItem>
                   <FormLabel>Start</FormLabel>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <div className="flex-[7]">
                       <Popover open={open} onOpenChange={setOpen}>
                         <PopoverTrigger render={<Button variant="outline" className="w-full justify-start text-left font-normal" disabled={disabled} />}>
@@ -237,7 +237,7 @@ export function VisitForm({ initialValues, isSubmitting, submitLabel, onSubmit, 
               return (
                 <FormItem>
                   <FormLabel>End</FormLabel>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <div className="flex-[7]">
                       <Popover open={open} onOpenChange={setOpen}>
                         <PopoverTrigger render={<Button variant="outline" className="w-full justify-start text-left font-normal" disabled={disabled} />}>
@@ -274,9 +274,9 @@ export function VisitForm({ initialValues, isSubmitting, submitLabel, onSubmit, 
           />
         </div>
 
-        <div className={footerLeft ? 'flex items-center justify-between' : 'flex justify-end'}>
-          {footerLeft ? <div>{footerLeft}</div> : null}
-          <Button type="submit" disabled={isSubmitting || disableSubmit}>
+        <div className={footerLeft ? 'flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between' : 'flex justify-end'}>
+          {footerLeft ? <div className="[&>*]:w-full sm:[&>*]:w-auto">{footerLeft}</div> : null}
+          <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting || disableSubmit}>
             {isSubmitting ? 'Saving...' : submitLabel}
           </Button>
         </div>
