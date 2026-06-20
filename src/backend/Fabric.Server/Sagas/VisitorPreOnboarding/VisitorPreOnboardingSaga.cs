@@ -1,3 +1,5 @@
+using Fabric.Server.Visitors.Domain;
+
 namespace Fabric.Server.Sagas.VisitorPreOnboarding;
 
 public class VisitorPreOnboardingSaga
@@ -27,3 +29,45 @@ public enum VisitorPreOnboardingState
     Cancelled,
     Expired,
 }
+
+public enum CredentialGenerationMode
+{
+    PlatformQr,
+    AccessControlQr
+}
+
+public class VisitorPreOnboardingSagaConfig
+{
+    public Guid Id { get; set; }
+    public bool UseCustomInviteNotification { get; set; }
+    public string? CustomInviteNotification { get; set; }
+    public CredentialGenerationMode QrGenerationMode { get; set; }
+    public bool SendConfirmNotificationToOrganizer { get; set; }
+    public bool UseCustomConfirmNotification { get; set; }
+    public string? CustomConfirmNotification { get; set; }
+    public bool SendCancellationNotification { get; set; }
+    public bool UseCustomCancellationNotification { get; set; }
+    public string? CustomCancellationNotification { get; set; }
+    public bool SendRescheduleNotification { get; set; }
+    public bool UseCustomRescheduleNotification { get; set; }
+    public string? CustomRescheduleNotification { get; set; }
+
+    public static VisitorPreOnboardingSagaConfig Default => new()
+    {
+        Id = Guid.Empty,
+        UseCustomInviteNotification = false,
+        CustomInviteNotification = null,
+        QrGenerationMode = CredentialGenerationMode.PlatformQr,
+        SendConfirmNotificationToOrganizer = false,
+        UseCustomConfirmNotification = false,
+        CustomConfirmNotification = null,
+        SendCancellationNotification = false,
+        UseCustomCancellationNotification = false,
+        CustomCancellationNotification = null,
+        SendRescheduleNotification = false,
+        UseCustomRescheduleNotification = false,
+        CustomRescheduleNotification = null,
+    };
+}
+
+public record SagaNotificationModel(Visit Visit, VisitInvitation Visitor);

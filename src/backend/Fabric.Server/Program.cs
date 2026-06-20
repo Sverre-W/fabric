@@ -17,18 +17,12 @@ using Fabric.Server.Visitors.Endpoints;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-var section = builder.Configuration.GetSection("EnableSwagger");
-bool enableSwagger = section.Exists() && section.Get<bool>();
+var section = builder.Configuration.GetSection("EnableOpenApi");
+bool enableOpenApi = section.Exists() && section.Get<bool>();
 
-if (enableSwagger)
+if (enableOpenApi)
 {
-    builder.Services
-        .AddOpenApi()
-        .AddSwaggerGen(o =>
-        {
-            o.DescribeAllParametersInCamelCase();
-            o.UseOneOfForPolymorphism();
-        });
+    builder.Services.AddOpenApi();
 }
 
 builder.Services.AddTransient(_ => TimeProvider.System);
@@ -62,11 +56,9 @@ builder.Services.AddHostedService<MigrationsRunner>();
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (enableSwagger)
+if (enableOpenApi)
 {
     app.MapOpenApi().AllowAnonymous();
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
 
 app.UseCors("ApiCors");

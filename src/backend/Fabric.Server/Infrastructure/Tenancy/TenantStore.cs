@@ -12,7 +12,7 @@ public sealed class TenantStore(TenantsDbContext dbContext, IMemoryCache cache) 
     public async Task<TenantInfo?> GetTenantAsync(string tenantId, CancellationToken cancellationToken)
     {
         string normalizedTenantId = tenantId.Trim();
-        string cacheKey = $"tenant:{normalizedTenantId}";
+        string cacheKey = GetCacheKey(normalizedTenantId);
 
         if (cache.TryGetValue(cacheKey, out TenantInfo? cachedTenant))
             return cachedTenant;
@@ -29,4 +29,12 @@ public sealed class TenantStore(TenantsDbContext dbContext, IMemoryCache cache) 
 
         return tenantInfo;
     }
+
+    public void InvalidateTenant(string tenantId)
+    {
+        string normalizedTenantId = tenantId.Trim();
+        cache.Remove(GetCacheKey(normalizedTenantId));
+    }
+
+    private static string GetCacheKey(string tenantId) => $"tenant:{tenantId}";
 }

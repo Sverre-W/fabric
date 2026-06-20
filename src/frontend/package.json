@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "api:generate": "openapi-typescript http://localhost:5245/swagger/v1/swagger.json -o src/shared/api/generated/schema.d.ts",
+    "api:generate": "openapi-typescript http://localhost:5245/openapi/v1.json -o src/shared/api/generated/schema.d.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

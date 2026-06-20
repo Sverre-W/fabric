@@ -11,7 +11,9 @@ const CredentialsPage = lazy(() => import('@/features/credentials/credentials-pa
 const HomePage = lazy(() => import('@/features/home/home-page'));
 const IdentitiesPage = lazy(() => import('@/features/identities/identities-page'));
 const OrganizationsPage = lazy(() => import('@/features/organizations/organizations-page'));
-const SettingsPage = lazy(() => import('@/features/settings/settings-page'));
+const SettingsLayout = lazy(() => import('@/features/settings/settings-layout'));
+const TenantSettingsPage = lazy(() => import('@/features/settings/tenant-settings-page'));
+const VisitorsSettingsPage = lazy(() => import('@/features/settings/visitors-settings-page'));
 const VisitorsManagementLayout = lazy(() => import('@/features/visitors-management/visitors-management-layout'));
 const OrganizerCreatePage = lazy(() => import('@/features/visitors-management/organizer-create-page'));
 const OrganizerEditPage = lazy(() => import('@/features/visitors-management/organizer-edit-page'));
@@ -75,7 +77,25 @@ const auditRoute = createRoute({
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
-  component: () => <ProtectedLazyRoute component={<SettingsPage />} />,
+  component: () => <ProtectedLazyRoute component={<SettingsLayout />} />,
+});
+
+const settingsIndexRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/',
+  component: () => <LazyRoute component={<TenantSettingsPage />} />,
+});
+
+const visitorsSettingsRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/visitors',
+  component: () => <LazyRoute component={<VisitorsSettingsPage />} />,
+});
+
+const tenantSettingsRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/tenant',
+  component: () => <LazyRoute component={<TenantSettingsPage />} />,
 });
 
 const visitorsManagementRoute = createRoute({
@@ -146,7 +166,7 @@ const routeTree = rootRoute.addChildren([
   credentialsRoute,
   organizationsRoute,
   auditRoute,
-  settingsRoute,
+  settingsRoute.addChildren([settingsIndexRoute, visitorsSettingsRoute, tenantSettingsRoute]),
   visitorsManagementRoute.addChildren([visitsIndexRoute, visitsRoute, visitCreateRoute, visitEditRoute, visitorsRoute, organizersRoute, organizerCreateRoute, organizerEditRoute, visitorReportingRoute]),
 ]);
 

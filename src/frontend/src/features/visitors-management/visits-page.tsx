@@ -32,7 +32,7 @@ type StoredCalendarState = {
 export default function VisitsPage() {
   const [calendarState, setCalendarState] = useState(() => getStoredCalendarState());
   const interval = useMemo(() => getCalendarInterval(calendarState.anchorDate, calendarState.view), [calendarState.anchorDate, calendarState.view]);
-  const filteredStatuses = calendarState.statuses.length > 0 && calendarState.statuses.length < visitStatuses.length ? calendarState.statuses : undefined;
+  const filteredStatuses = calendarState.statuses.length > 0 && calendarState.statuses.length < visitStatuses.length ? calendarState.statuses : [];
 
   useEffect(() => {
     window.sessionStorage.setItem(visitsCalendarStorageKey, JSON.stringify(calendarState));

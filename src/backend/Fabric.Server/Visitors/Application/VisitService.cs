@@ -14,7 +14,7 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
             .SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
     }
 
-    public async Task<Result<Visit, VisitErrors>> Create(
+    public async Task<Result<(Visit, Organizer), VisitErrors>> Create(
             Guid organizerId,
             string summary,
             DateTimeOffset start,
@@ -25,7 +25,7 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
         Organizer? organizer = await db.Organizers.AsNoTracking().SingleOrDefaultAsync(x => x.Id == organizerId, cancellationToken);
 
         if (organizer is null)
-            return Result.Failure<Visit, VisitErrors>(VisitErrors.OrganizerNotFound);
+            return Result.Failure<(Visit, Organizer), VisitErrors>(VisitErrors.OrganizerNotFound);
 
         Result<Visit, VisitErrors> result = Visit.Create(organizerId, summary, start, end, locationId, timeProvider.GetUtcNow());
 
@@ -35,7 +35,7 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        return result;
+        return result.Map(v => (v, organizer));
     }
 
     public async Task<Result<VisitErrors>> ReassignOrganizer(Guid visitId, Guid organizerId,

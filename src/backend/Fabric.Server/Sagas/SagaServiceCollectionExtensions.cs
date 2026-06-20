@@ -18,6 +18,7 @@ public static class SagaServiceCollectionExtensions
         collection.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Add(SagasJsonSerializerContext.Default));
 
+        collection.AddSingleton<VisitorPreOnboardingSagaTrigger>();
         collection.AddScoped<VisitorPreOnboardingSagaService>();
         collection.AddHostedService<VisitorPreOnboardingWorker>();
 

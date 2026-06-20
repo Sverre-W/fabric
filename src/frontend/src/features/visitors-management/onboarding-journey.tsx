@@ -113,7 +113,7 @@ function TerminalTag({ state }: { state: VisitorPreOnboardingState }) {
 
 type SagaProp = {
   state?: VisitorPreOnboardingState | null;
-  retryCount?: number | null;
+  retryCount?: number | string | null;
 };
 
 export function OnboardingJourney({
@@ -127,7 +127,7 @@ export function OnboardingJourney({
 
   const isDoneAll = state != null && TERMINAL_DONE.includes(state);
   const globalFail = isFailState(state);
-  const retryCount = saga?.retryCount ?? 0;
+  const retryCount = Number(saga?.retryCount ?? 0);
 
   return (
     <div className="flex items-center gap-0 overflow-hidden">

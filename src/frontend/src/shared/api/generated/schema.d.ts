@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/access-policies/access-control-systems": {
+    "/api/tenants/settings": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,16 +12,185 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List access control systems
-         * @description List access control systems
+         * Retrieve tenant settings
+         * @description Retrieve tenant settings
          */
         get: {
             parameters: {
-                query?: {
-                    name?: string;
-                    page?: number;
-                    pageSize?: number;
-                    ids?: string[];
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TenantSettingsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve editable tenant settings
+         * @description Retrieve editable tenant settings
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTenantSettingsResponse"];
+                    };
+                };
+            };
+        };
+        /**
+         * Update editable tenant settings
+         * @description Update editable tenant settings
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTenantSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTenantSettingsResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/locations/locations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a location by id
+         * @description Retrieve a site, building, or room by id
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visitors/visitors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List visitors
+         * @description List visitors
+         */
+        get: {
+            parameters: {
+                query: {
+                    Query?: string;
+                    ids: string[];
                 };
                 header?: never;
                 path?: never;
@@ -35,9 +204,265 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AccessControlSystemResponseIPaged"];
-                        "application/json": components["schemas"]["AccessControlSystemResponseIPaged"];
-                        "text/json": components["schemas"]["AccessControlSystemResponseIPaged"];
+                        "application/json": components["schemas"]["PageOfVisitorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-policies/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List access policies
+         * @description List access policies
+         */
+        get: {
+            parameters: {
+                query: {
+                    SystemId?: string;
+                    SubjectId?: string;
+                    Name?: string;
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessPolicyResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-policies/policies/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create credential policy
+         * @description Create a credential access policy
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCredentialPolicyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessPolicyChangeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-policies/policies/access-levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create access-level policy
+         * @description Create an access-level policy
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAccessPolicyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessPolicyChangeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-policies/policies/{policyId}/retract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retract access policy
+         * @description Retract an access policy and reconcile subject access
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    policyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessPolicyChangeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-policies/access-control-systems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List access control systems
+         * @description List access control systems
+         */
+        get: {
+            parameters: {
+                query: {
+                    Name?: string;
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessControlSystemResponse"];
                     };
                 };
             };
@@ -78,9 +503,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UnipassAccessControlSystemResponse"] | components["schemas"]["LenelAccessControlSystemResponse"];
-                        "application/json": components["schemas"]["UnipassAccessControlSystemResponse"] | components["schemas"]["LenelAccessControlSystemResponse"];
-                        "text/json": components["schemas"]["UnipassAccessControlSystemResponse"] | components["schemas"]["LenelAccessControlSystemResponse"];
+                        "application/json": components["schemas"]["AccessControlSystemResponse"];
                     };
                 };
                 /** @description Not Found */
@@ -88,11 +511,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
+                    content?: never;
                 };
             };
         };
@@ -132,9 +551,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UnipassMetadata"] | components["schemas"]["LenelMetadata"];
-                        "application/json": components["schemas"]["UnipassMetadata"] | components["schemas"]["LenelMetadata"];
-                        "text/json": components["schemas"]["UnipassMetadata"] | components["schemas"]["LenelMetadata"];
+                        "application/json": components["schemas"]["SystemMetadata"];
                     };
                 };
                 /** @description Not Found */
@@ -143,9 +560,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -171,11 +586,9 @@ export interface paths {
          */
         get: {
             parameters: {
-                query?: {
-                    name?: string;
-                    page?: number;
-                    pageSize?: number;
-                    subjectIds?: string[];
+                query: {
+                    Name?: string;
+                    subjectIds: string[];
                 };
                 header?: never;
                 path: {
@@ -191,9 +604,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["IdentityMappingResponseIPaged"];
-                        "application/json": components["schemas"]["IdentityMappingResponseIPaged"];
-                        "text/json": components["schemas"]["IdentityMappingResponseIPaged"];
+                        "application/json": components["schemas"]["PageOfIdentityMappingResponse"];
                     };
                 };
             };
@@ -227,11 +638,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["UpdateUnipassConfigRequest"];
-                    "text/json": components["schemas"]["UpdateUnipassConfigRequest"];
-                    "application/*+json": components["schemas"]["UpdateUnipassConfigRequest"];
                 };
             };
             responses: {
@@ -248,9 +657,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -259,9 +666,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -294,11 +699,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["UpdateLenelConfigRequest"];
-                    "text/json": components["schemas"]["UpdateLenelConfigRequest"];
-                    "application/*+json": components["schemas"]["UpdateLenelConfigRequest"];
                 };
             };
             responses: {
@@ -315,9 +718,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -326,9 +727,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -358,11 +757,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["AddUnipassBadgeTypeRequest"];
-                    "text/json": components["schemas"]["AddUnipassBadgeTypeRequest"];
-                    "application/*+json": components["schemas"]["AddUnipassBadgeTypeRequest"];
                 };
             };
             responses: {
@@ -372,9 +769,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UnipassBadgeTypeResponse"];
                         "application/json": components["schemas"]["UnipassBadgeTypeResponse"];
-                        "text/json": components["schemas"]["UnipassBadgeTypeResponse"];
                     };
                 };
             };
@@ -403,11 +798,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["AddLenelBadgeTypeRequest"];
-                    "text/json": components["schemas"]["AddLenelBadgeTypeRequest"];
-                    "application/*+json": components["schemas"]["AddLenelBadgeTypeRequest"];
                 };
             };
             responses: {
@@ -417,9 +810,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["LenelBadgeTypeResponse"];
                         "application/json": components["schemas"]["LenelBadgeTypeResponse"];
-                        "text/json": components["schemas"]["LenelBadgeTypeResponse"];
                     };
                 };
             };
@@ -484,11 +875,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["AddUnipassAccessLevelTypeRequest"];
-                    "text/json": components["schemas"]["AddUnipassAccessLevelTypeRequest"];
-                    "application/*+json": components["schemas"]["AddUnipassAccessLevelTypeRequest"];
                 };
             };
             responses: {
@@ -498,9 +887,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UnipassAccessLevelTypeResponse"];
                         "application/json": components["schemas"]["UnipassAccessLevelTypeResponse"];
-                        "text/json": components["schemas"]["UnipassAccessLevelTypeResponse"];
                     };
                 };
             };
@@ -529,11 +916,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["AddLenelAccessLevelTypeRequest"];
-                    "text/json": components["schemas"]["AddLenelAccessLevelTypeRequest"];
-                    "application/*+json": components["schemas"]["AddLenelAccessLevelTypeRequest"];
                 };
             };
             responses: {
@@ -543,9 +928,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["LenelAccessLevelTypeResponse"];
                         "application/json": components["schemas"]["LenelAccessLevelTypeResponse"];
-                        "text/json": components["schemas"]["LenelAccessLevelTypeResponse"];
                     };
                 };
             };
@@ -592,7 +975,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/access-policies/policies": {
+    "/api/locations/sites": {
         parameters: {
             query?: never;
             header?: never;
@@ -600,19 +983,12 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List access policies
-         * @description List access policies
+         * List sites
+         * @description List all sites
          */
         get: {
             parameters: {
-                query?: {
-                    systemId?: string;
-                    subjectId?: string;
-                    name?: string;
-                    page?: number;
-                    pageSize?: number;
-                    ids?: string[];
-                };
+                query?: never;
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -625,14 +1001,285 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AccessPolicyResponseIPaged"];
-                        "application/json": components["schemas"]["AccessPolicyResponseIPaged"];
-                        "text/json": components["schemas"]["AccessPolicyResponseIPaged"];
+                        "application/json": components["schemas"]["PageOfSiteResponse"];
                     };
                 };
             };
         };
         put?: never;
+        /**
+         * Create site
+         * @description Create a site
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateSiteRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/locations/sites/{siteId}/buildings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List site buildings
+         * @description List buildings for a site
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BuildingResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add building
+         * @description Add a building to a site
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddBuildingRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/locations/sites/{siteId}/buildings/{buildingId}/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List building rooms
+         * @description List rooms for a building
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                    buildingId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RoomResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add room
+         * @description Add a room to a building
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                    buildingId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddRoomRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/locations/sites/{siteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update site
+         * @description Update a site's name
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateSiteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;
@@ -640,7 +1287,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/access-policies/policies/credentials": {
+    "/api/locations/sites/{siteId}/buildings/{buildingId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -648,155 +1295,67 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
         /**
-         * Create credential policy
-         * @description Create a credential access policy
+         * Update building
+         * @description Update a building's name
          */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["CreateCredentialPolicyRequest"];
-                    "text/json": components["schemas"]["CreateCredentialPolicyRequest"];
-                    "application/*+json": components["schemas"]["CreateCredentialPolicyRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["AccessPolicyChangeResponse"];
-                        "application/json": components["schemas"]["AccessPolicyChangeResponse"];
-                        "text/json": components["schemas"]["AccessPolicyChangeResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/access-policies/policies/access-levels": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create access-level policy
-         * @description Create an access-level policy
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["CreateAccessPolicyRequest"];
-                    "text/json": components["schemas"]["CreateAccessPolicyRequest"];
-                    "application/*+json": components["schemas"]["CreateAccessPolicyRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["AccessPolicyChangeResponse"];
-                        "application/json": components["schemas"]["AccessPolicyChangeResponse"];
-                        "text/json": components["schemas"]["AccessPolicyChangeResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/access-policies/policies/{policyId}/retract": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Retract access policy
-         * @description Retract an access policy and reconcile subject access
-         */
-        post: {
+        put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    policyId: string;
+                    siteId: string;
+                    buildingId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateBuildingRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Remove building
+         * @description Remove a building from a site
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                    buildingId: string;
                 };
                 cookie?: never;
             };
@@ -808,9 +1367,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AccessPolicyChangeResponse"];
-                        "application/json": components["schemas"]["AccessPolicyChangeResponse"];
-                        "text/json": components["schemas"]["AccessPolicyChangeResponse"];
+                        "application/json": components["schemas"]["LocationResponse"];
                     };
                 };
                 /** @description Not Found */
@@ -819,14 +1376,103 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
         };
-        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/locations/sites/{siteId}/buildings/{buildingId}/rooms/{roomId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update room
+         * @description Update a room
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                    buildingId: string;
+                    roomId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateRoomRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Remove room
+         * @description Remove a room from a building
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    siteId: string;
+                    buildingId: string;
+                    roomId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -860,9 +1506,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ArrivalResponse"];
                         "application/json": components["schemas"]["ArrivalResponse"];
-                        "text/json": components["schemas"]["ArrivalResponse"];
                     };
                 };
                 /** @description Not Found */
@@ -870,11 +1514,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
+                    content?: never;
                 };
             };
         };
@@ -900,12 +1540,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    type?: components["schemas"]["ArrivalType"];
-                    status?: components["schemas"]["OnboardingStatus"];
-                    checkedIn?: boolean;
-                    locationId?: string;
-                    page?: number;
-                    pageSize?: number;
+                    Type?: components["schemas"]["ArrivalType"];
+                    Status?: components["schemas"]["OnboardingStatus"];
+                    CheckedIn?: boolean;
+                    LocationId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -919,9 +1557,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ArrivalResponseIPaged"];
-                        "application/json": components["schemas"]["ArrivalResponseIPaged"];
-                        "text/json": components["schemas"]["ArrivalResponseIPaged"];
+                        "application/json": components["schemas"]["PageOfArrivalResponse"];
                     };
                 };
             };
@@ -956,11 +1592,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["OnboardArrivalRequest"];
-                    "text/json": components["schemas"]["OnboardArrivalRequest"];
-                    "application/*+json": components["schemas"]["OnboardArrivalRequest"];
                 };
             };
             responses: {
@@ -977,9 +1611,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -988,9 +1620,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -999,9 +1629,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -1049,9 +1677,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -1060,9 +1686,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -1110,9 +1734,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -1121,9 +1743,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -1171,9 +1791,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -1182,1087 +1800,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/locations/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a location by id
-         * @description Retrieve a site, building, or room by id
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/sites": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List sites
-         * @description List all sites
-         */
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    pageSize?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["SiteResponseIPaged"];
-                        "application/json": components["schemas"]["SiteResponseIPaged"];
-                        "text/json": components["schemas"]["SiteResponseIPaged"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Create site
-         * @description Create a site
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["CreateSiteRequest"];
-                    "text/json": components["schemas"]["CreateSiteRequest"];
-                    "application/*+json": components["schemas"]["CreateSiteRequest"];
-                };
-            };
-            responses: {
-                /** @description Created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/sites/{siteId}/buildings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List site buildings
-         * @description List buildings for a site
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["BuildingResponse"][];
-                        "application/json": components["schemas"]["BuildingResponse"][];
-                        "text/json": components["schemas"]["BuildingResponse"][];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Add building
-         * @description Add a building to a site
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["AddBuildingRequest"];
-                    "text/json": components["schemas"]["AddBuildingRequest"];
-                    "application/*+json": components["schemas"]["AddBuildingRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Conflict */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/sites/{siteId}/buildings/{buildingId}/rooms": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List building rooms
-         * @description List rooms for a building
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                    buildingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["RoomResponse"][];
-                        "application/json": components["schemas"]["RoomResponse"][];
-                        "text/json": components["schemas"]["RoomResponse"][];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Add room
-         * @description Add a room to a building
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                    buildingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["AddRoomRequest"];
-                    "text/json": components["schemas"]["AddRoomRequest"];
-                    "application/*+json": components["schemas"]["AddRoomRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Conflict */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/sites/{siteId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update site
-         * @description Update a site's name
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdateSiteRequest"];
-                    "text/json": components["schemas"]["UpdateSiteRequest"];
-                    "application/*+json": components["schemas"]["UpdateSiteRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/sites/{siteId}/buildings/{buildingId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update building
-         * @description Update a building's name
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                    buildingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdateBuildingRequest"];
-                    "text/json": components["schemas"]["UpdateBuildingRequest"];
-                    "application/*+json": components["schemas"]["UpdateBuildingRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Conflict */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        post?: never;
-        /**
-         * Remove building
-         * @description Remove a building from a site
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                    buildingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/sites/{siteId}/buildings/{buildingId}/rooms/{roomId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update room
-         * @description Update a room
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                    buildingId: string;
-                    roomId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdateRoomRequest"];
-                    "text/json": components["schemas"]["UpdateRoomRequest"];
-                    "application/*+json": components["schemas"]["UpdateRoomRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        post?: never;
-        /**
-         * Remove room
-         * @description Remove a room from a building
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    siteId: string;
-                    buildingId: string;
-                    roomId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LocationResponse"];
-                        "application/json": components["schemas"]["LocationResponse"];
-                        "text/json": components["schemas"]["LocationResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/visitors/organizers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    query?: string;
-                    page?: number;
-                    pageSize?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["OrganizerIPaged"];
-                        "application/json": components["schemas"]["OrganizerIPaged"];
-                        "text/json": components["schemas"]["OrganizerIPaged"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["AddOrganizerRequest"];
-                    "text/json": components["schemas"]["AddOrganizerRequest"];
-                    "application/*+json": components["schemas"]["AddOrganizerRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["OrganizerIPaged"];
-                        "application/json": components["schemas"]["OrganizerIPaged"];
-                        "text/json": components["schemas"]["OrganizerIPaged"];
-                    };
-                };
-                /** @description Created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["IResult"];
-                        "application/json": components["schemas"]["IResult"];
-                        "text/json": components["schemas"]["IResult"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/visitors/organizers/{organizerId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    organizerId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["Organizer"];
-                        "application/json": components["schemas"]["Organizer"];
-                        "text/json": components["schemas"]["Organizer"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    organizerId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdateOrganizerRequest"];
-                    "text/json": components["schemas"]["UpdateOrganizerRequest"];
-                    "application/*+json": components["schemas"]["UpdateOrganizerRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["Organizer"];
-                        "application/json": components["schemas"]["Organizer"];
-                        "text/json": components["schemas"]["Organizer"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Conflict */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        post?: never;
-        /**
-         * Deactivate organizer
-         * @description Deactivate organizer
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    organizerId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description No Content */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tenants/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve tenant settings
-         * @description Retrieve tenant settings
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["TenantSettingsResponse"];
-                        "application/json": components["schemas"]["TenantSettingsResponse"];
-                        "text/json": components["schemas"]["TenantSettingsResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/sagas/visitor-pre-onboarding/{id}/retry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Retry saga
-         * @description Retry an expired visitor pre-onboarding saga
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description No Content */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Conflict */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/sagas/visitor-pre-onboarding/{visitId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    visitId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["VisitorPreOnboardingSaga"][];
-                        "application/json": components["schemas"]["VisitorPreOnboardingSaga"][];
-                        "text/json": components["schemas"]["VisitorPreOnboardingSaga"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/sagas/visitor-pre-onboarding/{visitId}/{invitationId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    visitId: string;
-                    invitationId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["VisitorPreOnboardingSaga"];
-                        "application/json": components["schemas"]["VisitorPreOnboardingSaga"];
-                        "text/json": components["schemas"]["VisitorPreOnboardingSaga"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/visitors/visitors": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List visitors
-         * @description List visitors
-         */
-        get: {
-            parameters: {
-                query?: {
-                    query?: string;
-                    page?: number;
-                    pageSize?: number;
-                    ids?: string[];
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["VisitorResponseIPaged"];
-                        "application/json": components["schemas"]["VisitorResponseIPaged"];
-                        "text/json": components["schemas"]["VisitorResponseIPaged"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2297,9 +1839,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["VisitResponse"];
                         "application/json": components["schemas"]["VisitResponse"];
-                        "text/json": components["schemas"]["VisitResponse"];
                     };
                 };
                 /** @description Not Found */
@@ -2307,11 +1847,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                    };
+                    content?: never;
                 };
             };
         };
@@ -2336,13 +1872,13 @@ export interface paths {
          */
         get: {
             parameters: {
-                query?: {
-                    withStatus?: components["schemas"]["VisitStatus"][];
+                query: {
+                    withStatus: components["schemas"]["VisitStatus"][];
                     organizerId?: string;
                     after?: string;
                     before?: string;
-                    page?: number;
-                    pageSize?: number;
+                    page?: number | string;
+                    pageSize?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -2356,9 +1892,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["VisitResponseIPaged"];
-                        "application/json": components["schemas"]["VisitResponseIPaged"];
-                        "text/json": components["schemas"]["VisitResponseIPaged"];
+                        "application/json": components["schemas"]["PageOfVisitResponse"];
                     };
                 };
             };
@@ -2375,11 +1909,9 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["CreateVisitRequest"];
-                    "text/json": components["schemas"]["CreateVisitRequest"];
-                    "application/*+json": components["schemas"]["CreateVisitRequest"];
                 };
             };
             responses: {
@@ -2389,9 +1921,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["VisitResponse"];
                         "application/json": components["schemas"]["VisitResponse"];
-                        "text/json": components["schemas"]["VisitResponse"];
                     };
                 };
             };
@@ -2439,9 +1969,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -2450,9 +1978,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2485,11 +2011,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["RescheduleVisitRequest"];
-                    "text/json": components["schemas"]["RescheduleVisitRequest"];
-                    "application/*+json": components["schemas"]["RescheduleVisitRequest"];
                 };
             };
             responses: {
@@ -2506,9 +2030,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -2517,9 +2039,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -2528,9 +2048,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2562,11 +2080,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["UpdateVisitSummaryRequest"];
-                    "text/json": components["schemas"]["UpdateVisitSummaryRequest"];
-                    "application/*+json": components["schemas"]["UpdateVisitSummaryRequest"];
                 };
             };
             responses: {
@@ -2583,9 +2099,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -2594,9 +2108,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -2605,9 +2117,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2641,11 +2151,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["RelocateVisitRequest"];
-                    "text/json": components["schemas"]["RelocateVisitRequest"];
-                    "application/*+json": components["schemas"]["RelocateVisitRequest"];
                 };
             };
             responses: {
@@ -2662,9 +2170,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -2673,9 +2179,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2708,11 +2212,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["InviteVisitRequest"];
-                    "text/json": components["schemas"]["InviteVisitRequest"];
-                    "application/*+json": components["schemas"]["InviteVisitRequest"];
                 };
             };
             responses: {
@@ -2722,9 +2224,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["VisitInvitationResponse"];
                         "application/json": components["schemas"]["VisitInvitationResponse"];
-                        "text/json": components["schemas"]["VisitInvitationResponse"];
                     };
                 };
                 /** @description Not Found */
@@ -2733,9 +2233,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -2744,9 +2242,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2780,11 +2276,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["ConfirmInvitationRequest"];
-                    "text/json": components["schemas"]["ConfirmInvitationRequest"];
-                    "application/*+json": components["schemas"]["ConfirmInvitationRequest"];
                 };
             };
             responses: {
@@ -2801,9 +2295,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -2812,9 +2304,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -2823,9 +2313,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2874,9 +2362,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Conflict */
@@ -2885,9 +2371,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"] | components["schemas"]["HttpValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2898,568 +2382,1059 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/visitors/organizers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Query?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfOrganizerResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddOrganizerRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizerResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visitors/organizers/{organizerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizerId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizerResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizerId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateOrganizerRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizerResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Deactivate organizer
+         * @description Deactivate organizer
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizerId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/visitor-pre-onboarding/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry saga
+         * @description Retry an expired visitor pre-onboarding saga
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/visitor-pre-onboarding/configuration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VisitorPreOnboardingSagaConfig"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VisitorPreOnboardingSagaConfigRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VisitorPreOnboardingSagaConfig"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/visitor-pre-onboarding/{visitId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VisitorPreOnboardingSaga"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/visitor-pre-onboarding/{visitId}/{invitationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    visitId: string;
+                    invitationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VisitorPreOnboardingSaga"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AccessControlSystemResponse: {
+        AccessControlSystemResponse: components["schemas"]["AccessControlSystemResponseUnipassAccessControlSystemResponse"] | components["schemas"]["AccessControlSystemResponseLenelAccessControlSystemResponse"];
+        AccessControlSystemResponseLenelAccessControlSystemResponse: {
+            /** @enum {string} */
+            type?: "lenel";
+            badgeTypes: components["schemas"]["LenelBadgeTypeResponse"][];
+            accessLevels: components["schemas"]["LenelAccessLevelTypeResponse"][];
             /** Format: uuid */
             id: string;
-            name: string | null;
+            name: string;
         };
-        AccessControlSystemResponseIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: (components["schemas"]["UnipassAccessControlSystemResponse"] | components["schemas"]["LenelAccessControlSystemResponse"])[] | null;
-            readonly isLastPage?: boolean;
-        };
-        AccessLevelResponse: {
+        AccessControlSystemResponseUnipassAccessControlSystemResponse: {
+            /** @enum {string} */
+            type?: "unipass";
+            badgeTypes: components["schemas"]["UnipassBadgeTypeResponse"][];
+            accessLevels: components["schemas"]["UnipassAccessLevelTypeResponse"][];
             /** Format: uuid */
-            accessLevelTypeId: string;
-        } & components["schemas"]["IssuedResourceResponse"];
-        AccessLevelTypeResponse: {
+            id: string;
+            name: string;
+        };
+        AccessLevelTypeResponse: components["schemas"]["AccessLevelTypeResponseUnipassAccessLevelTypeResponse"] | components["schemas"]["AccessLevelTypeResponseLenelAccessLevelTypeResponse"];
+        AccessLevelTypeResponseLenelAccessLevelTypeResponse: {
+            /** @enum {string} */
+            type?: "lenel";
+            /** Format: uuid */
+            accessLevelId: string;
+            badgeTypes: components["schemas"]["LenelBadgeTypeResponse"][];
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             systemId: string;
-            name: string | null;
+            name: string;
+        };
+        AccessLevelTypeResponseUnipassAccessLevelTypeResponse: {
+            /** @enum {string} */
+            type?: "unipass";
+            /** Format: int32 */
+            siteId: number | string;
+            /** Format: int32 */
+            accessRuleId: number | string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            systemId: string;
+            name: string;
         };
         AccessPolicyChangeResponse: {
-            policy?: components["schemas"]["AccessPolicyResponse"];
-            satisfiedBy?: (components["schemas"]["CredentialResponse"] | components["schemas"]["AccessLevelResponse"]) | null;
-            accessState?: components["schemas"]["SubjectSystemAccessStateResponse"];
+            policy: null | components["schemas"]["AccessPolicyResponse"];
+            satisfiedBy: null | components["schemas"]["IssuedResourceResponse"];
+            accessState: components["schemas"]["SubjectSystemAccessStateResponse"];
         };
         AccessPolicyResponse: {
             /** Format: uuid */
-            id?: string;
+            id: string;
             /** Format: uuid */
-            systemId?: string;
-            subject?: components["schemas"]["SubjectResponse"];
+            systemId: string;
+            subject: components["schemas"]["SubjectResponse"];
             /** Format: date-time */
-            effectiveFrom?: string;
+            effectiveFrom: string;
             /** Format: date-time */
-            effectiveUntil?: string;
-            requirement?: (components["schemas"]["CredentialRequirementResponse"] | components["schemas"]["AccessRequirementResponse"]) | null;
-            reconciliationStatus?: components["schemas"]["ReconciliationStatus"];
-            reconciliationFailureReason?: string | null;
+            effectiveUntil: string;
+            requirement: components["schemas"]["PolicyRequirementResponse"];
+            reconciliationStatus: components["schemas"]["ReconciliationStatus"];
+            reconciliationFailureReason: null | string;
         };
-        AccessPolicyResponseIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: components["schemas"]["AccessPolicyResponse"][] | null;
-            readonly isLastPage?: boolean;
-        };
-        AccessRequirementResponse: {
-            accessLevel?: (components["schemas"]["UnipassAccessLevelTypeResponse"] | components["schemas"]["LenelAccessLevelTypeResponse"]) | null;
-        } & components["schemas"]["PolicyRequirementResponse"];
         AddBuildingRequest: {
-            name?: string | null;
-            address?: string | null;
+            name: string;
+            address: null | string;
         };
         AddLenelAccessLevelTypeRequest: {
-            name?: string | null;
+            name: string;
             /** Format: uuid */
-            accessLevelId?: string;
-            badgeTypeIds?: string[] | null;
-            metadata?: components["schemas"]["LenelMetadata"];
+            accessLevelId: string;
+            badgeTypeIds: string[];
+            metadata: components["schemas"]["LenelMetadata"];
         };
         AddLenelBadgeTypeRequest: {
-            name?: string | null;
+            name: string;
             /** Format: uuid */
-            badgeTypeId?: string;
-            metadata?: components["schemas"]["LenelMetadata"];
+            badgeTypeId: string;
+            metadata: components["schemas"]["LenelMetadata"];
         };
         AddOrganizerRequest: {
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
+            firstName: string;
+            lastName: string;
+            email: string;
         };
         AddRoomRequest: {
-            name?: string | null;
+            name: string;
             /** Format: int32 */
-            capacity?: number;
-            wheelchairAccessible?: boolean;
+            capacity: number | string;
+            wheelchairAccessible: boolean;
         };
         AddUnipassAccessLevelTypeRequest: {
-            name?: string | null;
+            name: string;
             /** Format: int32 */
-            siteId?: number;
+            siteId: number | string;
             /** Format: int32 */
-            accessRuleId?: number;
-            metadata?: components["schemas"]["UnipassMetadata"];
+            accessRuleId: number | string;
+            metadata: components["schemas"]["UnipassMetadata"];
         };
         AddUnipassBadgeTypeRequest: {
-            name?: string | null;
+            name: string;
             /** Format: int32 */
-            rangeStart?: number;
+            rangeStart: number | string;
             /** Format: int32 */
-            rangeStop?: number;
+            rangeStop: number | string;
+        };
+        AdminTenantSettingsResponse: {
+            oidc: components["schemas"]["OidcSettingsResponse"];
+            theme: components["schemas"]["ThemeSettingsResponse"];
+            logo: null | components["schemas"]["LogoSettingsResponse"];
+            email: null | components["schemas"]["GraphEmailSettingsResponse"];
         };
         ArrivalEntryResponse: {
             /** Format: uuid */
-            id?: string;
-            type?: components["schemas"]["ArrivalEntryType"];
+            id: string;
+            type: components["schemas"]["ArrivalEntryType"];
             /** Format: date-time */
-            timestamp?: string;
+            timestamp: string;
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         ArrivalEntryType: "CheckedIn" | "CheckedOut";
         ArrivalResponse: {
             /** Format: uuid */
-            id?: string;
-            type?: components["schemas"]["ArrivalType"];
+            id: string;
+            type: components["schemas"]["ArrivalType"];
             /** Format: date-time */
-            expectedArrivalTime?: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            company?: string | null;
-            arrivalCode?: string | null;
-            status?: components["schemas"]["OnboardingStatus"];
+            expectedArrivalTime: string;
+            firstName: string;
+            lastName: string;
+            company: null | string;
+            arrivalCode: string;
+            status: components["schemas"]["OnboardingStatus"];
             /** Format: date-time */
-            onboardedAt?: string | null;
+            onboardedAt: null | string;
             /** Format: date-time */
-            offboardedAt?: string | null;
-            checkedIn?: boolean;
+            offboardedAt: null | string;
+            checkedIn: boolean;
             /** Format: uuid */
-            locationId?: string | null;
-            confirmed?: boolean | null;
+            locationId: null | string;
+            confirmed: null | boolean;
             /** Format: uuid */
-            visitorId?: string | null;
+            visitorId: null | string;
             /** Format: uuid */
-            invitationId?: string | null;
+            invitationId: null | string;
             /** Format: uuid */
-            contractorId?: string | null;
+            contractorId: null | string;
             /** Format: uuid */
-            jobAssignmentId?: string | null;
-            entries?: components["schemas"]["ArrivalEntryResponse"][] | null;
-            documents?: components["schemas"]["CheckInDocumentResponse"][] | null;
+            jobAssignmentId: null | string;
+            entries: components["schemas"]["ArrivalEntryResponse"][];
+            documents: components["schemas"]["CheckInDocumentResponse"][];
         };
-        ArrivalResponseIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: components["schemas"]["ArrivalResponse"][] | null;
-            readonly isLastPage?: boolean;
-        };
-        /** @enum {string} */
+        /** @enum {unknown} */
         ArrivalType: "Visitor" | "Contractor";
-        BadgeTypeResponse: {
+        BadgeTypeResponse: components["schemas"]["BadgeTypeResponseUnipassBadgeTypeResponse"] | components["schemas"]["BadgeTypeResponseLenelBadgeTypeResponse"];
+        BadgeTypeResponseLenelBadgeTypeResponse: {
+            /** @enum {string} */
+            type?: "lenel";
+            /** Format: uuid */
+            badgeTypeId: string;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             systemId: string;
-            name: string | null;
+            name: string;
+        };
+        BadgeTypeResponseUnipassBadgeTypeResponse: {
+            /** @enum {string} */
+            type?: "unipass";
+            /** Format: int32 */
+            rangeStart: number | string;
+            /** Format: int32 */
+            rangeStop: number | string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            systemId: string;
+            name: string;
         };
         BuildingResponse: {
             /** Format: uuid */
-            id?: string;
-            name?: string | null;
-            address?: string | null;
+            id: string;
+            name: string;
+            address: null | string;
         };
         CheckInDocumentDto: {
-            name?: string | null;
-            documentType?: components["schemas"]["CheckInDocumentType"];
+            name: string;
+            documentType: components["schemas"]["CheckInDocumentType"];
             /** Format: byte */
-            content?: string | null;
+            content: string;
         };
         CheckInDocumentRequirementDto: {
-            name?: string | null;
-            required?: boolean;
-            documentType?: components["schemas"]["CheckInDocumentType"];
+            name: string;
+            required: boolean;
+            documentType: components["schemas"]["CheckInDocumentType"];
         };
         CheckInDocumentResponse: {
             /** Format: uuid */
-            id?: string;
-            name?: string | null;
-            documentType?: components["schemas"]["CheckInDocumentType"];
+            id: string;
+            name: string;
+            documentType: components["schemas"]["CheckInDocumentType"];
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         CheckInDocumentType: "FacePicture" | "IdentityCard" | "GenericPage";
         ConfirmInvitationRequest: {
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
-            company?: string | null;
-            transport?: components["schemas"]["ModeOfTransport"];
-            licensePlate?: string | null;
+            firstName: string;
+            lastName: string;
+            email: string;
+            company: string;
+            transport: components["schemas"]["ModeOfTransport"];
+            licensePlate: null | string;
         };
         CreateAccessPolicyRequest: {
             /** Format: uuid */
-            systemId?: string;
-            subject?: components["schemas"]["SubjectRequest"];
+            systemId: string;
+            subject: components["schemas"]["SubjectRequest"];
             /** Format: uuid */
-            accessLevelTypeId?: string;
+            accessLevelTypeId: string;
             /** Format: date-time */
-            effectiveFrom?: string;
+            effectiveFrom: string;
             /** Format: date-time */
-            effectiveUntil?: string;
+            effectiveUntil: string;
         };
         CreateCredentialPolicyRequest: {
             /** Format: uuid */
-            systemId?: string;
-            subject?: components["schemas"]["SubjectRequest"];
+            systemId: string;
+            subject: components["schemas"]["SubjectRequest"];
             /** Format: uuid */
-            badgeTypeId?: string;
+            badgeTypeId: string;
             /** Format: int32 */
-            badgeNumber?: number | null;
+            badgeNumber: null | number | string;
             /** Format: date-time */
-            effectiveFrom?: string;
+            effectiveFrom: string;
             /** Format: date-time */
-            effectiveUntil?: string;
+            effectiveUntil: string;
         };
         CreateSiteRequest: {
             /** Format: uuid */
-            id?: string | null;
-            name?: string | null;
-            address?: string | null;
+            id: null | string;
+            name: string;
+            address: null | string;
         };
         CreateVisitRequest: {
             /** Format: uuid */
-            organizer?: string;
-            summary?: string | null;
+            organizer: string;
+            summary: string;
             /** Format: date-time */
-            start?: string;
+            start: string;
             /** Format: date-time */
-            stop?: string;
+            stop: string;
             /** Format: uuid */
-            locationId?: string | null;
+            locationId: null | string;
         };
-        CredentialRequirementResponse: {
-            badgeType?: (components["schemas"]["UnipassBadgeTypeResponse"] | components["schemas"]["LenelBadgeTypeResponse"]) | null;
-            /** Format: int32 */
-            badgeNumber?: number | null;
-        } & components["schemas"]["PolicyRequirementResponse"];
-        CredentialResponse: {
-            /** Format: uuid */
-            badgeTypeId: string;
-            badgeNumber: string | null;
-        } & components["schemas"]["IssuedResourceResponse"];
-        HttpValidationProblemDetails: ({
-            errors?: {
-                [key: string]: string[];
-            } | null;
-        } & {
-            [key: string]: unknown;
-        }) & components["schemas"]["ProblemDetails"];
-        IResult: Record<string, never>;
+        /** @enum {unknown} */
+        CredentialGenerationMode: "PlatformQr" | "AccessControlQr";
+        GraphEmailSettingsResponse: {
+            fromEmail: string;
+            fromName: string;
+            azureTenantId: string;
+            applicationId: string;
+            saveSentItems: boolean;
+            hasSecret: boolean;
+        };
         IdentityMappingResponse: {
             /** Format: uuid */
-            subjectId?: string;
+            subjectId: string;
             /** Format: uuid */
-            systemId?: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            subjectType?: components["schemas"]["SubjectType"];
-            externalId?: string | null;
-        };
-        IdentityMappingResponseIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: components["schemas"]["IdentityMappingResponse"][] | null;
-            readonly isLastPage?: boolean;
+            systemId: string;
+            firstName: string;
+            lastName: string;
+            subjectType: components["schemas"]["SubjectType"];
+            externalId: string;
         };
         InviteVisitRequest: {
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
-            company?: string | null;
+            firstName: string;
+            lastName: string;
+            email: string;
+            company: string;
         };
-        IssuedResourceResponse: {
+        IssuedResourceResponse: components["schemas"]["IssuedResourceResponseCredentialResponse"] | components["schemas"]["IssuedResourceResponseAccessLevelResponse"];
+        IssuedResourceResponseAccessLevelResponse: {
+            /** @enum {string} */
+            type?: "access";
+            /** Format: uuid */
+            accessLevelTypeId: string;
             /** Format: uuid */
             subjectId: string;
             /** Format: uuid */
             systemId: string;
         };
-        LenelAccessControlSystemResponse: {
-            badgeTypes: components["schemas"]["LenelBadgeTypeResponse"][] | null;
-            accessLevels: components["schemas"]["LenelAccessLevelTypeResponse"][] | null;
-        } & components["schemas"]["AccessControlSystemResponse"];
+        IssuedResourceResponseCredentialResponse: {
+            /** @enum {string} */
+            type?: "credential";
+            /** Format: uuid */
+            badgeTypeId: string;
+            badgeNumber: string;
+            /** Format: uuid */
+            subjectId: string;
+            /** Format: uuid */
+            systemId: string;
+        };
         LenelAccessLevelTypeResponse: {
             /** Format: uuid */
             accessLevelId: string;
-            badgeTypes: components["schemas"]["LenelBadgeTypeResponse"][] | null;
-        } & components["schemas"]["AccessLevelTypeResponse"];
+            badgeTypes: components["schemas"]["LenelBadgeTypeResponse"][];
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            systemId: string;
+            name: string;
+        };
         LenelBadgeTypeResponse: {
             /** Format: uuid */
             badgeTypeId: string;
-        } & components["schemas"]["BadgeTypeResponse"];
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            systemId: string;
+            name: string;
+        };
         LenelMetadata: {
-            badgeTypes?: components["schemas"]["SystemMetadataObject"][] | null;
-            accessLevels?: components["schemas"]["SystemMetadataObject"][] | null;
-        } & components["schemas"]["SystemMetadata"];
+            badgeTypes: components["schemas"]["SystemMetadataObject"][];
+            accessLevels: components["schemas"]["SystemMetadataObject"][];
+        };
         LocationResponse: {
             /** Format: uuid */
-            id?: string;
-            type?: components["schemas"]["LocationType"];
-            site?: components["schemas"]["SiteResponse"];
-            building?: components["schemas"]["BuildingResponse"];
-            room?: components["schemas"]["RoomResponse"];
+            id: string;
+            type: components["schemas"]["LocationType"];
+            site: components["schemas"]["SiteResponse"];
+            building: null | components["schemas"]["BuildingResponse"];
+            room: null | components["schemas"]["RoomResponse"];
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         LocationType: "Site" | "Building" | "Room";
         LogoSettingsResponse: {
-            contentType?: string | null;
-            data?: string | null;
+            contentType: string;
+            data: string;
         };
-        /** @enum {string} */
-        ModeOfTransport: "Car" | "PublicTransport" | "Bike" | "Walk";
+        /** @enum {unknown} */
+        ModeOfTransport: "Car" | "PublicTransport" | "Bike" | "Walk" | null;
         OidcSettingsResponse: {
-            metadataUrl?: string | null;
-            clientId?: string | null;
-            requireHttpsMetadata?: boolean;
+            metadataUrl: string;
+            clientId: string;
+            requireHttpsMetadata: boolean;
         };
         OnboardArrivalRequest: {
-            requiredDocuments?: components["schemas"]["CheckInDocumentRequirementDto"][] | null;
-            providedDocuments?: components["schemas"]["CheckInDocumentDto"][] | null;
+            requiredDocuments: components["schemas"]["CheckInDocumentRequirementDto"][];
+            providedDocuments: components["schemas"]["CheckInDocumentDto"][];
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         OnboardingStatus: "NotYetOnboarded" | "Onboarded" | "Offboarded";
-        Organizer: {
-            /** Format: uuid */
-            readonly id?: string;
-            readonly firstName?: string | null;
-            readonly lastName?: string | null;
-            readonly email?: string | null;
-            readonly active?: boolean;
-        };
-        OrganizerIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: components["schemas"]["Organizer"][] | null;
-            readonly isLastPage?: boolean;
-        };
         OrganizerResponse: {
             /** Format: uuid */
-            id?: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
+            id: string;
+            firstName: string;
+            lastName: string;
+            email: string;
         };
-        /** @enum {string} */
-        ParticipantConfirmationStatus: "Tentative" | "Rejected" | "Confirmed";
-        PolicyRequirementResponse: Record<string, never>;
-        ProblemDetails: {
-            type?: string | null;
-            title?: string | null;
+        PageOfAccessControlSystemResponse: {
             /** Format: int32 */
-            status?: number | null;
-            detail?: string | null;
-            instance?: string | null;
-        } & {
-            [key: string]: unknown;
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["AccessControlSystemResponse"][];
+            isLastPage?: boolean;
         };
-        /** @enum {string} */
+        PageOfAccessPolicyResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["AccessPolicyResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfArrivalResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["ArrivalResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfIdentityMappingResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["IdentityMappingResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfOrganizerResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["OrganizerResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfSiteResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["SiteResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfVisitorResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["VisitorResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfVisitResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["VisitResponse"][];
+            isLastPage?: boolean;
+        };
+        /** @enum {unknown} */
+        ParticipantConfirmationStatus: "Tentative" | "Rejected" | "Confirmed";
+        PolicyRequirementResponse: components["schemas"]["PolicyRequirementResponseCredentialRequirementResponse"] | components["schemas"]["PolicyRequirementResponseAccessRequirementResponse"];
+        PolicyRequirementResponseAccessRequirementResponse: {
+            /** @enum {string} */
+            type?: "access";
+            accessLevel: components["schemas"]["AccessLevelTypeResponse"];
+        };
+        PolicyRequirementResponseCredentialRequirementResponse: {
+            /** @enum {string} */
+            type?: "credential";
+            badgeType: components["schemas"]["BadgeTypeResponse"];
+            /** Format: int32 */
+            badgeNumber: null | number | string;
+        };
+        ProblemDetails: {
+            type?: null | string;
+            title?: null | string;
+            /** Format: int32 */
+            status?: null | number | string;
+            detail?: null | string;
+            instance?: null | string;
+        };
+        /** @enum {unknown} */
         ReconciliationStatus: "PendingReconciliation" | "Reconciled" | "ReconciliationFailed";
         RelocateVisitRequest: {
             /** Format: uuid */
-            locationId?: string;
+            locationId: string;
         };
         RescheduleVisitRequest: {
             /** Format: date-time */
-            start?: string;
+            start: string;
             /** Format: date-time */
-            stop?: string;
+            stop: string;
         };
         RoomResponse: {
             /** Format: uuid */
-            id?: string;
-            name?: string | null;
+            id: string;
+            name: string;
             /** Format: int32 */
-            capacity?: number;
-            wheelchairAccessible?: boolean;
+            capacity: number | string;
+            wheelchairAccessible: boolean;
         };
         SiteResponse: {
             /** Format: uuid */
-            id?: string;
-            name?: string | null;
-            address?: string | null;
-        };
-        SiteResponseIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: components["schemas"]["SiteResponse"][] | null;
-            readonly isLastPage?: boolean;
+            id: string;
+            name: string;
+            address: null | string;
         };
         SubjectRequest: {
             /** Format: uuid */
-            id?: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            subjectType?: components["schemas"]["SubjectType"];
+            id: string;
+            firstName: string;
+            lastName: string;
+            subjectType: components["schemas"]["SubjectType"];
         };
         SubjectResponse: {
             /** Format: uuid */
-            id?: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            subjectType?: components["schemas"]["SubjectType"];
+            id: string;
+            firstName: string;
+            lastName: string;
+            subjectType: components["schemas"]["SubjectType"];
         };
         SubjectSystemAccessStateResponse: {
             /** Format: uuid */
-            subjectId?: string;
+            subjectId: string;
             /** Format: uuid */
-            systemId?: string;
-            issuedResources?: (components["schemas"]["CredentialResponse"] | components["schemas"]["AccessLevelResponse"])[] | null;
+            systemId: string;
+            issuedResources: components["schemas"]["IssuedResourceResponse"][];
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         SubjectType: "Employee" | "Contractor" | "Visitor";
-        SystemMetadata: Record<string, never>;
+        SystemMetadata: components["schemas"]["SystemMetadataUnipassMetadata"] | components["schemas"]["SystemMetadataLenelMetadata"];
+        SystemMetadataLenelMetadata: {
+            /** @enum {string} */
+            type?: "lenel";
+            badgeTypes: components["schemas"]["SystemMetadataObject"][];
+            accessLevels: components["schemas"]["SystemMetadataObject"][];
+        };
         SystemMetadataObject: {
-            id?: string | null;
-            name?: string | null;
+            id: string;
+            name: string;
+        };
+        SystemMetadataUnipassMetadata: {
+            /** @enum {string} */
+            type?: "unipass";
+            sites: components["schemas"]["SystemMetadataObject"][];
+            accessRules: components["schemas"]["SystemMetadataObject"][];
         };
         TenantSettingsResponse: {
-            oidc?: components["schemas"]["OidcSettingsResponse"];
-            theme?: components["schemas"]["ThemeSettingsResponse"];
-            logo?: components["schemas"]["LogoSettingsResponse"];
+            oidc: components["schemas"]["OidcSettingsResponse"];
+            theme: components["schemas"]["ThemeSettingsResponse"];
+            logo: null | components["schemas"]["LogoSettingsResponse"];
         };
         ThemeSettingsResponse: {
-            backgroundColor?: string | null;
-            contentColor?: string | null;
-            primaryColor?: string | null;
-            textColor?: string | null;
-            textMutedColor?: string | null;
-            borderColor?: string | null;
-            hoverBlueColor?: string | null;
-            activeBlueColor?: string | null;
-            hoverGrayColor?: string | null;
-            errorColor?: string | null;
-            errorBackgroundColor?: string | null;
-            dangerColor?: string | null;
-            successColor?: string | null;
-            successBackgroundColor?: string | null;
+            backgroundColor: string;
+            contentColor: string;
+            primaryColor: string;
+            textColor: string;
+            textMutedColor: string;
+            borderColor: string;
+            hoverBlueColor: string;
+            activeBlueColor: string;
+            hoverGrayColor: string;
+            errorColor: string;
+            errorBackgroundColor: string;
+            dangerColor: string;
+            successColor: string;
+            successBackgroundColor: string;
         };
-        UnipassAccessControlSystemResponse: {
-            badgeTypes: components["schemas"]["UnipassBadgeTypeResponse"][] | null;
-            accessLevels: components["schemas"]["UnipassAccessLevelTypeResponse"][] | null;
-        } & components["schemas"]["AccessControlSystemResponse"];
         UnipassAccessLevelTypeResponse: {
             /** Format: int32 */
-            siteId: number;
+            siteId: number | string;
             /** Format: int32 */
-            accessRuleId: number;
-        } & components["schemas"]["AccessLevelTypeResponse"];
+            accessRuleId: number | string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            systemId: string;
+            name: string;
+        };
         UnipassBadgeTypeResponse: {
             /** Format: int32 */
-            rangeStart: number;
+            rangeStart: number | string;
             /** Format: int32 */
-            rangeStop: number;
-        } & components["schemas"]["BadgeTypeResponse"];
+            rangeStop: number | string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            systemId: string;
+            name: string;
+        };
         UnipassMetadata: {
-            sites?: components["schemas"]["SystemMetadataObject"][] | null;
-            accessRules?: components["schemas"]["SystemMetadataObject"][] | null;
-        } & components["schemas"]["SystemMetadata"];
+            sites: components["schemas"]["SystemMetadataObject"][];
+            accessRules: components["schemas"]["SystemMetadataObject"][];
+        };
         UpdateBuildingRequest: {
-            name?: string | null;
+            name: string;
+        };
+        UpdateGraphEmailSettingsRequest: {
+            fromEmail: string;
+            fromName: string;
+            azureTenantId: string;
+            applicationId: string;
+            secret: null | string;
+            saveSentItems: boolean;
         };
         UpdateLenelConfigRequest: {
-            endpoint?: string | null;
-            sslValidation?: boolean;
-            apiKey?: string | null;
+            endpoint: string;
+            sslValidation: boolean;
+            apiKey: string;
+        };
+        UpdateOidcSettingsRequest: {
+            metadataUrl: string;
+            clientId: string;
+            requireHttpsMetadata: boolean;
         };
         UpdateOrganizerRequest: {
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
+            firstName: string;
+            lastName: string;
+            email: string;
         };
         UpdateRoomRequest: {
-            name?: string | null;
+            name: string;
             /** Format: int32 */
-            capacity?: number;
-            wheelchairAccessible?: boolean;
+            capacity: number | string;
+            wheelchairAccessible: boolean;
         };
         UpdateSiteRequest: {
-            name?: string | null;
+            name: string;
+        };
+        UpdateTenantSettingsRequest: {
+            oidc: components["schemas"]["UpdateOidcSettingsRequest"];
+            theme: components["schemas"]["UpdateThemeSettingsRequest"];
+            email: null | components["schemas"]["UpdateGraphEmailSettingsRequest"];
+        };
+        UpdateThemeSettingsRequest: {
+            backgroundColor: string;
+            contentColor: string;
+            primaryColor: string;
+            textColor: string;
+            textMutedColor: string;
+            borderColor: string;
+            hoverBlueColor: string;
+            activeBlueColor: string;
+            hoverGrayColor: string;
+            errorColor: string;
+            errorBackgroundColor: string;
+            dangerColor: string;
+            successColor: string;
+            successBackgroundColor: string;
         };
         UpdateUnipassConfigRequest: {
-            endpoint?: string | null;
-            sslValidation?: boolean;
-            username?: string | null;
-            password?: string | null;
+            endpoint: string;
+            sslValidation: boolean;
+            username: string;
+            password: string;
         };
         UpdateVisitSummaryRequest: {
-            summary?: string | null;
+            summary: string;
         };
         VisitInvitationResponse: {
             /** Format: uuid */
-            id?: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
-            company?: string | null;
-            confirmationStatus?: components["schemas"]["ParticipantConfirmationStatus"];
+            id: string;
+            firstName: string;
+            lastName: string;
+            email: string;
+            company: string;
+            confirmationStatus: components["schemas"]["ParticipantConfirmationStatus"];
             /** Format: uuid */
-            visitorId?: string | null;
+            visitorId: null | string;
             /** Format: date-time */
-            rejectedAt?: string | null;
+            rejectedAt: null | string;
             /** Format: date-time */
-            confirmedAt?: string | null;
-            transport?: components["schemas"]["ModeOfTransport"];
-            licensePlate?: string | null;
+            confirmedAt: null | string;
+            transport: null | components["schemas"]["ModeOfTransport"];
+            licensePlate: null | string;
         };
-        VisitResponse: {
-            /** Format: uuid */
-            id?: string;
-            summary?: string | null;
-            organizer?: components["schemas"]["OrganizerResponse"];
-            status?: components["schemas"]["VisitStatus"];
-            /** Format: date-time */
-            start?: string | null;
-            /** Format: date-time */
-            stop?: string | null;
-            /** Format: uuid */
-            locationId?: string | null;
-            invitations?: components["schemas"]["VisitInvitationResponse"][] | null;
-        };
-        VisitResponseIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: components["schemas"]["VisitResponse"][] | null;
-            readonly isLastPage?: boolean;
-        };
-        /** @enum {string} */
-        VisitStatus: "Scheduled" | "Cancelled" | "Completed";
         VisitorPreOnboardingSaga: {
             /** Format: uuid */
             id?: string;
@@ -3468,40 +3443,74 @@ export interface components {
             /** Format: uuid */
             invitationId?: string;
             /** Format: uuid */
-            arrivalId?: string | null;
-            qrCode?: string | null;
+            arrivalId?: null | string;
+            qrCode?: null | string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
             expiresAt?: string;
             /** Format: date-time */
-            nextRetryAt?: string | null;
+            nextRetryAt?: null | string;
             /** Format: int32 */
-            retryCount?: number;
+            retryCount?: number | string;
             state?: components["schemas"]["VisitorPreOnboardingState"];
         };
-        /** @enum {string} */
+        VisitorPreOnboardingSagaConfig: {
+            /** Format: uuid */
+            id?: string;
+            useCustomInviteNotification?: boolean;
+            customInviteNotification?: null | string;
+            qrGenerationMode?: components["schemas"]["CredentialGenerationMode"];
+            sendConfirmNotificationToOrganizer?: boolean;
+            useCustomConfirmNotification?: boolean;
+            customConfirmNotification?: null | string;
+            sendCancellationNotification?: boolean;
+            useCustomCancellationNotification?: boolean;
+            customCancellationNotification?: null | string;
+            sendRescheduleNotification?: boolean;
+            useCustomRescheduleNotification?: boolean;
+            customRescheduleNotification?: null | string;
+        };
+        VisitorPreOnboardingSagaConfigRequest: {
+            useCustomInviteNotification: boolean;
+            customInviteNotification: null | string;
+            qrGenerationMode: components["schemas"]["CredentialGenerationMode"];
+            sendConfirmNotificationToOrganizer: boolean;
+            useCustomConfirmNotification: boolean;
+            customConfirmNotification: null | string;
+            sendCancellationNotification: boolean;
+            useCustomCancellationNotification: boolean;
+            customCancellationNotification: null | string;
+            sendRescheduleNotification: boolean;
+            useCustomRescheduleNotification: boolean;
+            customRescheduleNotification: null | string;
+        };
+        /** @enum {unknown} */
         VisitorPreOnboardingState: "RegisteringArrival" | "GeneratingQr" | "UpdatingArrivalQr" | "SendingInvitation" | "AwaitingConfirmation" | "Confirmed" | "Rejected" | "Cancelling" | "Cancelled" | "Expired";
         VisitorResponse: {
             /** Format: uuid */
-            id?: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
-            company?: string | null;
+            id: string;
+            firstName: string;
+            lastName: string;
+            email: string;
+            company: null | string;
         };
-        VisitorResponseIPaged: {
-            /** Format: int32 */
-            readonly currentPage?: number;
-            /** Format: int32 */
-            readonly totalPages?: number | null;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            /** Format: int32 */
-            readonly totalItems?: number | null;
-            readonly items?: components["schemas"]["VisitorResponse"][] | null;
-            readonly isLastPage?: boolean;
+        VisitResponse: {
+            /** Format: uuid */
+            id: string;
+            summary: string;
+            organizer: components["schemas"]["OrganizerResponse"];
+            status: components["schemas"]["VisitStatus"];
+            /** Format: date-time */
+            start: null | string;
+            /** Format: date-time */
+            stop: null | string;
+            /** Format: uuid */
+            locationId: null | string;
+            invitations: components["schemas"]["VisitInvitationResponse"][];
         };
+        /** @enum {unknown} */
+        VisitStatus: "Scheduled" | "Cancelled" | "Completed";
     };
     responses: never;
     parameters: never;

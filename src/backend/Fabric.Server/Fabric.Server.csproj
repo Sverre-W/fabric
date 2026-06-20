@@ -21,11 +21,13 @@
     <PackageReference Include="Microsoft.Graph" Version="6.2.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
     <PackageReference Include="Riok.Mapperly" Version="4.3.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Sagas\Persistence\Migrations\" />
     <Folder Include="Visitors\Persistence\Migrations\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Sagas\VisitorPreOnboarding\default-templates\*.html" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

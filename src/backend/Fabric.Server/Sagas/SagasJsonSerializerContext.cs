@@ -8,4 +8,6 @@ namespace Fabric.Server.Sagas;
 [JsonSerializable(typeof(List<VisitorPreOnboardingSaga>))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(VisitorPreOnboardingSaga))]
+[JsonSerializable(typeof(VisitorPreOnboardingSagaConfig))]
+[JsonSerializable(typeof(VisitorPreOnboardingSagaConfigRequest))]
 internal sealed partial class SagasJsonSerializerContext : JsonSerializerContext;

@@ -1,4 +1,5 @@
 using Fabric.Server.Core;
+using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Fabric.Server.Visitors.Application;
 using Fabric.Server.Visitors.Contracts;
@@ -178,7 +179,7 @@ public static class VisitorEndpoints
         CancellationToken cancellationToken = default
     )
     {
-        Result<Visit, VisitErrors> result = await visitService.Create(
+        Result<(Visit, Organizer), VisitErrors> result = await visitService.Create(
             request.Organizer,
             request.Summary,
             request.Start,
@@ -187,7 +188,7 @@ public static class VisitorEndpoints
             cancellationToken
         );
 
-        return result.AsResponse(MapError);
+        return result.Map(x => x.Item1.ToResponse(x.Item2)).AsResponse(MapError);
     }
 
     private static async Task<IResult> CancelVisit(
@@ -259,6 +260,8 @@ public static class VisitorEndpoints
         [FromBody] InviteVisitRequest request,
         VisitService visitService,
         VisitorPreOnboardingSagaService onboardingSagaService,
+        VisitorPreOnboardingSagaTrigger onboardingSagaTrigger,
+        ITenantContext tenantContext,
         VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
@@ -281,7 +284,8 @@ public static class VisitorEndpoints
                 visit.Start,
                 cancellationToken
             );
-            await onboardingSagaService.ProcessAsync(saga, cancellationToken);
+
+            await onboardingSagaTrigger.EnqueueAsync(new VisitorPreOnboardingSagaWorkItem(tenantContext.TenantId, saga.Id), cancellationToken);
         }
 
         return result.Map(x => x.ToResponse()).AsResponse(MapError);

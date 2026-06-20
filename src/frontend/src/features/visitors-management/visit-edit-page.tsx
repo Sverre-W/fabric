@@ -131,7 +131,7 @@ export default function VisitEditPage() {
       }
 
       const { data, error } = await api.GET('/api/visitors/visitors', {
-        params: { query: { query: inviteEmail, page: 0, pageSize: 10 } },
+        params: { query: { Query: inviteEmail, ids: [] } },
       });
 
       if (error) {

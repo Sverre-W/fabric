@@ -15,6 +15,10 @@ public static class VisitorPreOnboardingSagaEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        group.MapGet("/configuration", GetConfiguration)
+            .Produces<VisitorPreOnboardingSagaConfig>();
+        group.MapPut("/configuration", UpdateConfiguration)
+            .Produces<VisitorPreOnboardingSagaConfig>();
         group.MapGet("/{visitId:guid}", GetOnboardingSagas)
             .Produces<List<VisitorPreOnboardingSaga>>();
         group.MapGet("/{visitId:guid}/{invitationId:guid}", GetOnboardingSaga)
@@ -41,6 +45,41 @@ public static class VisitorPreOnboardingSagaEndpoints
                 new ProblemDetails { Status = StatusCodes.Status409Conflict, Detail = ex.Message }
             );
         }
+    }
+
+    private static async Task<IResult> GetConfiguration(
+        VisitorPreOnboardingSagaService service,
+        CancellationToken cancellationToken = default
+    )
+    {
+        VisitorPreOnboardingSagaConfig config = await service.GetConfigurationAsync(cancellationToken);
+        return Results.Ok(config);
+    }
+
+    private static async Task<IResult> UpdateConfiguration(
+        [FromBody] VisitorPreOnboardingSagaConfigRequest request,
+        VisitorPreOnboardingSagaService service,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var config = new VisitorPreOnboardingSagaConfig
+        {
+            UseCustomInviteNotification = request.UseCustomInviteNotification,
+            CustomInviteNotification = request.CustomInviteNotification,
+            QrGenerationMode = request.QrGenerationMode,
+            SendConfirmNotificationToOrganizer = request.SendConfirmNotificationToOrganizer,
+            UseCustomConfirmNotification = request.UseCustomConfirmNotification,
+            CustomConfirmNotification = request.CustomConfirmNotification,
+            SendCancellationNotification = request.SendCancellationNotification,
+            UseCustomCancellationNotification = request.UseCustomCancellationNotification,
+            CustomCancellationNotification = request.CustomCancellationNotification,
+            SendRescheduleNotification = request.SendRescheduleNotification,
+            UseCustomRescheduleNotification = request.UseCustomRescheduleNotification,
+            CustomRescheduleNotification = request.CustomRescheduleNotification,
+        };
+
+        VisitorPreOnboardingSagaConfig updated = await service.UpdateConfigurationAsync(config, cancellationToken);
+        return Results.Ok(updated);
     }
 
     private static async Task<IResult> GetOnboardingSagas(
@@ -77,3 +116,17 @@ public static class VisitorPreOnboardingSagaEndpoints
         return Results.Ok(saga);
     }
 }
+
+public sealed record VisitorPreOnboardingSagaConfigRequest(
+    bool UseCustomInviteNotification,
+    string? CustomInviteNotification,
+    CredentialGenerationMode QrGenerationMode,
+    bool SendConfirmNotificationToOrganizer,
+    bool UseCustomConfirmNotification,
+    string? CustomConfirmNotification,
+    bool SendCancellationNotification,
+    bool UseCustomCancellationNotification,
+    string? CustomCancellationNotification,
+    bool SendRescheduleNotification,
+    bool UseCustomRescheduleNotification,
+    string? CustomRescheduleNotification);

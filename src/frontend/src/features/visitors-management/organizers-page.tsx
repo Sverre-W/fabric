@@ -8,7 +8,7 @@ import type { components } from '@/shared/api/generated/schema';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/components/ui/empty';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/shared/components/ui/pagination';
 
-type Organizer = components['schemas']['Organizer'];
+type Organizer = components['schemas']['OrganizerResponse'];
 
 const organizersQueryKey = ['visitors-management', 'organizers'] as const;
 const pageSize = 10;
@@ -21,7 +21,7 @@ export default function OrganizersPage() {
     queryKey: [...organizersQueryKey, page, pageSize],
     queryFn: async () => {
       const { data, error } = await api.GET('/api/visitors/organizers', {
-        params: { query: { page, pageSize } },
+        params: { query: {} },
       });
 
       if (error) {
@@ -34,9 +34,9 @@ export default function OrganizersPage() {
 
   const pagedOrganizers = organizersQuery.data;
   const organizers = pagedOrganizers?.items ?? [];
-  const totalItems = pagedOrganizers?.totalItems ?? organizers.length;
-  const totalPages = Math.max(pagedOrganizers?.totalPages ?? 1, 1);
-  const currentPage = Math.min(pagedOrganizers?.currentPage ?? page, totalPages - 1);
+  const totalItems = Number(pagedOrganizers?.totalItems ?? organizers.length);
+  const totalPages = Math.max(Number(pagedOrganizers?.totalPages ?? 1), 1);
+  const currentPage = Math.min(Number(pagedOrganizers?.currentPage ?? page), totalPages - 1);
   const firstItem = totalItems === 0 ? 0 : currentPage * pageSize + 1;
   const lastItem = Math.min((currentPage + 1) * pageSize, totalItems);
   const visiblePages = getVisiblePages(totalPages, currentPage);

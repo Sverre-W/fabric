@@ -33,7 +33,7 @@ import {
   PopoverTrigger,
 } from '@/shared/components/ui/popover';
 
-type Organizer = components['schemas']['Organizer'];
+type Organizer = components['schemas']['OrganizerResponse'];
 
 const formSchema = z.object({
   organizer: z.string().min(1, 'Organizer is required'),
@@ -102,7 +102,7 @@ export function VisitForm({ initialValues, isSubmitting, submitLabel, onSubmit, 
     queryKey: ['visitors-management', 'organizers', 'all'],
     queryFn: async () => {
       const { data, error } = await api.GET('/api/visitors/organizers', {
-        params: { query: { page: 0, pageSize: 100 } },
+        params: { query: {} },
       });
 
       if (error) {

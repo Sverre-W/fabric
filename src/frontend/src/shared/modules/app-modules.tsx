@@ -1,4 +1,4 @@
-import { UsersRound } from 'lucide-react';
+import { Settings, UsersRound } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 export type ModuleNavigationItem = {
@@ -27,6 +27,17 @@ export const appModules = [
       { label: 'Visitors', to: '/visitors-management/visitors' },
       { label: 'Organizers', to: '/visitors-management/organizers' },
       { label: 'Reporting', to: '/visitors-management/reporting' },
+    ],
+  },
+  {
+    id: 'settings',
+    name: 'Settings',
+    description: 'Configure platform modules, defaults, integrations, and operational behavior.',
+    logo: Settings,
+    to: '/settings',
+    navigation: [
+      { label: 'Tenant', to: '/settings/tenant' },
+      { label: 'Visitors', to: '/settings/visitors' },
     ],
   },
 ] as const satisfies readonly AppModule[];
