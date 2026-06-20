@@ -8,6 +8,11 @@ const AccessPage = lazy(() => import('@/features/access/access-page'));
 const AuditPage = lazy(() => import('@/features/audit/audit-page'));
 const AuthCallbackPage = lazy(() => import('@/features/auth/auth-callback-page'));
 const CredentialsPage = lazy(() => import('@/features/credentials/credentials-page'));
+const FacilityBuildingEditPage = lazy(() => import('@/features/facility/building-edit-page'));
+const FacilityRoomEditPage = lazy(() => import('@/features/facility/room-edit-page'));
+const FacilitySiteCreatePage = lazy(() => import('@/features/facility/site-create-page'));
+const FacilitySiteEditPage = lazy(() => import('@/features/facility/site-edit-page'));
+const FacilityLocationsPage = lazy(() => import('@/features/facility/locations-page'));
 const HomePage = lazy(() => import('@/features/home/home-page'));
 const IdentitiesPage = lazy(() => import('@/features/identities/identities-page'));
 const OrganizationsPage = lazy(() => import('@/features/organizations/organizations-page'));
@@ -72,6 +77,52 @@ const auditRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/audit',
   component: () => <ProtectedLazyRoute component={<AuditPage />} />,
+});
+
+const facilityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/facility',
+  component: () => (
+    <ProtectedRoute>
+      <Outlet />
+    </ProtectedRoute>
+  ),
+});
+
+const facilityIndexRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/',
+  component: () => <LazyRoute component={<FacilityLocationsPage />} />,
+});
+
+const facilityLocationsRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/locations',
+  component: () => <LazyRoute component={<FacilityLocationsPage />} />,
+});
+
+const facilitySiteCreateRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/locations/new',
+  component: () => <LazyRoute component={<FacilitySiteCreatePage />} />,
+});
+
+const facilitySiteEditRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/locations/$siteId/edit',
+  component: () => <LazyRoute component={<FacilitySiteEditPage />} />,
+});
+
+const facilityBuildingEditRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/locations/$siteId/buildings/$buildingId/edit',
+  component: () => <LazyRoute component={<FacilityBuildingEditPage />} />,
+});
+
+const facilityRoomEditRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/locations/$siteId/buildings/$buildingId/rooms/$roomId/edit',
+  component: () => <LazyRoute component={<FacilityRoomEditPage />} />,
 });
 
 const settingsRoute = createRoute({
@@ -166,6 +217,7 @@ const routeTree = rootRoute.addChildren([
   credentialsRoute,
   organizationsRoute,
   auditRoute,
+  facilityRoute.addChildren([facilityIndexRoute, facilityLocationsRoute, facilitySiteCreateRoute, facilitySiteEditRoute, facilityBuildingEditRoute, facilityRoomEditRoute]),
   settingsRoute.addChildren([settingsIndexRoute, visitorsSettingsRoute, tenantSettingsRoute]),
   visitorsManagementRoute.addChildren([visitsIndexRoute, visitsRoute, visitCreateRoute, visitEditRoute, visitorsRoute, organizersRoute, organizerCreateRoute, organizerEditRoute, visitorReportingRoute]),
 ]);

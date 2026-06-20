@@ -6,6 +6,9 @@ import { App } from './app';
 import { createAppRouter } from './router';
 
 const apiGetMock = vi.hoisted(() => vi.fn());
+const apiPostMock = vi.hoisted(() => vi.fn());
+const apiPutMock = vi.hoisted(() => vi.fn());
+const apiDeleteMock = vi.hoisted(() => vi.fn());
 const signinRedirectMock = vi.hoisted(() => vi.fn());
 const signoutRedirectMock = vi.hoisted(() => vi.fn());
 const removeUserMock = vi.hoisted(() => vi.fn());
@@ -22,6 +25,9 @@ vi.mock('@/shared/api/client', () => ({
   setAccessToken: vi.fn(),
   api: {
     GET: apiGetMock,
+    POST: apiPostMock,
+    PUT: apiPutMock,
+    DELETE: apiDeleteMock,
   },
 }));
 
@@ -36,6 +42,15 @@ vi.mock('react-oidc-context', () => ({
 }));
 
 const emptyVisitPage = {
+  currentPage: 0,
+  totalPages: 0,
+  pageSize: 250,
+  totalItems: 0,
+  items: [],
+  isLastPage: true,
+};
+
+const emptySitePage = {
   currentPage: 0,
   totalPages: 0,
   pageSize: 250,
@@ -72,6 +87,9 @@ const tenantSettingsResponse = {
 describe('App', () => {
   beforeEach(() => {
     apiGetMock.mockReset();
+    apiPostMock.mockReset();
+    apiPutMock.mockReset();
+    apiDeleteMock.mockReset();
     signinRedirectMock.mockReset();
     signoutRedirectMock.mockReset();
     removeUserMock.mockReset();
@@ -80,8 +98,24 @@ describe('App', () => {
         return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
       }
 
+      if (path === '/api/locations/sites') {
+        return Promise.resolve({ data: emptySitePage });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings') {
+        return Promise.resolve({ data: [] });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings/{buildingId}/rooms') {
+        return Promise.resolve({ data: [] });
+      }
+
       return Promise.resolve({ data: emptyVisitPage });
     });
+    apiPostMock.mockResolvedValue({ data: undefined });
+    apiPutMock.mockResolvedValue({ data: undefined });
+    apiDeleteMock.mockResolvedValue({ data: undefined });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     authState.isAuthenticated = true;
     authState.isLoading = false;
     authState.activeNavigator = undefined;
@@ -107,7 +141,397 @@ describe('App', () => {
     render(<App appRouter={createAppRouter()} />);
 
     expect(await screen.findByRole('heading', { name: /fabric modules/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /facility/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /visitors management/i })).toBeInTheDocument();
+  });
+
+  it('renders Locations for Facility module root', async () => {
+    window.history.pushState({}, '', '/facility');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('button', { name: /facility/i })).toBeInTheDocument();
+    expect(await screen.findByRole('navigation', { name: /facility menu/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /locations/i })).toBeInTheDocument();
+  });
+
+  it('renders Locations for explicit locations sub-route', async () => {
+    window.history.pushState({}, '', '/facility/locations');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /locations/i })).toBeInTheDocument();
+  });
+
+  it('renders sites on the Locations page', async () => {
+    window.history.pushState({}, '', '/facility/locations');
+
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/sites') {
+        return Promise.resolve({
+          data: {
+            ...emptySitePage,
+            totalItems: 1,
+            items: [{ id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' }],
+          },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByText('Oslo HQ')).toBeInTheDocument();
+    expect(screen.getByText('Karl Johans gate 1')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /add site/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /edit oslo hq/i })).toBeInTheDocument();
+  });
+
+  it('creates a site and replaces create route with edit route', async () => {
+    window.history.pushState({}, '', '/facility/locations/new');
+    apiPostMock.mockResolvedValue({
+      data: {
+        id: '011c0366-57c6-48ff-842a-0c193bfa0102',
+        type: 'Site',
+        site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+        building: null,
+        room: null,
+      },
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /add site/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Oslo HQ' } });
+    fireEvent.change(screen.getByLabelText(/address/i), { target: { value: 'Karl Johans gate 1' } });
+    fireEvent.click(screen.getByRole('button', { name: /create site/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/locations/sites', {
+        body: { id: null, name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+      });
+    });
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe('/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/edit');
+    });
+  });
+
+  it('loads and saves a site from the edit page', async () => {
+    window.history.pushState({}, '', '/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/edit');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({
+          data: {
+            id: '011c0366-57c6-48ff-842a-0c193bfa0102',
+            type: 'Site',
+            site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+            building: null,
+            room: null,
+          },
+        });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings') {
+        return Promise.resolve({ data: [] });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /edit site/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Karl Johans gate 1')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByDisplayValue('Oslo HQ'), { target: { value: 'Oslo Office' } });
+    fireEvent.change(screen.getByDisplayValue('Karl Johans gate 1'), { target: { value: 'New address not wired yet' } });
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => {
+      expect(apiPutMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}', {
+        params: { path: { siteId: '011c0366-57c6-48ff-842a-0c193bfa0102' } },
+        body: { name: 'Oslo Office' },
+      });
+    });
+  });
+
+  it('renders building actions and toggles the add building form', async () => {
+    window.history.pushState({}, '', '/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/edit');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({
+          data: {
+            id: '011c0366-57c6-48ff-842a-0c193bfa0102',
+            type: 'Site',
+            site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+            building: null,
+            room: null,
+          },
+        });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings') {
+        return Promise.resolve({
+          data: [{ id: 'building-1', name: 'Main building', address: 'Karl Johans gate 1A' }],
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /buildings/i })).toBeInTheDocument();
+    expect(await screen.findByText('Main building')).toBeInTheDocument();
+    expect(screen.getByText('Karl Johans gate 1A')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /edit main building/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /delete main building/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/building name/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /add building/i }));
+    fireEvent.change(screen.getByLabelText(/building name/i), { target: { value: 'Annex' } });
+    fireEvent.change(screen.getByLabelText(/building address/i), { target: { value: 'Karl Johans gate 1B' } });
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings', {
+        params: { path: { siteId: '011c0366-57c6-48ff-842a-0c193bfa0102' } },
+        body: { name: 'Annex', address: 'Karl Johans gate 1B' },
+      });
+    });
+  });
+
+  it('deletes a building from the site edit page', async () => {
+    window.history.pushState({}, '', '/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/edit');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({
+          data: {
+            id: '011c0366-57c6-48ff-842a-0c193bfa0102',
+            type: 'Site',
+            site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+            building: null,
+            room: null,
+          },
+        });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings') {
+        return Promise.resolve({
+          data: [{ id: 'building-1', name: 'Main building', address: 'Karl Johans gate 1A' }],
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /delete main building/i }));
+
+    await waitFor(() => {
+      expect(apiDeleteMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings/{buildingId}', {
+        params: { path: { siteId: '011c0366-57c6-48ff-842a-0c193bfa0102', buildingId: 'building-1' } },
+      });
+    });
+  });
+
+  it('loads and saves a building from the edit page', async () => {
+    window.history.pushState({}, '', '/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/buildings/building-1/edit');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({
+          data: {
+            id: 'building-1',
+            type: 'Building',
+            site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+            building: { id: 'building-1', name: 'Main building', address: 'Karl Johans gate 1A' },
+            room: null,
+          },
+        });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings/{buildingId}/rooms') {
+        return Promise.resolve({ data: [] });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /edit building/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Karl Johans gate 1A')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByDisplayValue('Main building'), { target: { value: 'Main office' } });
+    fireEvent.change(screen.getByDisplayValue('Karl Johans gate 1A'), { target: { value: 'Address not wired yet' } });
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => {
+      expect(apiPutMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings/{buildingId}', {
+        params: { path: { siteId: '011c0366-57c6-48ff-842a-0c193bfa0102', buildingId: 'building-1' } },
+        body: { name: 'Main office' },
+      });
+    });
+  });
+
+  it('renders room actions and toggles the add room form', async () => {
+    window.history.pushState({}, '', '/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/buildings/building-1/edit');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({
+          data: {
+            id: 'building-1',
+            type: 'Building',
+            site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+            building: { id: 'building-1', name: 'Main building', address: 'Karl Johans gate 1A' },
+            room: null,
+          },
+        });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings/{buildingId}/rooms') {
+        return Promise.resolve({
+          data: [{ id: 'room-1', name: 'Board room', capacity: 12, wheelchairAccessible: true }],
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /rooms/i })).toBeInTheDocument();
+    expect(await screen.findByText('Board room')).toBeInTheDocument();
+    expect(screen.getByText('12')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /edit board room/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /delete board room/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/room name/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /add room/i }));
+    fireEvent.change(screen.getByLabelText(/room name/i), { target: { value: 'Focus room' } });
+    fireEvent.change(screen.getByLabelText(/capacity/i), { target: { value: '4' } });
+    fireEvent.click(screen.getByLabelText(/wheelchair accessible/i));
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings/{buildingId}/rooms', {
+        params: { path: { siteId: '011c0366-57c6-48ff-842a-0c193bfa0102', buildingId: 'building-1' } },
+        body: { name: 'Focus room', capacity: '4', wheelchairAccessible: true },
+      });
+    });
+  });
+
+  it('deletes a room from the building edit page', async () => {
+    window.history.pushState({}, '', '/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/buildings/building-1/edit');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({
+          data: {
+            id: 'building-1',
+            type: 'Building',
+            site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+            building: { id: 'building-1', name: 'Main building', address: 'Karl Johans gate 1A' },
+            room: null,
+          },
+        });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings/{buildingId}/rooms') {
+        return Promise.resolve({
+          data: [{ id: 'room-1', name: 'Board room', capacity: 12, wheelchairAccessible: true }],
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /delete board room/i }));
+
+    await waitFor(() => {
+      expect(apiDeleteMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings/{buildingId}/rooms/{roomId}', {
+        params: { path: { siteId: '011c0366-57c6-48ff-842a-0c193bfa0102', buildingId: 'building-1', roomId: 'room-1' } },
+      });
+    });
+  });
+
+  it('loads and saves a room from the edit page', async () => {
+    window.history.pushState({}, '', '/facility/locations/011c0366-57c6-48ff-842a-0c193bfa0102/buildings/building-1/rooms/room-1/edit');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({
+          data: {
+            id: 'room-1',
+            type: 'Room',
+            site: { id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' },
+            building: { id: 'building-1', name: 'Main building', address: 'Karl Johans gate 1A' },
+            room: { id: 'room-1', name: 'Board room', capacity: 12, wheelchairAccessible: true },
+          },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /edit room/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Board room')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('12')).toBeInTheDocument();
+    expect(screen.getByLabelText(/wheelchair accessible/i)).toBeChecked();
+
+    fireEvent.change(screen.getByDisplayValue('Board room'), { target: { value: 'Large board room' } });
+    fireEvent.change(screen.getByDisplayValue('12'), { target: { value: '16' } });
+    fireEvent.click(screen.getByLabelText(/wheelchair accessible/i));
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => {
+      expect(apiPutMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings/{buildingId}/rooms/{roomId}', {
+        params: { path: { siteId: '011c0366-57c6-48ff-842a-0c193bfa0102', buildingId: 'building-1', roomId: 'room-1' } },
+        body: { name: 'Large board room', capacity: '16', wheelchairAccessible: false },
+      });
+    });
   });
 
   it('renders Visits for Visitors Management module root', async () => {
@@ -133,6 +557,7 @@ describe('App', () => {
     const today = new Date();
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 30);
     const stop = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 45);
+    window.sessionStorage.setItem('fabric.visits.calendar', JSON.stringify({ view: 'today', statuses: [], anchorDate: start.toISOString() }));
 
     apiGetMock.mockImplementation((path: string) => {
       if (path === '/api/tenants/settings') {

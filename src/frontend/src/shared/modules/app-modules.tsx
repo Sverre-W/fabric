@@ -1,4 +1,4 @@
-import { Settings, UsersRound } from 'lucide-react';
+import { Building2, Settings, UsersRound } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 export type ModuleNavigationItem = {
@@ -16,6 +16,14 @@ export type AppModule = {
 };
 
 export const appModules = [
+  {
+    id: 'facility',
+    name: 'Facility',
+    description: 'Manage physical locations, sites, buildings, and room inventory.',
+    logo: Building2,
+    to: '/facility',
+    navigation: [{ label: 'Locations', to: '/facility/locations' }],
+  },
   {
     id: 'visitors-management',
     name: 'Visitors Management',
