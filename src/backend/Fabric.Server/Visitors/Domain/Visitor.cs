@@ -42,8 +42,9 @@ public sealed class Visitor
     public string LastName { get; private set; } = null!;
     public string Email { get; private set; } = null!;
     public string? Company { get; private set; }
+    public string? LicensePlate { get; private set; }
 
-    public static Visitor Create(Guid id, string firstName, string lastName, string email, string company)
+    public static Visitor Create(Guid id, string firstName, string lastName, string email, string company, string? licensePlate = null)
     {
         return new Visitor
         {
@@ -51,15 +52,17 @@ public sealed class Visitor
             FirstName = firstName,
             LastName = lastName,
             Email = email,
-            Company = company
+            Company = company,
+            LicensePlate = licensePlate
         };
     }
 
-    public void UpdateProfile(string firstName, string lastName, string email, string company)
+    public void UpdateProfile(string firstName, string lastName, string email, string company, string? licensePlate = null)
     {
         FirstName = firstName;
         LastName = lastName;
         Email = email;
         Company = company;
+        LicensePlate = licensePlate;
     }
 }

@@ -30,18 +30,19 @@ public sealed class VisitInvitation
 
     public ParticipantConfirmationStatus ConfirmationStatus { get; internal set; }
 
-    public Guid? VisitorId { get; internal set; }
+    public Guid VisitorId { get; internal set; }
     public DateTimeOffset? RejectedAt { get; internal set; }
     public DateTimeOffset? ConfirmedAt { get; internal set; }
 
     public ModeOfTransport? Transport { get; internal set; }
     public string? LicensePlate { get; internal set; }
 
-    internal static VisitInvitation Create(Guid id, string firstName, string lastName, string email, string company)
+    internal static VisitInvitation Create(Guid id, Guid visitorId, string firstName, string lastName, string email, string company)
     {
         return new VisitInvitation
         {
             Id = id,
+            VisitorId = visitorId,
             FirstName = firstName,
             LastName = lastName,
             Email = email,
@@ -51,7 +52,6 @@ public sealed class VisitInvitation
     }
 
     internal Result<VisitErrors> Confirm(
-        Guid visitorId,
         ModeOfTransport modeOfTransport,
         string? licensePlate,
         DateTimeOffset timestamp)
@@ -60,7 +60,6 @@ public sealed class VisitInvitation
             return Result.Failure(VisitErrors.LicensePlateRequired);
 
         ConfirmationStatus = ParticipantConfirmationStatus.Confirmed;
-        VisitorId = visitorId;
         ConfirmedAt = timestamp;
         Transport = modeOfTransport;
         LicensePlate = modeOfTransport == ModeOfTransport.Car? licensePlate : null;
@@ -73,7 +72,6 @@ public sealed class VisitInvitation
     {
         ConfirmationStatus = ParticipantConfirmationStatus.Rejected;
         RejectedAt = timestamp;
-        VisitorId = null;
         ConfirmedAt = null;
         Transport = null;
         LicensePlate = null;

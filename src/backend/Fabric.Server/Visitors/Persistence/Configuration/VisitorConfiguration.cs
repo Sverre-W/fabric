@@ -18,6 +18,7 @@ public sealed class VisitorConfiguration : IEntityTypeConfiguration<Visitor>
         builder.Property(visitor => visitor.LastName).HasColumnName("last_name").IsRequired().HasMaxLength(200);
         builder.Property(visitor => visitor.Email).HasColumnName("email").IsRequired().HasMaxLength(320);
         builder.Property(visitor => visitor.Company).HasColumnName("company").IsRequired().HasMaxLength(200);
+        builder.Property(visitor => visitor.LicensePlate).HasColumnName("license_plate").HasMaxLength(50);
 
         TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(Visitor.Email))

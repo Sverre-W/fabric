@@ -145,7 +145,21 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
         if (visit is null)
             return Result.Failure<VisitInvitation, VisitErrors>(VisitErrors.VisitNotFound);
 
-        Result<VisitInvitation, VisitErrors> result = visit.AddInvitation(firstName, lastName, email, company);
+        Visitor? visitor = await db.Visitors
+            .Where(x => x.Email == email)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (visitor is null)
+        {
+            visitor = Visitor.Create(Guid.NewGuid(), firstName, lastName, email, company);
+            db.Visitors.Add(visitor);
+        }
+        else
+        {
+            visitor.UpdateProfile(firstName, lastName, email, company, visitor.LicensePlate);
+        }
+
+        Result<VisitInvitation, VisitErrors> result = visit.AddInvitation(visitor.Id, firstName, lastName, email, company);
 
         if (result.IsSuccess(out _))
             await db.SaveChangesAsync(cancellationToken);
@@ -173,33 +187,35 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
     public async Task<Result<Visitor, VisitErrors>> AcceptInvitation(Guid visitId, Guid invitationId,
         string firstName, string lastName, string email, string company, ModeOfTransport transport, string? licensePlate, CancellationToken cancellationToken = default)
     {
-
-        Visitor? visitor = await db.Visitors
-            .Where(x => x.Email == email)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        Guid visitorId = visitor?.Id ?? Guid.NewGuid();
-
         Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
 
         if (visit is null)
             return Result.Failure<Visitor, VisitErrors>(VisitErrors.VisitNotFound);
 
-        Result<VisitErrors> result = visit.ConfirmParticipation(invitationId, visitorId, transport, licensePlate,
+        VisitInvitation? invitation = visit.Invitations.SingleOrDefault(x => x.Id == invitationId);
+
+        if (invitation is null)
+            return Result.Failure<Visitor, VisitErrors>(VisitErrors.InvitationNotFound);
+
+        Result<VisitErrors> result = visit.ConfirmParticipation(invitationId, transport, licensePlate,
             timeProvider.GetUtcNow());
 
         if (result.IsFailure(out VisitErrors error))
             return Result.Failure<Visitor, VisitErrors>(error);
 
+        Guid visitorId = invitation.VisitorId;
+        Visitor? visitor = await db.Visitors
+            .Where(x => x.Id == visitorId)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (visitor is null)
         {
-            visitor = Visitor.Create(visitorId, firstName, lastName, email, company);
+            visitor = Visitor.Create(visitorId, firstName, lastName, email, company, licensePlate);
             db.Visitors.Add(visitor);
         }
         else
         {
-            visitor.UpdateProfile(firstName, lastName, email, company);
+            visitor.UpdateProfile(firstName, lastName, email, company, licensePlate);
         }
 
         await db.SaveChangesAsync(cancellationToken);

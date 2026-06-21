@@ -99,7 +99,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         .SingleAsync(cancellationToken);
 
         if (saga.ArrivalId.HasValue)
-            _ = await receptionService.ConfirmVisitor(visitor.Id, visitor.FirstName, visitor.LastName, visitor.Company, saga.ArrivalId.Value, cancellationToken);
+            _ = await receptionService.ConfirmVisitor(visitor.FirstName, visitor.LastName, visitor.Company, saga.ArrivalId.Value, cancellationToken);
 
         saga.State = VisitorPreOnboardingState.Confirmed;
         await db.SaveChangesAsync(cancellationToken);
@@ -302,7 +302,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
 
         VisitInvitation invitation = visit.Invitations.Single(x => x.Id == saga.InvitationId);
 
-        Result<ExpectedArrival, ReceptionErrors> result = await receptionService.RegisterVisitorArrival(invitation.FirstName, invitation.LastName, invitation.Company, invitation.Id, visit.Start, null, visit.LocationId, cancellationToken);
+        Result<ExpectedArrival, ReceptionErrors> result = await receptionService.RegisterVisitorArrival(invitation.FirstName, invitation.LastName, invitation.Company, invitation.VisitorId, invitation.Id, visit.Start, null, visit.LocationId, cancellationToken);
 
 
         if (result.IsSuccess(out ExpectedArrival? arrival))

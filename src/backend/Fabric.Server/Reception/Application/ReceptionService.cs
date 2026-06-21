@@ -17,6 +17,7 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         string firstName,
         string lastName,
         string? company,
+        Guid visitorId,
         Guid invitationId,
         DateTimeOffset expectedArrivalTime,
         string? arrivalCode,
@@ -24,7 +25,7 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         CancellationToken ct = default)
     {
         var arrival = ExpectedArrival.CreateVisitorArrival(
-                firstName, lastName, company, invitationId, expectedArrivalTime, arrivalCode, locationId);
+                firstName, lastName, company, visitorId, invitationId, expectedArrivalTime, arrivalCode, locationId);
 
         db.Arrivals.Add(arrival);
         await db.SaveChangesAsync(ct);
@@ -164,7 +165,7 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         return result;
     }
 
-    public async Task<Result<ReceptionErrors>> ConfirmVisitor(Guid visitorId, string firstName, string lastName, string? company, Guid arrivalId, CancellationToken ct = default)
+    public async Task<Result<ReceptionErrors>> ConfirmVisitor(string firstName, string lastName, string? company, Guid arrivalId, CancellationToken ct = default)
     {
         ExpectedArrival? arrival = await GetAggregate(arrivalId, ct);
         if (arrival is null)
@@ -172,7 +173,7 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
 
         arrival.UpdateVisitorDetails(firstName, lastName, company);
 
-        Result<ReceptionErrors> result = arrival.ConfirmVisitor(visitorId);
+        Result<ReceptionErrors> result = arrival.ConfirmVisitor();
         if (result.IsSuccess(out _))
             await db.SaveChangesAsync(ct);
 

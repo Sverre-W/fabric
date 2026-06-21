@@ -20,13 +20,13 @@ public record VisitInvitationResponse(
     string Email,
     string Company,
     ParticipantConfirmationStatus ConfirmationStatus,
-    Guid? VisitorId,
+    Guid VisitorId,
     DateTimeOffset? RejectedAt,
     DateTimeOffset? ConfirmedAt,
     ModeOfTransport? Transport,
     string? LicensePlate);
 
-public record VisitorResponse(Guid Id, string FirstName, string LastName, string Email, string? Company);
+public record VisitorResponse(Guid Id, string FirstName, string LastName, string Email, string? Company, string? LicensePlate);
 
 [Mapper]
 public static partial class VisitMapper

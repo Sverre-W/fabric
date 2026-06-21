@@ -49,7 +49,7 @@ public sealed class Visit
         });
     }
 
-    public Result<VisitInvitation, VisitErrors> AddInvitation(string firstName, string lastName, string email, string company)
+    public Result<VisitInvitation, VisitErrors> AddInvitation(Guid visitorId, string firstName, string lastName, string email, string company)
     {
         Result<VisitErrors> guard = GuardScheduled();
         if (guard.IsFailure(out VisitErrors error))
@@ -58,7 +58,7 @@ public sealed class Visit
         if (Invitations.Any(x => x.Email == email))
             return Result.Failure<VisitInvitation, VisitErrors>(VisitErrors.DuplicateInvitationEmail);
 
-        var invitation = VisitInvitation.Create(Guid.NewGuid(), firstName, lastName, email, company);
+        var invitation = VisitInvitation.Create(Guid.NewGuid(), visitorId, firstName, lastName, email, company);
         Invitations.Add(invitation);
 
         return Result.Success<VisitInvitation, VisitErrors>(invitation);
@@ -66,7 +66,6 @@ public sealed class Visit
 
     public Result<VisitErrors> ConfirmParticipation(
         Guid invitationId,
-        Guid visitorId,
         ModeOfTransport modeOfTransport,
         string? licensePlate,
         DateTimeOffset timestamp)
@@ -81,7 +80,7 @@ public sealed class Visit
         if (invitation is null)
             return Result.Failure<VisitErrors>(VisitErrors.InvitationNotFound);
 
-        return invitation.Confirm(visitorId, modeOfTransport, licensePlate, timestamp);
+        return invitation.Confirm(modeOfTransport, licensePlate, timestamp);
     }
 
     public Result<VisitErrors> RejectParticipation(Guid invitationId, DateTimeOffset timestamp)

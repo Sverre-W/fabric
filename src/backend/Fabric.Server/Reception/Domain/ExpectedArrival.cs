@@ -34,6 +34,7 @@ public sealed class ExpectedArrival
         string firstName,
         string lastName,
         string? company,
+        Guid visitorId,
         Guid invitationId,
         DateTimeOffset expectedArrivalTime,
         string? arrivalCode,
@@ -45,6 +46,7 @@ public sealed class ExpectedArrival
             FirstName = firstName,
             LastName = lastName,
             Company = company,
+            VisitorId = visitorId,
             InvitationId = invitationId,
             Confirmed = false,
             ExpectedArrivalTime = expectedArrivalTime,
@@ -152,12 +154,11 @@ public sealed class ExpectedArrival
         return Result.Success<ReceptionErrors>();
     }
 
-    public Result<ReceptionErrors> ConfirmVisitor(Guid visitorId)
+    public Result<ReceptionErrors> ConfirmVisitor()
     {
         if (Type != ArrivalType.Visitor)
             return Result<ReceptionErrors>.Failure(ReceptionErrors.NotAVisitor);
 
-        VisitorId = visitorId;
         Confirmed = true;
         return Result.Success<ReceptionErrors>();
     }

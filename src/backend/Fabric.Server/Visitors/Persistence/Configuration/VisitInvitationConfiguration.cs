@@ -20,7 +20,7 @@ public sealed class VisitInvitationConfiguration : IEntityTypeConfiguration<Visi
         builder.Property(invitation => invitation.Email).HasColumnName("email").IsRequired().HasMaxLength(320);
         builder.Property(invitation => invitation.Company).HasColumnName("company").IsRequired().HasMaxLength(200);
         builder.Property(invitation => invitation.ConfirmationStatus).HasColumnName("confirmation_status").IsRequired().HasConversion<string>().HasMaxLength(50);
-        builder.Property(invitation => invitation.VisitorId).HasColumnName("visitor_id");
+        builder.Property(invitation => invitation.VisitorId).HasColumnName("visitor_id").IsRequired();
         builder.Property(invitation => invitation.RejectedAt).HasColumnName("rejected_at");
         builder.Property(invitation => invitation.ConfirmedAt).HasColumnName("confirmed_at");
         builder.Property(invitation => invitation.Transport).HasColumnName("transport").HasConversion<string>().HasMaxLength(50);
