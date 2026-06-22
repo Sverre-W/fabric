@@ -1,4 +1,4 @@
-import { Building2, Settings, UsersRound } from 'lucide-react';
+import { Building2, ConciergeBell, Settings, UsersRound } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 export type ModuleNavigationItem = {
@@ -38,6 +38,14 @@ export const appModules = [
     ],
   },
   {
+    id: 'reception-desk',
+    name: 'Reception Desk',
+    description: 'Handle front desk arrival workflows, expected visitors, and reception history.',
+    logo: ConciergeBell,
+    to: '/reception-desk',
+    navigation: [{ label: 'Arrivals', to: '/reception-desk' }],
+  },
+  {
     id: 'settings',
     name: 'Settings',
     description: 'Configure platform modules, defaults, integrations, and operational behavior.',
@@ -46,6 +54,7 @@ export const appModules = [
     navigation: [
       { label: 'Tenant', to: '/settings/tenant' },
       { label: 'Visitors', to: '/settings/visitors' },
+      { label: 'Reception Desk', to: '/settings/reception-desk' },
     ],
   },
 ] as const satisfies readonly AppModule[];

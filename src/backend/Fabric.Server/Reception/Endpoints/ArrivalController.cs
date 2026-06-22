@@ -70,6 +70,12 @@ public static class ArrivalEndpoints
 
     private static async Task<IResult> ListArrivals(
         [AsParameters] ListArrivalsRequest request,
+        [FromQuery] DateTimeOffset? expectedArrivalAfter,
+        [FromQuery] DateTimeOffset? expectedArrivalBefore,
+        [FromQuery] DateTimeOffset? onboardedBefore,
+        [FromQuery] DateTimeOffset? offboardedAfter,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         ReceptionDbContext db,
         CancellationToken cancellationToken = default)
     {
@@ -87,9 +93,23 @@ public static class ArrivalEndpoints
         if (request.LocationId.HasValue)
             query = query.Where(a => a.LocationId == request.LocationId.Value);
 
-        query = query.OrderByDescending(a => a.ExpectedArrivalTime);
+        if (expectedArrivalAfter.HasValue)
+            query = query.Where(a => a.ExpectedArrivalTime >= expectedArrivalAfter.Value);
 
-        IPaged<ExpectedArrival> result = await query.GetPageAsync(request.Page, request.PageSize, cancellationToken);
+        if (expectedArrivalBefore.HasValue)
+            query = query.Where(a => a.ExpectedArrivalTime < expectedArrivalBefore.Value);
+
+        if (onboardedBefore.HasValue)
+            query = query.Where(a => a.OnboardedAt.HasValue && a.OnboardedAt.Value < onboardedBefore.Value);
+
+        if (offboardedAfter.HasValue)
+            query = query.Where(a => a.OffboardedAt.HasValue && a.OffboardedAt.Value >= offboardedAfter.Value);
+
+        query = request.Status == OnboardingStatus.Offboarded
+            ? query.OrderByDescending(a => a.OffboardedAt)
+            : query.OrderByDescending(a => a.ExpectedArrivalTime);
+
+        IPaged<ExpectedArrival> result = await query.GetPageAsync(page ?? 0, pageSize ?? 25, cancellationToken);
         return Results.Ok(result.Map(a => a.ToResponse()));
     }
 

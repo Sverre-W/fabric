@@ -92,12 +92,12 @@ public sealed class ExpectedArrival
         Result<ReceptionErrors> validation = ValidateRequiredDocs(requiredDocs, providedDocs);
         if (validation.IsFailure(out _)) return validation;
 
-        ReceptionErrors? guard = GuardOnboarded();
-        if (guard.HasValue) return Result<ReceptionErrors>.Failure(guard.Value);
+        if (Status != OnboardingStatus.NotYetOnboarded) return Result<ReceptionErrors>.Failure(ReceptionErrors.AlreadyOnboarded);
 
         Status = OnboardingStatus.Onboarded;
         OnboardedAt = timestamp;
         Documents = providedDocs;
+        CheckIn(timestamp);
         return Result<ReceptionErrors>.Success();
     }
 

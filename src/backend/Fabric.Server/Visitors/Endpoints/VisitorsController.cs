@@ -18,6 +18,11 @@ public static class VisitorEndpoints
             .WithDescription("List visitors")
             .WithSummary("List visitors")
             .Produces<Page<VisitorResponse>>();
+        app.MapGet("/api/visitors/invitations/{invitationId:guid}/visit", GetVisitByInvitationId)
+            .WithDescription("Retrieve the visit for an invitation")
+            .WithSummary("Retrieve invitation visit")
+            .Produces<VisitResponse>()
+            .Produces(StatusCodes.Status404NotFound);
 
         RouteGroupBuilder visits = app.MapGroup("/api/visitors/visits");
 
@@ -123,6 +128,27 @@ public static class VisitorEndpoints
         Visit? visitRow = await db
             .Visits.Include(x => x.Invitations)
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (visitRow is null)
+            return Results.NotFound();
+
+        Organizer organizer = await db.Organizers.SingleAsync(
+            x => x.Id == visitRow.OrganizerId,
+            cancellationToken
+        );
+
+        return Results.Ok(visitRow.ToResponse(organizer));
+    }
+
+    private static async Task<IResult> GetVisitByInvitationId(
+        Guid invitationId,
+        VisitorsDbContext db,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Visit? visitRow = await db
+            .Visits.Include(x => x.Invitations)
+            .SingleOrDefaultAsync(x => x.Invitations.Any(invitation => invitation.Id == invitationId), cancellationToken);
 
         if (visitRow is null)
             return Results.NotFound();

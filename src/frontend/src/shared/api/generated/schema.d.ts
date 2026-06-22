@@ -217,6 +217,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/visitors/invitations/{invitationId}/visit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve invitation visit
+         * @description Retrieve the visit for an invitation
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    invitationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VisitResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/access-policies/policies": {
         parameters: {
             query?: never;
@@ -1544,6 +1592,12 @@ export interface paths {
                     Status?: components["schemas"]["OnboardingStatus"];
                     CheckedIn?: boolean;
                     LocationId?: string;
+                    expectedArrivalAfter?: string;
+                    expectedArrivalBefore?: string;
+                    onboardedBefore?: string;
+                    offboardedAfter?: string;
+                    page?: number | string;
+                    pageSize?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -1806,6 +1860,209 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/access-rule-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List access rule assignments
+         * @description List reception access rule assignments
+         */
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessRuleAssignmentResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create access rule assignment
+         * @description Create a reception access rule assignment
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAccessRuleAssignmentRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessRuleAssignmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/access-rule-assignments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve access rule assignment
+         * @description Retrieve a reception access rule assignment by id
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessRuleAssignmentResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /**
+         * Update access rule assignment
+         * @description Update a reception access rule assignment
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAccessRuleAssignmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessRuleAssignmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete access rule assignment
+         * @description Delete a reception access rule assignment
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -2827,6 +3084,19 @@ export interface components {
             reconciliationStatus: components["schemas"]["ReconciliationStatus"];
             reconciliationFailureReason: null | string;
         };
+        AccessRuleAssignmentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            locationId: string;
+            /** Format: uuid */
+            systemId: string;
+            /** Format: uuid */
+            accessLevelTypeId: string;
+            /** Format: int32 */
+            gracePeriodMinutes: number | string;
+            trigger: components["schemas"]["ReceptionAccessPolicyTrigger"];
+        };
         AddBuildingRequest: {
             name: string;
             address: null | string;
@@ -2891,6 +3161,8 @@ export interface components {
             type: components["schemas"]["ArrivalType"];
             /** Format: date-time */
             expectedArrivalTime: string;
+            /** Format: date-time */
+            expectedOffboardTime: string;
             firstName: string;
             lastName: string;
             company: null | string;
@@ -2985,6 +3257,17 @@ export interface components {
             effectiveFrom: string;
             /** Format: date-time */
             effectiveUntil: string;
+        };
+        CreateAccessRuleAssignmentRequest: {
+            /** Format: uuid */
+            locationId: string;
+            /** Format: uuid */
+            systemId: string;
+            /** Format: uuid */
+            accessLevelTypeId: string;
+            /** Format: int32 */
+            gracePeriodMinutes: number | string;
+            trigger: components["schemas"]["ReceptionAccessPolicyTrigger"];
         };
         CreateCredentialPolicyRequest: {
             /** Format: uuid */
@@ -3149,6 +3432,18 @@ export interface components {
             items?: components["schemas"]["AccessPolicyResponse"][];
             isLastPage?: boolean;
         };
+        PageOfAccessRuleAssignmentResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["AccessRuleAssignmentResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfArrivalResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -3244,6 +3539,8 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        /** @enum {unknown} */
+        ReceptionAccessPolicyTrigger: "ExpectedVisitorAdded" | "VisitorConfirmed" | "VisitorOnboarded" | "ContractorExpectedAdded" | "ContractorOnboarded";
         /** @enum {unknown} */
         ReconciliationStatus: "PendingReconciliation" | "Reconciled" | "ReconciliationFailed";
         RelocateVisitRequest: {
@@ -3356,6 +3653,17 @@ export interface components {
         UnipassMetadata: {
             sites: components["schemas"]["SystemMetadataObject"][];
             accessRules: components["schemas"]["SystemMetadataObject"][];
+        };
+        UpdateAccessRuleAssignmentRequest: {
+            /** Format: uuid */
+            locationId: string;
+            /** Format: uuid */
+            systemId: string;
+            /** Format: uuid */
+            accessLevelTypeId: string;
+            /** Format: int32 */
+            gracePeriodMinutes: number | string;
+            trigger: components["schemas"]["ReceptionAccessPolicyTrigger"];
         };
         UpdateBuildingRequest: {
             name: string;

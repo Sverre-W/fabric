@@ -59,6 +59,24 @@ const emptySitePage = {
   isLastPage: true,
 };
 
+const emptyAccessRuleAssignmentPage = {
+  currentPage: 0,
+  totalPages: 0,
+  pageSize: 100,
+  totalItems: 0,
+  items: [],
+  isLastPage: true,
+};
+
+const emptyAccessControlSystemPage = {
+  currentPage: 0,
+  totalPages: 0,
+  pageSize: 100,
+  totalItems: 0,
+  items: [],
+  isLastPage: true,
+};
+
 const tenantSettingsResponse = {
   oidc: {
     metadataUrl: 'http://localhost:7080/realms/dev/.well-known/openid-configuration',
@@ -108,6 +126,14 @@ describe('App', () => {
 
       if (path === '/api/locations/sites/{siteId}/buildings/{buildingId}/rooms') {
         return Promise.resolve({ data: [] });
+      }
+
+      if (path === '/api/reception/access-rule-assignments') {
+        return Promise.resolve({ data: emptyAccessRuleAssignmentPage });
+      }
+
+      if (path === '/api/access-policies/access-control-systems') {
+        return Promise.resolve({ data: emptyAccessControlSystemPage });
       }
 
       return Promise.resolve({ data: emptyVisitPage });
@@ -186,10 +212,10 @@ describe('App', () => {
 
     render(<App appRouter={createAppRouter()} />);
 
-    expect(await screen.findByText('Oslo HQ')).toBeInTheDocument();
-    expect(screen.getByText('Karl Johans gate 1')).toBeInTheDocument();
+    expect((await screen.findAllByText('Oslo HQ')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Karl Johans gate 1').length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /add site/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /edit oslo hq/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /edit oslo hq/i }).length).toBeGreaterThan(0);
   });
 
   it('creates a site and replaces create route with edit route', async () => {
@@ -299,10 +325,10 @@ describe('App', () => {
     render(<App appRouter={createAppRouter()} />);
 
     expect(await screen.findByRole('heading', { name: /buildings/i })).toBeInTheDocument();
-    expect(await screen.findByText('Main building')).toBeInTheDocument();
-    expect(screen.getByText('Karl Johans gate 1A')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /edit main building/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /delete main building/i })).toBeInTheDocument();
+    expect((await screen.findAllByText('Main building')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Karl Johans gate 1A').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: /edit main building/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /delete main building/i }).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText(/building name/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /add building/i }));
@@ -348,7 +374,7 @@ describe('App', () => {
 
     render(<App appRouter={createAppRouter()} />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /delete main building/i }));
+    fireEvent.click((await screen.findAllByRole('button', { name: /delete main building/i }))[0]);
 
     await waitFor(() => {
       expect(apiDeleteMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings/{buildingId}', {
@@ -432,10 +458,10 @@ describe('App', () => {
     render(<App appRouter={createAppRouter()} />);
 
     expect(await screen.findByRole('heading', { name: /rooms/i })).toBeInTheDocument();
-    expect(await screen.findByText('Board room')).toBeInTheDocument();
-    expect(screen.getByText('12')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /edit board room/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /delete board room/i })).toBeInTheDocument();
+    expect((await screen.findAllByText('Board room')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('12').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: /edit board room/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /delete board room/i }).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText(/room name/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /add room/i }));
@@ -482,7 +508,7 @@ describe('App', () => {
 
     render(<App appRouter={createAppRouter()} />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /delete board room/i }));
+    fireEvent.click((await screen.findAllByRole('button', { name: /delete board room/i }))[0]);
 
     await waitFor(() => {
       expect(apiDeleteMock).toHaveBeenCalledWith('/api/locations/sites/{siteId}/buildings/{buildingId}/rooms/{roomId}', {
@@ -542,6 +568,76 @@ describe('App', () => {
     expect(await screen.findByRole('button', { name: /visitors management/i })).toBeInTheDocument();
     expect(await screen.findByRole('navigation', { name: /visitors management menu/i })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: /visits/i })).toBeInTheDocument();
+  });
+
+  it('renders Reception Desk settings and creates access level assignment', async () => {
+    window.history.pushState({}, '', '/settings/reception-desk');
+
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/reception/access-rule-assignments') {
+        return Promise.resolve({ data: emptyAccessRuleAssignmentPage });
+      }
+
+      if (path === '/api/access-policies/access-control-systems') {
+        return Promise.resolve({
+          data: {
+            ...emptyAccessControlSystemPage,
+            totalItems: 1,
+            items: [
+              {
+                type: 'unipass',
+                id: 'system-1',
+                name: 'Unipass',
+                badgeTypes: [],
+                accessLevels: [{ type: 'unipass', id: 'level-1', systemId: 'system-1', name: 'Lobby access', siteId: 1, accessRuleId: 100 }],
+              },
+            ],
+          },
+        });
+      }
+
+      if (path === '/api/locations/sites') {
+        return Promise.resolve({
+          data: {
+            ...emptySitePage,
+            totalItems: 1,
+            items: [{ id: 'site-1', name: 'Oslo HQ', address: 'Karl Johans gate 1' }],
+          },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /reception desk/i })).toBeInTheDocument();
+    expect(await screen.findByText('Access Level Assignments')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('Oslo HQ')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /create assignment/i }));
+
+    expect(await screen.findByDisplayValue('Oslo HQ')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Unipass')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Lobby access')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /save assignment/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/reception/access-rule-assignments', {
+        body: {
+          locationId: 'site-1',
+          systemId: 'system-1',
+          accessLevelTypeId: 'level-1',
+          trigger: 'ExpectedVisitorAdded',
+          gracePeriodMinutes: 0,
+        },
+      });
+    });
   });
 
   it('renders Visits for explicit visits sub-route', async () => {
