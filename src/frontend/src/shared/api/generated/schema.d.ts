@@ -3018,6 +3018,10 @@ export interface components {
         };
         /** @enum {unknown} */
         CredentialGenerationMode: "PlatformQr" | "AccessControlQr";
+        CustomNotification: {
+            subject: string;
+            body: string;
+        };
         GraphEmailSettingsResponse: {
             fromEmail: string;
             fromName: string;
@@ -3427,7 +3431,7 @@ export interface components {
             company: string;
             confirmationStatus: components["schemas"]["ParticipantConfirmationStatus"];
             /** Format: uuid */
-            visitorId: null | string;
+            visitorId: string;
             /** Format: date-time */
             rejectedAt: null | string;
             /** Format: date-time */
@@ -3459,31 +3463,31 @@ export interface components {
             /** Format: uuid */
             id?: string;
             useCustomInviteNotification?: boolean;
-            customInviteNotification?: null | string;
+            customInviteNotification?: null | components["schemas"]["CustomNotification"];
             qrGenerationMode?: components["schemas"]["CredentialGenerationMode"];
             sendConfirmNotificationToOrganizer?: boolean;
             useCustomConfirmNotification?: boolean;
-            customConfirmNotification?: null | string;
+            customConfirmNotification?: null | components["schemas"]["CustomNotification"];
             sendCancellationNotification?: boolean;
             useCustomCancellationNotification?: boolean;
-            customCancellationNotification?: null | string;
+            customCancellationNotification?: null | components["schemas"]["CustomNotification"];
             sendRescheduleNotification?: boolean;
             useCustomRescheduleNotification?: boolean;
-            customRescheduleNotification?: null | string;
+            customRescheduleNotification?: null | components["schemas"]["CustomNotification"];
         };
         VisitorPreOnboardingSagaConfigRequest: {
             useCustomInviteNotification: boolean;
-            customInviteNotification: null | string;
+            customInviteNotification: null | components["schemas"]["CustomNotification"];
             qrGenerationMode: components["schemas"]["CredentialGenerationMode"];
             sendConfirmNotificationToOrganizer: boolean;
             useCustomConfirmNotification: boolean;
-            customConfirmNotification: null | string;
+            customConfirmNotification: null | components["schemas"]["CustomNotification"];
             sendCancellationNotification: boolean;
             useCustomCancellationNotification: boolean;
-            customCancellationNotification: null | string;
+            customCancellationNotification: null | components["schemas"]["CustomNotification"];
             sendRescheduleNotification: boolean;
             useCustomRescheduleNotification: boolean;
-            customRescheduleNotification: null | string;
+            customRescheduleNotification: null | components["schemas"]["CustomNotification"];
         };
         /** @enum {unknown} */
         VisitorPreOnboardingState: "RegisteringArrival" | "GeneratingQr" | "UpdatingArrivalQr" | "SendingInvitation" | "AwaitingConfirmation" | "Confirmed" | "Rejected" | "Cancelling" | "Cancelled" | "Expired";
@@ -3494,6 +3498,7 @@ export interface components {
             lastName: string;
             email: string;
             company: null | string;
+            licensePlate: null | string;
         };
         VisitResponse: {
             /** Format: uuid */

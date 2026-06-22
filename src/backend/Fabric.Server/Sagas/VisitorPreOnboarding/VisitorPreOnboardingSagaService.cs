@@ -28,6 +28,10 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
     private const string ConfirmationTemplate = "confirmation-to-organizer.html";
     private const string CancellationTemplate = "cancellation.html";
     private const string RescheduleTemplate = "reschedule.html";
+    private const string InvitationSubject = "You're invited to a visit";
+    private const string ConfirmationSubject = "Visitor confirmed participation";
+    private const string CancellationSubject = "Your visit has been cancelled";
+    private const string RescheduleSubject = "Your visit has been rescheduled";
 
     public async Task<VisitorPreOnboardingSagaConfig> GetConfigurationAsync(CancellationToken cancellationToken = default)
     {
@@ -123,7 +127,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task VisitRescheduled(Guid visitId, DateTimeOffset startDate, CancellationToken cancellationToken = default)
+    public async Task VisitRescheduled(Guid visitId, DateTimeOffset startDate, DateTimeOffset stopDate, CancellationToken cancellationToken = default)
     {
         List<VisitorPreOnboardingSaga> sagas = await db.VisitorPreOnboardingSagas
       .Where(x => x.VisitId == visitId)
@@ -134,7 +138,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
             saga.ExpiresAt = startDate;
 
             if (saga.ArrivalId.HasValue)
-                _ = await receptionService.Reschedule(saga.ArrivalId.Value, startDate, cancellationToken);
+                _ = await receptionService.Reschedule(saga.ArrivalId.Value, startDate, stopDate, cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -144,8 +148,21 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
             return;
 
         foreach (VisitorPreOnboardingSaga saga in sagas)
-            await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, RescheduleTemplate, config.UseCustomRescheduleNotification, config.CustomRescheduleNotification, "Your visit has been rescheduled", cancellationToken);
+            await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, RescheduleTemplate, config.UseCustomRescheduleNotification, config.CustomRescheduleNotification, RescheduleSubject, cancellationToken);
 
+    }
+
+    public async Task VisitRelocated(Guid visitId, Guid locationId, CancellationToken cancellationToken = default)
+    {
+        List<VisitorPreOnboardingSaga> sagas = await db.VisitorPreOnboardingSagas
+            .Where(x => x.VisitId == visitId)
+            .ToListAsync(cancellationToken);
+
+        foreach (VisitorPreOnboardingSaga saga in sagas)
+        {
+            if (saga.ArrivalId.HasValue)
+                _ = await receptionService.Relocate(saga.ArrivalId.Value, locationId, cancellationToken);
+        }
     }
 
     public async Task CancelForVisitAsync(Guid visitId, CancellationToken cancellationToken = default)
@@ -302,7 +319,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
 
         VisitInvitation invitation = visit.Invitations.Single(x => x.Id == saga.InvitationId);
 
-        Result<ExpectedArrival, ReceptionErrors> result = await receptionService.RegisterVisitorArrival(invitation.FirstName, invitation.LastName, invitation.Company, invitation.VisitorId, invitation.Id, visit.Start, null, visit.LocationId, cancellationToken);
+        Result<ExpectedArrival, ReceptionErrors> result = await receptionService.RegisterVisitorArrival(invitation.FirstName, invitation.LastName, invitation.Company, invitation.VisitorId, invitation.Id, visit.Start, visit.Stop, null, visit.LocationId, cancellationToken);
 
 
         if (result.IsSuccess(out ExpectedArrival? arrival))
@@ -381,10 +398,10 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         }
 
         VisitorPreOnboardingSagaConfig config = await GetConfigurationAsync(cancellationToken);
-        string body = await GetNotificationBodyAsync(InvitationTemplate, config.UseCustomInviteNotification, config.CustomInviteNotification, cancellationToken);
+        NotificationContent notification = await GetNotificationContentAsync(InvitationSubject, InvitationTemplate, config.UseCustomInviteNotification, config.CustomInviteNotification, cancellationToken);
         Result<EmailErrors> emailResult = await emailNotificationSender.SendEmail(
-            "You're invited to a visit",
-            body,
+            notification.Subject,
+            notification.Body,
             new SagaNotificationModel(visit, invitation),
             [invitation.Email],
             ct: cancellationToken);
@@ -419,7 +436,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         VisitorPreOnboardingSagaConfig config = await GetConfigurationAsync(cancellationToken);
         if (config.SendCancellationNotification)
         {
-            bool sent = await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, CancellationTemplate, config.UseCustomCancellationNotification, config.CustomCancellationNotification, "Your visit has been cancelled", cancellationToken);
+            bool sent = await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, CancellationTemplate, config.UseCustomCancellationNotification, config.CustomCancellationNotification, CancellationSubject, cancellationToken);
             if (!sent)
             {
                 SagaStepResult result = ScheduleRetry(saga);
@@ -461,10 +478,10 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         if (organizer is null)
             return;
 
-        string body = await GetNotificationBodyAsync(ConfirmationTemplate, config.UseCustomConfirmNotification, config.CustomConfirmNotification, cancellationToken);
+        NotificationContent notification = await GetNotificationContentAsync(ConfirmationSubject, ConfirmationTemplate, config.UseCustomConfirmNotification, config.CustomConfirmNotification, cancellationToken);
         _ = await emailNotificationSender.SendEmail(
-            "Visitor confirmed participation",
-            body,
+            notification.Subject,
+            notification.Body,
             new SagaNotificationModel(visit, invitation),
             [organizer.Email],
             ct: cancellationToken);
@@ -475,7 +492,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         Guid invitationId,
         string defaultTemplate,
         bool useCustomTemplate,
-        string? customTemplate,
+        CustomNotification? customNotification,
         string subject,
         CancellationToken cancellationToken)
     {
@@ -490,10 +507,10 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         if (invitation is null)
             return false;
 
-        string body = await GetNotificationBodyAsync(defaultTemplate, useCustomTemplate, customTemplate, cancellationToken);
+        NotificationContent notification = await GetNotificationContentAsync(subject, defaultTemplate, useCustomTemplate, customNotification, cancellationToken);
         Result<EmailErrors> emailResult = await emailNotificationSender.SendEmail(
-            subject,
-            body,
+            notification.Subject,
+            notification.Body,
             new SagaNotificationModel(visit, invitation),
             [invitation.Email],
             ct: cancellationToken);
@@ -501,12 +518,15 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         return emailResult.IsSuccess(out _);
     }
 
-    private async Task<string> GetNotificationBodyAsync(string defaultTemplate, bool useCustomTemplate, string? customTemplate, CancellationToken cancellationToken)
+    private async Task<NotificationContent> GetNotificationContentAsync(string defaultSubject, string defaultTemplate, bool useCustomTemplate, CustomNotification? customNotification, CancellationToken cancellationToken)
     {
-        if (useCustomTemplate && !string.IsNullOrWhiteSpace(customTemplate))
-            return customTemplate;
+        if (useCustomTemplate && customNotification is not null)
+            return new NotificationContent(customNotification.Subject, customNotification.Body);
 
         string path = Path.Combine(webHostEnvironment.ContentRootPath, "Sagas", "VisitorPreOnboarding", "default-templates", defaultTemplate);
-        return await File.ReadAllTextAsync(path, cancellationToken);
+        string body = await File.ReadAllTextAsync(path, cancellationToken);
+        return new NotificationContent(defaultSubject, body);
     }
+
+    private sealed record NotificationContent(string Subject, string Body);
 }

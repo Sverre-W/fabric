@@ -62,25 +62,62 @@ public static class VisitorPreOnboardingSagaEndpoints
         CancellationToken cancellationToken = default
     )
     {
+        IResult? validationResult = ValidateRequest(request);
+        if (validationResult is not null)
+            return validationResult;
+
         var config = new VisitorPreOnboardingSagaConfig
         {
             UseCustomInviteNotification = request.UseCustomInviteNotification,
-            CustomInviteNotification = request.CustomInviteNotification,
+            CustomInviteNotification = request.UseCustomInviteNotification ? request.CustomInviteNotification : null,
             QrGenerationMode = request.QrGenerationMode,
             SendConfirmNotificationToOrganizer = request.SendConfirmNotificationToOrganizer,
-            UseCustomConfirmNotification = request.UseCustomConfirmNotification,
-            CustomConfirmNotification = request.CustomConfirmNotification,
+            UseCustomConfirmNotification = request.SendConfirmNotificationToOrganizer && request.UseCustomConfirmNotification,
+            CustomConfirmNotification = request.SendConfirmNotificationToOrganizer && request.UseCustomConfirmNotification ? request.CustomConfirmNotification : null,
             SendCancellationNotification = request.SendCancellationNotification,
-            UseCustomCancellationNotification = request.UseCustomCancellationNotification,
-            CustomCancellationNotification = request.CustomCancellationNotification,
+            UseCustomCancellationNotification = request.SendCancellationNotification && request.UseCustomCancellationNotification,
+            CustomCancellationNotification = request.SendCancellationNotification && request.UseCustomCancellationNotification ? request.CustomCancellationNotification : null,
             SendRescheduleNotification = request.SendRescheduleNotification,
-            UseCustomRescheduleNotification = request.UseCustomRescheduleNotification,
-            CustomRescheduleNotification = request.CustomRescheduleNotification,
+            UseCustomRescheduleNotification = request.SendRescheduleNotification && request.UseCustomRescheduleNotification,
+            CustomRescheduleNotification = request.SendRescheduleNotification && request.UseCustomRescheduleNotification ? request.CustomRescheduleNotification : null,
         };
 
         VisitorPreOnboardingSagaConfig updated = await service.UpdateConfigurationAsync(config, cancellationToken);
         return Results.Ok(updated);
     }
+
+    private static IResult? ValidateRequest(VisitorPreOnboardingSagaConfigRequest request)
+    {
+        if (!IsValidCustomNotification(request.UseCustomInviteNotification, request.CustomInviteNotification))
+            return ValidationProblem("Custom invitation notification requires subject and body.");
+
+        if (!IsValidCustomNotification(request.SendConfirmNotificationToOrganizer && request.UseCustomConfirmNotification, request.CustomConfirmNotification))
+            return ValidationProblem("Custom confirmation notification requires subject and body.");
+
+        if (!IsValidCustomNotification(request.SendCancellationNotification && request.UseCustomCancellationNotification, request.CustomCancellationNotification))
+            return ValidationProblem("Custom cancellation notification requires subject and body.");
+
+        if (!IsValidCustomNotification(request.SendRescheduleNotification && request.UseCustomRescheduleNotification, request.CustomRescheduleNotification))
+            return ValidationProblem("Custom reschedule notification requires subject and body.");
+
+        return null;
+    }
+
+    private static bool IsValidCustomNotification(bool enabled, CustomNotification? notification)
+    {
+        if (!enabled)
+            return true;
+
+        return notification is not null
+            && !string.IsNullOrWhiteSpace(notification.Subject)
+            && !string.IsNullOrWhiteSpace(notification.Body);
+    }
+
+    private static IResult ValidationProblem(string detail) =>
+        Results.Problem(
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "Invalid visitor pre-onboarding configuration.",
+            detail: detail);
 
     private static async Task<IResult> GetOnboardingSagas(
         Guid visitId,
@@ -119,14 +156,14 @@ public static class VisitorPreOnboardingSagaEndpoints
 
 public sealed record VisitorPreOnboardingSagaConfigRequest(
     bool UseCustomInviteNotification,
-    string? CustomInviteNotification,
+    CustomNotification? CustomInviteNotification,
     CredentialGenerationMode QrGenerationMode,
     bool SendConfirmNotificationToOrganizer,
     bool UseCustomConfirmNotification,
-    string? CustomConfirmNotification,
+    CustomNotification? CustomConfirmNotification,
     bool SendCancellationNotification,
     bool UseCustomCancellationNotification,
-    string? CustomCancellationNotification,
+    CustomNotification? CustomCancellationNotification,
     bool SendRescheduleNotification,
     bool UseCustomRescheduleNotification,
-    string? CustomRescheduleNotification);
+    CustomNotification? CustomRescheduleNotification);

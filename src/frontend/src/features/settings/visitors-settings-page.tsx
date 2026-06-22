@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 
 import {
@@ -13,6 +14,7 @@ import {
   updateVisitorPreOnboardingConfig,
   visitorPreOnboardingConfigQueryKey,
   type CredentialGenerationMode,
+  type CustomNotification,
   type VisitorPreOnboardingSagaConfigRequest,
 } from './visitor-pre-onboarding-config';
 
@@ -95,9 +97,11 @@ export default function VisitorsSettingsPage() {
                   title="Invitation"
                   description="Sent to visitors after arrival registration and QR setup. The default template is used unless custom HTML is enabled."
                   customEnabled={values.useCustomInviteNotification}
-                  customValue={values.customInviteNotification ?? ''}
-                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomInviteNotification: checked }))}
-                  onCustomValueChange={(customInviteNotification) => setValues((current) => ({ ...current, customInviteNotification }))}
+                  customSubject={values.customInviteNotification?.subject ?? ''}
+                  customBody={values.customInviteNotification?.body ?? ''}
+                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomInviteNotification: checked, customInviteNotification: checked ? current.customInviteNotification : null }))}
+                  onCustomSubjectChange={(subject) => setValues((current) => ({ ...current, customInviteNotification: updateCustomNotification(current.customInviteNotification, 'subject', subject) }))}
+                  onCustomBodyChange={(body) => setValues((current) => ({ ...current, customInviteNotification: updateCustomNotification(current.customInviteNotification, 'body', body) }))}
                 />
 
                 <NotificationTemplateSection
@@ -107,10 +111,12 @@ export default function VisitorsSettingsPage() {
                   sendEnabled={values.sendConfirmNotificationToOrganizer}
                   sendLabel="Send confirmation to organizer"
                   customEnabled={values.useCustomConfirmNotification}
-                  customValue={values.customConfirmNotification ?? ''}
-                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendConfirmNotificationToOrganizer: checked }))}
-                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomConfirmNotification: checked }))}
-                  onCustomValueChange={(customConfirmNotification) => setValues((current) => ({ ...current, customConfirmNotification }))}
+                  customSubject={values.customConfirmNotification?.subject ?? ''}
+                  customBody={values.customConfirmNotification?.body ?? ''}
+                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendConfirmNotificationToOrganizer: checked, useCustomConfirmNotification: checked ? current.useCustomConfirmNotification : false, customConfirmNotification: checked ? current.customConfirmNotification : null }))}
+                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomConfirmNotification: checked, customConfirmNotification: checked ? current.customConfirmNotification : null }))}
+                  onCustomSubjectChange={(subject) => setValues((current) => ({ ...current, customConfirmNotification: updateCustomNotification(current.customConfirmNotification, 'subject', subject) }))}
+                  onCustomBodyChange={(body) => setValues((current) => ({ ...current, customConfirmNotification: updateCustomNotification(current.customConfirmNotification, 'body', body) }))}
                 />
 
                 <NotificationTemplateSection
@@ -120,10 +126,12 @@ export default function VisitorsSettingsPage() {
                   sendEnabled={values.sendCancellationNotification}
                   sendLabel="Send cancellation notification"
                   customEnabled={values.useCustomCancellationNotification}
-                  customValue={values.customCancellationNotification ?? ''}
-                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendCancellationNotification: checked }))}
-                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomCancellationNotification: checked }))}
-                  onCustomValueChange={(customCancellationNotification) => setValues((current) => ({ ...current, customCancellationNotification }))}
+                  customSubject={values.customCancellationNotification?.subject ?? ''}
+                  customBody={values.customCancellationNotification?.body ?? ''}
+                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendCancellationNotification: checked, useCustomCancellationNotification: checked ? current.useCustomCancellationNotification : false, customCancellationNotification: checked ? current.customCancellationNotification : null }))}
+                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomCancellationNotification: checked, customCancellationNotification: checked ? current.customCancellationNotification : null }))}
+                  onCustomSubjectChange={(subject) => setValues((current) => ({ ...current, customCancellationNotification: updateCustomNotification(current.customCancellationNotification, 'subject', subject) }))}
+                  onCustomBodyChange={(body) => setValues((current) => ({ ...current, customCancellationNotification: updateCustomNotification(current.customCancellationNotification, 'body', body) }))}
                 />
 
                 <NotificationTemplateSection
@@ -133,10 +141,12 @@ export default function VisitorsSettingsPage() {
                   sendEnabled={values.sendRescheduleNotification}
                   sendLabel="Send reschedule notification"
                   customEnabled={values.useCustomRescheduleNotification}
-                  customValue={values.customRescheduleNotification ?? ''}
-                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendRescheduleNotification: checked }))}
-                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomRescheduleNotification: checked }))}
-                  onCustomValueChange={(customRescheduleNotification) => setValues((current) => ({ ...current, customRescheduleNotification }))}
+                  customSubject={values.customRescheduleNotification?.subject ?? ''}
+                  customBody={values.customRescheduleNotification?.body ?? ''}
+                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendRescheduleNotification: checked, useCustomRescheduleNotification: checked ? current.useCustomRescheduleNotification : false, customRescheduleNotification: checked ? current.customRescheduleNotification : null }))}
+                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomRescheduleNotification: checked, customRescheduleNotification: checked ? current.customRescheduleNotification : null }))}
+                  onCustomSubjectChange={(subject) => setValues((current) => ({ ...current, customRescheduleNotification: updateCustomNotification(current.customRescheduleNotification, 'subject', subject) }))}
+                  onCustomBodyChange={(body) => setValues((current) => ({ ...current, customRescheduleNotification: updateCustomNotification(current.customRescheduleNotification, 'body', body) }))}
                 />
               </div>
 
@@ -160,10 +170,12 @@ function NotificationTemplateSection({
   sendEnabled,
   sendLabel,
   customEnabled,
-  customValue,
+  customSubject,
+  customBody,
   onSendEnabledChange,
   onCustomEnabledChange,
-  onCustomValueChange,
+  onCustomSubjectChange,
+  onCustomBodyChange,
 }: {
   readonly icon: ReactNode;
   readonly title: string;
@@ -171,13 +183,17 @@ function NotificationTemplateSection({
   readonly sendEnabled?: boolean;
   readonly sendLabel?: string;
   readonly customEnabled: boolean;
-  readonly customValue: string;
+  readonly customSubject: string;
+  readonly customBody: string;
   readonly onSendEnabledChange?: (checked: boolean) => void;
   readonly onCustomEnabledChange: (checked: boolean) => void;
-  readonly onCustomValueChange: (value: string) => void;
+  readonly onCustomSubjectChange: (value: string) => void;
+  readonly onCustomBodyChange: (value: string) => void;
 }) {
   const customTemplateId = useId();
+  const customSubjectId = useId();
   const disabledBySendToggle = sendEnabled === false;
+  const customFieldsDisabled = !customEnabled || disabledBySendToggle;
 
   return (
     <section className="grid gap-4 rounded-structural border border-border bg-background p-4">
@@ -193,15 +209,28 @@ function NotificationTemplateSection({
         <CheckboxRow label={sendLabel} checked={sendEnabled ?? false} onChange={onSendEnabledChange} />
       ) : null}
 
-      <CheckboxRow label="Use custom HTML template" checked={customEnabled} disabled={disabledBySendToggle} onChange={onCustomEnabledChange} />
+      <CheckboxRow label="Use custom notification" checked={customEnabled} disabled={disabledBySendToggle} onChange={onCustomEnabledChange} />
+
+      <div className="grid gap-2">
+        <label className="text-[13px] font-medium" htmlFor={customSubjectId}>Custom subject</label>
+        <Input
+          id={customSubjectId}
+          value={customSubject}
+          onChange={(event) => onCustomSubjectChange(event.target.value)}
+          disabled={customFieldsDisabled}
+          required={!customFieldsDisabled}
+          placeholder="Email subject"
+        />
+      </div>
 
       <div className="grid gap-2">
         <label className="text-[13px] font-medium" htmlFor={customTemplateId}>Custom HTML</label>
         <Textarea
           id={customTemplateId}
-          value={customValue}
-          onChange={(event) => onCustomValueChange(event.target.value)}
-          disabled={!customEnabled || disabledBySendToggle}
+          value={customBody}
+          onChange={(event) => onCustomBodyChange(event.target.value)}
+          disabled={customFieldsDisabled}
+          required={!customFieldsDisabled}
           placeholder="Paste full email HTML here."
           spellCheck={false}
           className="font-mono text-[13px]"
@@ -254,13 +283,31 @@ function toRequest(config: VisitorPreOnboardingSagaConfigRequest): VisitorPreOnb
 function normalize(config: VisitorPreOnboardingSagaConfigRequest): VisitorPreOnboardingSagaConfigRequest {
   return {
     ...config,
-    customInviteNotification: normalizeTemplate(config.customInviteNotification),
-    customConfirmNotification: normalizeTemplate(config.customConfirmNotification),
-    customCancellationNotification: normalizeTemplate(config.customCancellationNotification),
-    customRescheduleNotification: normalizeTemplate(config.customRescheduleNotification),
+    customInviteNotification: normalizeNotification(config.useCustomInviteNotification, config.customInviteNotification),
+    customConfirmNotification: normalizeNotification(config.useCustomConfirmNotification, config.customConfirmNotification),
+    customCancellationNotification: normalizeNotification(config.useCustomCancellationNotification, config.customCancellationNotification),
+    customRescheduleNotification: normalizeNotification(config.useCustomRescheduleNotification, config.customRescheduleNotification),
   };
 }
 
-function normalizeTemplate(value: string | null) {
-  return value?.trim() ? value : null;
+function updateCustomNotification(notification: CustomNotification | null, field: 'subject' | 'body', value: string): CustomNotification {
+  return {
+    subject: field === 'subject' ? value : notification?.subject ?? '',
+    body: field === 'body' ? value : notification?.body ?? '',
+  };
+}
+
+function normalizeNotification(enabled: boolean, notification: CustomNotification | null) {
+  if (!enabled) {
+    return null;
+  }
+
+  const subject = notification?.subject.trim() ?? '';
+  const body = notification?.body.trim() ?? '';
+
+  if (!subject || !body) {
+    return null;
+  }
+
+  return { subject, body };
 }

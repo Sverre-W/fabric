@@ -7,6 +7,7 @@ public record ArrivalResponse(
     Guid Id,
     ArrivalType Type,
     DateTimeOffset ExpectedArrivalTime,
+    DateTimeOffset ExpectedOffboardTime,
     string FirstName,
     string LastName,
     string? Company,

@@ -22,6 +22,26 @@ public class LocationService(LocationsDbContext db)
             .SingleOrDefaultAsync(lookup => lookup.Id == locationId, cancellationToken);
     }
 
+    public async Task<bool> IsPartOfLocationTree(Guid locationId, Guid ancestorLocationId, CancellationToken cancellationToken = default)
+    {
+        if (locationId == ancestorLocationId)
+            return await db.LocationLookups.AnyAsync(lookup => lookup.Id == locationId, cancellationToken);
+
+        LocationLookup? location = await FindLookup(locationId, cancellationToken);
+        LocationLookup? ancestor = await FindLookup(ancestorLocationId, cancellationToken);
+
+        if (location is null || ancestor is null || location.SiteId != ancestor.SiteId)
+            return false;
+
+        return ancestor.Type switch
+        {
+            LocationType.Site => true,
+            LocationType.Building => location.BuildingId == ancestor.BuildingId,
+            LocationType.Room => location.RoomId == ancestor.RoomId,
+            _ => false
+        };
+    }
+
     public async Task<Location?> GetLocationById(Guid locationId, CancellationToken cancellationToken = default)
     {
         LocationLookup? lookup = await FindLookup(locationId, cancellationToken);

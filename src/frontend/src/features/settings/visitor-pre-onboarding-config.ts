@@ -2,6 +2,7 @@ import { api } from '@/shared/api/client';
 import type { components } from '@/shared/api/generated/schema';
 
 export type CredentialGenerationMode = components['schemas']['CredentialGenerationMode'];
+export type CustomNotification = components['schemas']['CustomNotification'];
 export type VisitorPreOnboardingSagaConfig = components['schemas']['VisitorPreOnboardingSagaConfig'];
 export type VisitorPreOnboardingSagaConfigRequest = components['schemas']['VisitorPreOnboardingSagaConfigRequest'];
 

@@ -8,5 +8,8 @@ public enum ReceptionErrors
     AlreadyOffboarded,
     InvalidStatus,
     MissingRequiredDocuments,
-    NotAVisitor
+    NotAVisitor,
+    ExpectedArrivalMustBeBeforeExpectedOffboard,
+    GracePeriodMustNotBeNegative,
+    AccessRuleAssignmentNotFound
 }

@@ -9,6 +9,7 @@ public sealed class ExpectedArrival
     public Guid Id { get; private set; }
     public ArrivalType Type { get; private set; }
     public DateTimeOffset ExpectedArrivalTime { get; private set; }
+    public DateTimeOffset ExpectedOffboardTime { get; private set; }
     public string? ArrivalCode { get; private set; }
     public OnboardingStatus Status { get; private set; }
     public DateTimeOffset? OnboardedAt { get; private set; }
@@ -37,6 +38,7 @@ public sealed class ExpectedArrival
         Guid visitorId,
         Guid invitationId,
         DateTimeOffset expectedArrivalTime,
+        DateTimeOffset expectedOffboardTime,
         string? arrivalCode,
         Guid? locationId) =>
         new()
@@ -50,6 +52,7 @@ public sealed class ExpectedArrival
             InvitationId = invitationId,
             Confirmed = false,
             ExpectedArrivalTime = expectedArrivalTime,
+            ExpectedOffboardTime = expectedOffboardTime,
             ArrivalCode = arrivalCode,
             Status = OnboardingStatus.NotYetOnboarded,
             LocationId = locationId,
@@ -62,6 +65,7 @@ public sealed class ExpectedArrival
         Guid contractorId,
         Guid jobAssignmentId,
         DateTimeOffset expectedArrivalTime,
+        DateTimeOffset expectedOffboardTime,
         string? arrivalCode,
         Guid locationId) =>
         new()
@@ -74,6 +78,7 @@ public sealed class ExpectedArrival
             ContractorId = contractorId,
             JobAssignmentId = jobAssignmentId,
             ExpectedArrivalTime = expectedArrivalTime,
+            ExpectedOffboardTime = expectedOffboardTime,
             ArrivalCode = arrivalCode,
             Status = OnboardingStatus.NotYetOnboarded,
             LocationId = locationId,
@@ -96,12 +101,16 @@ public sealed class ExpectedArrival
         return Result<ReceptionErrors>.Success();
     }
 
-    public Result<ReceptionErrors> Reschedule(DateTimeOffset newExpectedArrivalTime)
+    public Result<ReceptionErrors> Reschedule(DateTimeOffset newExpectedArrivalTime, DateTimeOffset newExpectedOffboardTime)
     {
         if (Status != OnboardingStatus.NotYetOnboarded)
             return Result.Failure(ReceptionErrors.AlreadyOnboarded);
 
+        if (newExpectedArrivalTime >= newExpectedOffboardTime)
+            return Result.Failure(ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard);
+
         ExpectedArrivalTime = newExpectedArrivalTime;
+        ExpectedOffboardTime = newExpectedOffboardTime;
         return Result.Success<ReceptionErrors>();
     }
 

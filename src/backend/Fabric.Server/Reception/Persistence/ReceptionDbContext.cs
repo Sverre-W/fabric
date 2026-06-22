@@ -10,12 +10,16 @@ public class ReceptionDbContext : TenantDbContext
     public const string Schema = "reception";
 
     public DbSet<ExpectedArrival> Arrivals { get; set; } = null!;
+    public DbSet<ReceptionAccessRuleAssignment> AccessRuleAssignments { get; set; } = null!;
+    public DbSet<ReceptionAssignedAccessPolicy> AssignedAccessPolicies { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfiguration(new ExpectedArrivalConfiguration());
+        modelBuilder.ApplyConfiguration(new ReceptionAccessRuleAssignmentConfiguration());
+        modelBuilder.ApplyConfiguration(new ReceptionAssignedAccessPolicyConfiguration());
         modelBuilder.ApplyConfiguration(new ArrivalEntryConfiguration());
         modelBuilder.ApplyConfiguration(new CheckInDocumentConfiguration());
         ApplyTenantFilters(modelBuilder);

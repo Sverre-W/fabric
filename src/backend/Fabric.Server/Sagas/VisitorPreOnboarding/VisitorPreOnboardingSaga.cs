@@ -40,17 +40,17 @@ public class VisitorPreOnboardingSagaConfig
 {
     public Guid Id { get; set; }
     public bool UseCustomInviteNotification { get; set; }
-    public string? CustomInviteNotification { get; set; }
+    public CustomNotification? CustomInviteNotification { get; set; }
     public CredentialGenerationMode QrGenerationMode { get; set; }
     public bool SendConfirmNotificationToOrganizer { get; set; }
     public bool UseCustomConfirmNotification { get; set; }
-    public string? CustomConfirmNotification { get; set; }
+    public CustomNotification? CustomConfirmNotification { get; set; }
     public bool SendCancellationNotification { get; set; }
     public bool UseCustomCancellationNotification { get; set; }
-    public string? CustomCancellationNotification { get; set; }
+    public CustomNotification? CustomCancellationNotification { get; set; }
     public bool SendRescheduleNotification { get; set; }
     public bool UseCustomRescheduleNotification { get; set; }
-    public string? CustomRescheduleNotification { get; set; }
+    public CustomNotification? CustomRescheduleNotification { get; set; }
 
     public static VisitorPreOnboardingSagaConfig Default => new()
     {
@@ -68,6 +68,12 @@ public class VisitorPreOnboardingSagaConfig
         UseCustomRescheduleNotification = false,
         CustomRescheduleNotification = null,
     };
+}
+
+public sealed record CustomNotification
+{
+    public required string Subject { get; init; }
+    public required string Body { get; init; }
 }
 
 public record SagaNotificationModel(Visit Visit, VisitInvitation Visitor);

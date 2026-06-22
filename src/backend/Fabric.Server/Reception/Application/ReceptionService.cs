@@ -5,7 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Reception.Application;
 
-public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
+public class ReceptionService(
+    ReceptionDbContext db,
+    TimeProvider timeProvider,
+    ReceptionAccessPolicyService receptionAccessPolicyService)
 {
     private async Task<ExpectedArrival?> GetAggregate(Guid id, CancellationToken ct) =>
         await db.Arrivals
@@ -20,15 +23,20 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         Guid visitorId,
         Guid invitationId,
         DateTimeOffset expectedArrivalTime,
+        DateTimeOffset expectedOffboardTime,
         string? arrivalCode,
         Guid? locationId,
         CancellationToken ct = default)
     {
+        if (expectedArrivalTime >= expectedOffboardTime)
+            return Result.Failure<ExpectedArrival, ReceptionErrors>(ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard);
+
         var arrival = ExpectedArrival.CreateVisitorArrival(
-                firstName, lastName, company, visitorId, invitationId, expectedArrivalTime, arrivalCode, locationId);
+                firstName, lastName, company, visitorId, invitationId, expectedArrivalTime, expectedOffboardTime, arrivalCode, locationId);
 
         db.Arrivals.Add(arrival);
         await db.SaveChangesAsync(ct);
+        await receptionAccessPolicyService.ApplyTrigger(arrival, ReceptionAccessPolicyTrigger.ExpectedVisitorAdded, ct);
         return Result<ExpectedArrival, ReceptionErrors>.Success(arrival);
     }
 
@@ -47,17 +55,20 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         return result;
     }
 
-    public async Task<Result<ReceptionErrors>> Reschedule(Guid arrivalId, DateTimeOffset expectedArrivalTime, CancellationToken cancellationToken = default)
+    public async Task<Result<ReceptionErrors>> Reschedule(Guid arrivalId, DateTimeOffset expectedArrivalTime, DateTimeOffset expectedOffboardTime, CancellationToken cancellationToken = default)
     {
         ExpectedArrival? arrival = await GetAggregate(arrivalId, cancellationToken);
 
         if (arrival is null)
             return Result.Failure(ReceptionErrors.ArrivalNotFound);
 
-        Result<ReceptionErrors> result = arrival.Reschedule(expectedArrivalTime);
+        Result<ReceptionErrors> result = arrival.Reschedule(expectedArrivalTime, expectedOffboardTime);
 
         if (result.IsSuccess(out _))
+        {
             await db.SaveChangesAsync(cancellationToken);
+            await receptionAccessPolicyService.RecreateAssignedPolicies(arrival, cancellationToken);
+        }
 
         return result;
     }
@@ -72,7 +83,10 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         Result<ReceptionErrors> result = arrival.Relocate(locationId);
 
         if (result.IsSuccess(out _))
+        {
             await db.SaveChangesAsync(cancellationToken);
+            await receptionAccessPolicyService.RecreateAssignedPolicies(arrival, cancellationToken);
+        }
 
         return result;
     }
@@ -84,6 +98,7 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         if (arrival is null)
             return Result.Failure(ReceptionErrors.ArrivalNotFound);
 
+        await receptionAccessPolicyService.RetractAssignedPolicies(arrivalId, cancellationToken);
         db.Arrivals.Remove(arrival);
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success<ReceptionErrors>();
@@ -96,16 +111,21 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
         Guid contractorId,
         Guid jobAssignmentId,
         DateTimeOffset expectedArrivalTime,
+        DateTimeOffset expectedOffboardTime,
         string? arrivalCode,
         Guid locationId,
         CancellationToken ct = default)
     {
+        if (expectedArrivalTime >= expectedOffboardTime)
+            return Result.Failure<ExpectedArrival, ReceptionErrors>(ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard);
+
         var arrival = ExpectedArrival.CreateContractorArrival(
                 firstName, lastName, company,
-            contractorId, jobAssignmentId, expectedArrivalTime, arrivalCode, locationId);
+            contractorId, jobAssignmentId, expectedArrivalTime, expectedOffboardTime, arrivalCode, locationId);
 
         db.Arrivals.Add(arrival);
         await db.SaveChangesAsync(ct);
+        await receptionAccessPolicyService.ApplyTrigger(arrival, ReceptionAccessPolicyTrigger.ContractorExpectedAdded, ct);
         return Result<ExpectedArrival, ReceptionErrors>.Success(arrival);
     }
 
@@ -121,7 +141,13 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
 
         Result<ReceptionErrors> result = arrival.Onboard(timeProvider.GetUtcNow(), requiredDocs, providedDocs);
         if (result.IsSuccess(out _))
+        {
             await db.SaveChangesAsync(ct);
+            ReceptionAccessPolicyTrigger trigger = arrival.Type == ArrivalType.Visitor
+                ? ReceptionAccessPolicyTrigger.VisitorOnboarded
+                : ReceptionAccessPolicyTrigger.ContractorOnboarded;
+            await receptionAccessPolicyService.ApplyTrigger(arrival, trigger, ct);
+        }
 
         return result;
     }
@@ -134,7 +160,10 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
 
         Result<ReceptionErrors> result = arrival.Offboard(timeProvider.GetUtcNow());
         if (result.IsSuccess(out _))
+        {
             await db.SaveChangesAsync(ct);
+            await receptionAccessPolicyService.RetractAssignedPolicies(arrivalId, ct);
+        }
 
         return result;
     }
@@ -175,7 +204,10 @@ public class ReceptionService(ReceptionDbContext db, TimeProvider timeProvider)
 
         Result<ReceptionErrors> result = arrival.ConfirmVisitor();
         if (result.IsSuccess(out _))
+        {
             await db.SaveChangesAsync(ct);
+            await receptionAccessPolicyService.ApplyTrigger(arrival, ReceptionAccessPolicyTrigger.VisitorConfirmed, ct);
+        }
 
         return result;
     }

@@ -225,7 +225,7 @@ public static class VisitorEndpoints
 
         if (result.IsSuccess(out _))
         {
-            await onboardingSagaService.VisitRescheduled(id, request.Start, cancellationToken);
+            await onboardingSagaService.VisitRescheduled(id, request.Start, request.Stop, cancellationToken);
         }
 
         return result.AsResponse(MapError);
@@ -247,10 +247,14 @@ public static class VisitorEndpoints
         Guid id,
         [FromBody] RelocateVisitRequest request,
         VisitService visitService,
+        VisitorPreOnboardingSagaService onboardingSagaService,
         CancellationToken cancellationToken = default
     )
     {
         Result<VisitErrors> result = await visitService.Relocate(id, request.LocationId, cancellationToken);
+
+        if (result.IsSuccess(out _))
+            await onboardingSagaService.VisitRelocated(id, request.LocationId, cancellationToken);
 
         return result.AsResponse(MapError);
     }

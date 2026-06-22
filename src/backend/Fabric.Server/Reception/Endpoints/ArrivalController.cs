@@ -154,6 +154,7 @@ public static class ArrivalEndpoints
             ReceptionErrors.InvalidStatus => Problem(StatusCodes.Status409Conflict, "Arrival status does not allow this operation."),
             ReceptionErrors.MissingRequiredDocuments => Problem(StatusCodes.Status400BadRequest, "Missing required documents."),
             ReceptionErrors.NotAVisitor => Problem(StatusCodes.Status409Conflict, "Arrival is not a visitor."),
+            ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard => Problem(StatusCodes.Status400BadRequest, "Expected arrival must be before expected offboard."),
             _ => Problem(StatusCodes.Status500InternalServerError, "Unexpected reception error."),
         };
     }

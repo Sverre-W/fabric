@@ -16,6 +16,7 @@ public sealed class ExpectedArrivalConfiguration : IEntityTypeConfiguration<Expe
         builder.Property(a => a.Id).HasColumnName("id").ValueGeneratedNever();
         builder.Property(a => a.Type).HasColumnName("type").IsRequired().HasConversion<string>().HasMaxLength(20);
         builder.Property(a => a.ExpectedArrivalTime).HasColumnName("expected_arrival_time").IsRequired();
+        builder.Property(a => a.ExpectedOffboardTime).HasColumnName("expected_offboard_time").IsRequired();
         builder.Property(a => a.ArrivalCode).HasColumnName("arrival_code").HasMaxLength(200);
         builder.Property(a => a.Status).HasColumnName("status").IsRequired().HasConversion<string>().HasMaxLength(30);
         builder.Property(a => a.OnboardedAt).HasColumnName("onboarded_at");

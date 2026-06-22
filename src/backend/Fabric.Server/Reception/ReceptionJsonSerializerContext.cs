@@ -11,6 +11,11 @@ namespace Fabric.Server.Reception;
 [JsonSerializable(typeof(ListArrivalsRequest))]
 [JsonSerializable(typeof(OnboardArrivalRequest))]
 [JsonSerializable(typeof(OnboardingStatus?))]
+[JsonSerializable(typeof(ReceptionAccessPolicyTrigger))]
+[JsonSerializable(typeof(CreateAccessRuleAssignmentRequest))]
+[JsonSerializable(typeof(UpdateAccessRuleAssignmentRequest))]
+[JsonSerializable(typeof(AccessRuleAssignmentResponse))]
+[JsonSerializable(typeof(Page<AccessRuleAssignmentResponse>))]
 [JsonSerializable(typeof(Page<ArrivalResponse>))]
 [JsonSerializable(typeof(ProblemDetails))]
 internal sealed partial class ReceptionJsonSerializerContext : JsonSerializerContext;

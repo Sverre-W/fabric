@@ -15,21 +15,48 @@ public sealed class VisitorPreOnboardingSagaConfigConfiguration : IEntityTypeCon
 
         builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
         builder.Property(x => x.UseCustomInviteNotification).HasColumnName("use_custom_invite_notification").IsRequired();
-        builder.Property(x => x.CustomInviteNotification).HasColumnName("custom_invite_notification");
+        ConfigureCustomNotification(builder, x => x.CustomInviteNotification, "custom_invite_notification");
         builder.Property(x => x.QrGenerationMode).HasColumnName("qr_generation_mode").IsRequired().HasConversion<string>().HasMaxLength(50);
         builder.Property(x => x.SendConfirmNotificationToOrganizer).HasColumnName("send_confirm_notification_to_organizer").IsRequired();
         builder.Property(x => x.UseCustomConfirmNotification).HasColumnName("use_custom_confirm_notification").IsRequired();
-        builder.Property(x => x.CustomConfirmNotification).HasColumnName("custom_confirm_notification");
+        ConfigureCustomNotification(builder, x => x.CustomConfirmNotification, "custom_confirm_notification");
         builder.Property(x => x.SendCancellationNotification).HasColumnName("send_cancellation_notification").IsRequired();
         builder.Property(x => x.UseCustomCancellationNotification).HasColumnName("use_custom_cancellation_notification").IsRequired();
-        builder.Property(x => x.CustomCancellationNotification).HasColumnName("custom_cancellation_notification");
+        ConfigureCustomNotification(builder, x => x.CustomCancellationNotification, "custom_cancellation_notification");
         builder.Property(x => x.SendRescheduleNotification).HasColumnName("send_reschedule_notification").IsRequired();
         builder.Property(x => x.UseCustomRescheduleNotification).HasColumnName("use_custom_reschedule_notification").IsRequired();
-        builder.Property(x => x.CustomRescheduleNotification).HasColumnName("custom_reschedule_notification");
+        ConfigureCustomNotification(builder, x => x.CustomRescheduleNotification, "custom_reschedule_notification");
+
+        builder.ToTable(x =>
+        {
+            AddCustomNotificationCheckConstraint(x, "invite", "custom_invite_notification");
+            AddCustomNotificationCheckConstraint(x, "confirm", "custom_confirm_notification");
+            AddCustomNotificationCheckConstraint(x, "cancellation", "custom_cancellation_notification");
+            AddCustomNotificationCheckConstraint(x, "reschedule", "custom_reschedule_notification");
+        });
 
         TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(TenantDbContext.TenantIdPropertyName)
             .IsUnique()
             .HasDatabaseName("ix_visitor_pre_onboarding_saga_configs_tenant_id");
+    }
+
+    private static void ConfigureCustomNotification(
+        EntityTypeBuilder<VisitorPreOnboardingSagaConfig> builder,
+        System.Linq.Expressions.Expression<Func<VisitorPreOnboardingSagaConfig, CustomNotification?>> navigationExpression,
+        string columnPrefix)
+    {
+        builder.OwnsOne(navigationExpression, notification =>
+        {
+            notification.Property(x => x.Subject).HasColumnName($"{columnPrefix}_subject");
+            notification.Property(x => x.Body).HasColumnName($"{columnPrefix}_body");
+        });
+    }
+
+    private static void AddCustomNotificationCheckConstraint(TableBuilder<VisitorPreOnboardingSagaConfig> table, string notificationName, string columnPrefix)
+    {
+        table.HasCheckConstraint(
+            $"ck_vpo_config_{notificationName}_notification_all_or_null",
+            $"({columnPrefix}_subject IS NULL) = ({columnPrefix}_body IS NULL)");
     }
 }
