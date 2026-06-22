@@ -21,7 +21,7 @@ export default function VisitCreatePage() {
           summary: values.summary,
           start: new Date(values.start).toISOString(),
           stop: new Date(values.stop).toISOString(),
-          locationId: null,
+          locationId: values.locationId,
         },
       });
 

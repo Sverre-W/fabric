@@ -121,7 +121,7 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
         return result;
     }
 
-    public async Task<Result<VisitErrors>> Relocate(Guid visitId, Guid locationId,
+    public async Task<Result<VisitErrors>> Relocate(Guid visitId, Guid? locationId,
         CancellationToken cancellationToken = default)
     {
         Visit? visit = await GetVisitAggregate(visitId, cancellationToken);

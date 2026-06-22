@@ -34,6 +34,7 @@ function mapVisitToFormValues(visit: VisitResponse): VisitFormValues {
     summary: visit.summary ?? '',
     start: visit.start ? toDatetimeLocal(visit.start) : '',
     stop: visit.stop ? toDatetimeLocal(visit.stop) : '',
+    locationId: visit.locationId ?? null,
   };
 }
 
@@ -110,6 +111,19 @@ export default function VisitEditPage() {
     },
   });
 
+  const relocateVisit = useMutation({
+    mutationFn: async (locationId: string | null) => {
+      const { error } = await api.POST('/api/visitors/visits/{id}/relocate', {
+        params: { path: { id: visitId } },
+        body: { locationId },
+      });
+
+      if (error) {
+        throw new Error('Could not relocate visit.');
+      }
+    },
+  });
+
   const inviteVisitor = useMutation({
     mutationFn: async (values: { firstName: string; lastName: string; email: string; company: string }) => {
       const { error } = await api.POST('/api/visitors/visits/{id}/invitations', {
@@ -162,7 +176,7 @@ export default function VisitEditPage() {
     (sagasQuery.data ?? []).map((saga) => [saga.invitationId, saga]),
   );
 
-  const isSaving = reschedule.isPending || updateSummary.isPending;
+  const isSaving = reschedule.isPending || updateSummary.isPending || relocateVisit.isPending;
 
   async function handleSubmit(formValues: VisitFormValues) {
     if (!visit) {
@@ -171,6 +185,7 @@ export default function VisitEditPage() {
 
     const summaryChanged = formValues.summary !== (visit.summary ?? '');
     const scheduleChanged = formValues.start !== toDatetimeLocal(visit.start ?? '') || formValues.stop !== toDatetimeLocal(visit.stop ?? '');
+    const locationChanged = formValues.locationId !== (visit.locationId ?? null);
 
     try {
       if (summaryChanged) {
@@ -179,6 +194,10 @@ export default function VisitEditPage() {
 
       if (scheduleChanged) {
         await reschedule.mutateAsync({ start: formValues.start, stop: formValues.stop });
+      }
+
+      if (locationChanged) {
+        await relocateVisit.mutateAsync(formValues.locationId);
       }
 
       await queryClient.invalidateQueries({ queryKey: visitsQueryKey });
@@ -236,11 +255,13 @@ export default function VisitEditPage() {
       ? 'Could not reschedule visit.'
       : updateSummary.isError
         ? 'Could not update visit summary.'
-        : cancelVisit.isError
-          ? 'Could not cancel visit.'
-          : inviteVisitor.isError
-            ? 'Could not send invitation.'
-            : null;
+        : relocateVisit.isError
+          ? 'Could not relocate visit.'
+          : cancelVisit.isError
+            ? 'Could not cancel visit.'
+            : inviteVisitor.isError
+              ? 'Could not send invitation.'
+              : null;
 
   return (
     <div className="grid gap-6">
@@ -309,7 +330,7 @@ export default function VisitEditPage() {
               disableSubmit={isCancelledOrCompleted}
               submitLabel="Save changes"
               onSubmit={handleSubmit}
-              disabledFields={isCancelledOrCompleted ? ['organizer', 'summary', 'start', 'stop'] : ['organizer']}
+              disabledFields={isCancelledOrCompleted ? ['organizer', 'summary', 'start', 'stop', 'location'] : ['organizer']}
               footerLeft={
                 !isCancelledOrCompleted && !showCancelConfirm ? (
                   <Button

@@ -8,16 +8,16 @@ import type { components } from '@/shared/api/generated/schema';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
+import { LocationSelector, getLocationLabel } from '@/shared/components/location-selector';
 
 type AccessControlSystem = components['schemas']['AccessControlSystemResponse'];
 type AccessLevelType = components['schemas']['AccessLevelTypeResponse'];
 type AccessRuleAssignment = components['schemas']['AccessRuleAssignmentResponse'];
 type AccessRuleAssignmentRequest = components['schemas']['CreateAccessRuleAssignmentRequest'];
 type ReceptionAccessPolicyTrigger = components['schemas']['ReceptionAccessPolicyTrigger'];
-type Site = components['schemas']['SiteResponse'];
 
 type FormValues = {
-  readonly locationId: string;
+  readonly locationId: string | null;
   readonly systemId: string;
   readonly accessLevelTypeId: string;
   readonly trigger: ReceptionAccessPolicyTrigger;
@@ -26,7 +26,6 @@ type FormValues = {
 
 const assignmentsQueryKey = ['settings', 'reception-desk', 'access-rule-assignments'] as const;
 const systemsQueryKey = ['settings', 'reception-desk', 'access-control-systems'] as const;
-const sitesQueryKey = ['settings', 'reception-desk', 'sites'] as const;
 const pageSize = 100;
 
 const triggerOptions: { readonly label: string; readonly value: ReceptionAccessPolicyTrigger }[] = [
@@ -73,41 +72,26 @@ export default function ReceptionDeskSettingsPage() {
     },
   });
 
-  const sitesQuery = useQuery({
-    queryKey: sitesQueryKey,
-    queryFn: async () => {
-      const { data, error } = await api.GET('/api/locations/sites');
-
-      if (error) {
-        throw new Error('Could not load locations.');
-      }
-
-      return data;
-    },
-  });
-
   const assignments = assignmentsQuery.data?.items ?? [];
   const systems = systemsQuery.data?.items ?? [];
-  const sites = sitesQuery.data?.items ?? [];
   const selectedSystem = systems.find((system) => system.id === values.systemId) ?? null;
   const accessLevels = selectedSystem?.accessLevels ?? [];
-  const isLoading = assignmentsQuery.isLoading || systemsQuery.isLoading || sitesQuery.isLoading;
-  const isError = assignmentsQuery.isError || systemsQuery.isError || sitesQuery.isError;
+  const isLoading = assignmentsQuery.isLoading || systemsQuery.isLoading;
+  const isError = assignmentsQuery.isError || systemsQuery.isError;
 
   useEffect(() => {
     setValues((current) => {
-      const locationId = current.locationId || sites[0]?.id || '';
       const systemId = current.systemId || systems[0]?.id || '';
       const system = systems.find((item) => item.id === systemId);
       const accessLevelTypeId = current.accessLevelTypeId || system?.accessLevels[0]?.id || '';
 
-      if (locationId === current.locationId && systemId === current.systemId && accessLevelTypeId === current.accessLevelTypeId) {
+      if (systemId === current.systemId && accessLevelTypeId === current.accessLevelTypeId) {
         return current;
       }
 
-      return { ...current, locationId, systemId, accessLevelTypeId };
+      return { ...current, systemId, accessLevelTypeId };
     });
-  }, [sites, systems]);
+  }, [systems]);
 
   const createAssignment = useMutation({
     mutationFn: async (request: AccessRuleAssignmentRequest) => {
@@ -175,7 +159,7 @@ export default function ReceptionDeskSettingsPage() {
     setEditingAssignmentId(null);
     setIsFormOpen(false);
     setValues({
-      locationId: sites[0]?.id ?? '',
+      locationId: null,
       systemId: system?.id ?? '',
       accessLevelTypeId: system?.accessLevels[0]?.id ?? '',
       trigger: 'ExpectedVisitorAdded',
@@ -188,7 +172,7 @@ export default function ReceptionDeskSettingsPage() {
     setEditingAssignmentId(null);
     setIsFormOpen(true);
     setValues({
-      locationId: sites[0]?.id ?? '',
+      locationId: null,
       systemId: system?.id ?? '',
       accessLevelTypeId: system?.accessLevels[0]?.id ?? '',
       trigger: 'ExpectedVisitorAdded',
@@ -231,8 +215,7 @@ export default function ReceptionDeskSettingsPage() {
   }
 
   function confirmDelete(assignment: AccessRuleAssignment) {
-    const location = getSiteName(sites, assignment.locationId);
-    const confirmed = window.confirm(`Delete assignment for ${location}?`);
+    const confirmed = window.confirm(`Delete assignment for ${assignment.locationId}?`);
 
     if (confirmed) {
       deleteAssignment.mutate(assignment);
@@ -281,12 +264,14 @@ export default function ReceptionDeskSettingsPage() {
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <SelectField label="Location" value={values.locationId} onChange={(value) => setValues((current) => ({ ...current, locationId: value }))}>
-                    <option value="" disabled>Select location</option>
-                    {sites.map((site) => (
-                      <option key={site.id} value={site.id}>{site.name}</option>
-                    ))}
-                  </SelectField>
+                  <div className="lg:col-span-2">
+                    <LocationSelector
+                      value={values.locationId}
+                      onChange={(locationId) => setValues((current) => ({ ...current, locationId }))}
+                      maxDepth="Room"
+                      requiredDepth="None"
+                    />
+                  </div>
 
                   <SelectField label="Access control system" value={values.systemId} onChange={handleSystemChange}>
                     <option value="" disabled>Select system</option>
@@ -324,7 +309,7 @@ export default function ReceptionDeskSettingsPage() {
                   {editingAssignmentId ? (
                     <Button type="button" variant="outline" onClick={resetForm}>Cancel edit</Button>
                   ) : null}
-                  <Button type="submit" disabled={createAssignment.isPending || updateAssignment.isPending || sites.length === 0 || systems.length === 0 || accessLevels.length === 0}>
+                  <Button type="submit" disabled={createAssignment.isPending || updateAssignment.isPending || !values.locationId || systems.length === 0 || accessLevels.length === 0}>
                     {createAssignment.isPending || updateAssignment.isPending ? 'Saving...' : 'Save assignment'}
                   </Button>
                 </div>
@@ -335,7 +320,6 @@ export default function ReceptionDeskSettingsPage() {
                 assignments={assignments}
                 deleteAssignmentId={deleteAssignment.isPending ? deleteAssignment.variables?.id : null}
                 editingAssignmentId={editingAssignmentId}
-                sites={sites}
                 systems={systems}
                 onDelete={confirmDelete}
                 onEdit={editAssignment}
@@ -352,7 +336,6 @@ function AccessAssignmentsTable({
   assignments,
   deleteAssignmentId,
   editingAssignmentId,
-  sites,
   systems,
   onDelete,
   onEdit,
@@ -360,7 +343,6 @@ function AccessAssignmentsTable({
   readonly assignments: readonly AccessRuleAssignment[];
   readonly deleteAssignmentId: string | null;
   readonly editingAssignmentId: string | null;
-  readonly sites: readonly Site[];
   readonly systems: readonly AccessControlSystem[];
   readonly onDelete: (assignment: AccessRuleAssignment) => void;
   readonly onEdit: (assignment: AccessRuleAssignment) => void;
@@ -385,7 +367,7 @@ function AccessAssignmentsTable({
         <tbody className="divide-y divide-border">
           {assignments.map((assignment) => (
             <tr key={assignment.id} className={editingAssignmentId === assignment.id ? 'bg-hover-blue/60' : undefined}>
-              <td className="px-4 py-4 font-medium text-foreground">{getSiteName(sites, assignment.locationId)}</td>
+              <td className="px-4 py-4 font-medium text-foreground"><AssignmentLocationLabel locationId={assignment.locationId} /></td>
               <td className="px-4 py-4 text-muted-foreground">{getSystemName(systems, assignment.systemId)}</td>
               <td className="px-4 py-4 text-muted-foreground">{getAccessLevelName(systems, assignment.systemId, assignment.accessLevelTypeId)}</td>
               <td className="px-4 py-4 text-muted-foreground">{getTriggerLabel(assignment.trigger)}</td>
@@ -440,7 +422,7 @@ function SelectField({ label, value, children, onChange }: { readonly label: str
 
 function getDefaultFormValues(): FormValues {
   return {
-    locationId: '',
+    locationId: null,
     systemId: '',
     accessLevelTypeId: '',
     trigger: 'ExpectedVisitorAdded',
@@ -464,10 +446,6 @@ function toRequest(values: FormValues): AccessRuleAssignmentRequest | null {
   };
 }
 
-function getSiteName(sites: readonly Site[], locationId: string) {
-  return sites.find((site) => site.id === locationId)?.name ?? locationId;
-}
-
 function getSystemName(systems: readonly AccessControlSystem[], systemId: string) {
   return systems.find((system) => system.id === systemId)?.name ?? systemId;
 }
@@ -479,4 +457,31 @@ function getAccessLevelName(systems: readonly AccessControlSystem[], systemId: s
 
 function getTriggerLabel(trigger: ReceptionAccessPolicyTrigger) {
   return triggerOptions.find((option) => option.value === trigger)?.label ?? trigger;
+}
+
+function AssignmentLocationLabel({ locationId }: { readonly locationId: string }) {
+  const locationQuery = useQuery({
+    queryKey: ['locations', 'location', locationId],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/locations/locations/{id}', {
+        params: { path: { id: locationId } },
+      });
+
+      if (error) {
+        throw new Error('Could not load location.');
+      }
+
+      return data;
+    },
+  });
+
+  if (locationQuery.isLoading) {
+    return 'Loading location...';
+  }
+
+  if (locationQuery.isError) {
+    return locationId;
+  }
+
+  return getLocationLabel(locationQuery.data);
 }

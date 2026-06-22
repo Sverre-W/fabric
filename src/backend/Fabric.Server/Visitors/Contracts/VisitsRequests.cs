@@ -30,7 +30,7 @@ public record RescheduleVisitRequest(
     DateTimeOffset Stop
 );
 
-public record RelocateVisitRequest(Guid LocationId);
+public record RelocateVisitRequest(Guid? LocationId);
 
 public record UpdateVisitSummaryRequest(string Summary);
 

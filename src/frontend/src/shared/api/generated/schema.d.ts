@@ -3545,7 +3545,7 @@ export interface components {
         ReconciliationStatus: "PendingReconciliation" | "Reconciled" | "ReconciliationFailed";
         RelocateVisitRequest: {
             /** Format: uuid */
-            locationId: string;
+            locationId: null | string;
         };
         RescheduleVisitRequest: {
             /** Format: date-time */

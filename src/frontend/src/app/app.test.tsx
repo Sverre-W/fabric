@@ -128,6 +128,10 @@ describe('App', () => {
         return Promise.resolve({ data: [] });
       }
 
+      if (path === '/api/locations/locations/{id}') {
+        return Promise.resolve({ data: undefined, error: undefined });
+      }
+
       if (path === '/api/reception/access-rule-assignments') {
         return Promise.resolve({ data: emptyAccessRuleAssignmentPage });
       }
@@ -205,6 +209,14 @@ describe('App', () => {
             items: [{ id: '011c0366-57c6-48ff-842a-0c193bfa0102', name: 'Oslo HQ', address: 'Karl Johans gate 1' }],
           },
         });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings') {
+        return Promise.resolve({ data: [] });
+      }
+
+      if (path === '/api/locations/sites/{siteId}/buildings/{buildingId}/rooms') {
+        return Promise.resolve({ data: [] });
       }
 
       return Promise.resolve({ data: emptyVisitPage });
@@ -621,9 +633,12 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /create assignment/i }));
 
-    expect(await screen.findByDisplayValue('Oslo HQ')).toBeInTheDocument();
-    expect(await screen.findByDisplayValue('Unipass')).toBeInTheDocument();
-    expect(await screen.findByDisplayValue('Lobby access')).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: 'Oslo HQ' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Site'), { target: { value: 'site-1' } });
+
+    expect(screen.getByLabelText('Site')).toHaveValue('site-1');
+    expect(screen.getByLabelText('Access control system')).toHaveValue('system-1');
+    expect(screen.getByLabelText('Access level')).toHaveValue('level-1');
 
     fireEvent.click(screen.getByRole('button', { name: /save assignment/i }));
 

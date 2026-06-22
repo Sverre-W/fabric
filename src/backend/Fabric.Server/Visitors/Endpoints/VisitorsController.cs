@@ -279,8 +279,8 @@ public static class VisitorEndpoints
     {
         Result<VisitErrors> result = await visitService.Relocate(id, request.LocationId, cancellationToken);
 
-        if (result.IsSuccess(out _))
-            await onboardingSagaService.VisitRelocated(id, request.LocationId, cancellationToken);
+        if (result.IsSuccess(out _) && request.LocationId.HasValue)
+            await onboardingSagaService.VisitRelocated(id, request.LocationId.Value, cancellationToken);
 
         return result.AsResponse(MapError);
     }

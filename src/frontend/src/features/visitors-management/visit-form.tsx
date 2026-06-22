@@ -32,6 +32,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/shared/components/ui/popover';
+import { LocationSelector } from '@/shared/components/location-selector';
 
 type Organizer = components['schemas']['OrganizerResponse'];
 
@@ -40,6 +41,7 @@ const formSchema = z.object({
   summary: z.string().min(1, 'Summary is required'),
   start: z.string().min(1, 'Start time is required'),
   stop: z.string().min(1, 'End time is required'),
+  locationId: z.string().nullable(),
 });
 
 export type VisitFormValues = z.infer<typeof formSchema>;
@@ -49,7 +51,7 @@ type VisitFormProps = {
   readonly isSubmitting: boolean;
   readonly submitLabel: string;
   readonly onSubmit: (values: VisitFormValues) => void;
-  readonly disabledFields?: ('organizer' | 'summary' | 'start' | 'stop')[];
+  readonly disabledFields?: ('organizer' | 'summary' | 'start' | 'stop' | 'location')[];
   readonly disableSubmit?: boolean;
   readonly footerLeft?: ReactNode;
 };
@@ -87,6 +89,7 @@ export function getDefaultVisitFormValues(): VisitFormValues {
     summary: '',
     start: toDatetimeLocal(start),
     stop: toDatetimeLocal(stop),
+    locationId: null,
   };
 }
 
@@ -170,6 +173,26 @@ export function VisitForm({ initialValues, isSubmitting, submitLabel, onSubmit, 
               <FormLabel>Summary</FormLabel>
               <FormControl>
                 <Input {...field} disabled={disabledFields?.includes('summary')} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="locationId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <LocationSelector
+                  value={field.value}
+                  onChange={field.onChange}
+                  maxDepth="Room"
+                  requiredDepth="None"
+                  disabled={disabledFields?.includes('location')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
