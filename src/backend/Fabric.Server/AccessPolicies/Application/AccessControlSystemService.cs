@@ -2,11 +2,37 @@ using Fabric.Server.AccessPolicies.Domain;
 using Fabric.Server.AccessPolicies.Persistence;
 using Fabric.Server.Core;
 using Microsoft.EntityFrameworkCore;
+using AccessControl.Unipass.Contracts;
+using AccessControl.Unipass.Entities;
 
 namespace Fabric.Server.AccessPolicies.Application;
 
-public class AccessControlSystemService(AccessPoliciesDbContext db)
+public class AccessControlSystemService(AccessPoliciesDbContext db, UnipassApiFactory unipassApiFactory)
 {
+    public async Task<Result<AccessControlSystem, AccessControlSystemErrors>> CreateUnipassSystem(
+        string name,
+        UnipassSystemConfig config,
+        CancellationToken cancellationToken = default)
+    {
+        var system = UnipassAccessControlSystem.Create(Guid.NewGuid(), name, [], [], config);
+        db.AccessControlSystems.Add(system);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Result.Success<AccessControlSystem, AccessControlSystemErrors>(system);
+    }
+
+    public async Task<Result<AccessControlSystem, AccessControlSystemErrors>> CreateLenelSystem(
+        string name,
+        LenelSystemConfig config,
+        CancellationToken cancellationToken = default)
+    {
+        var system = LenelAccessControlSystem.Create(Guid.NewGuid(), name, [], [], config);
+        db.AccessControlSystems.Add(system);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Result.Success<AccessControlSystem, AccessControlSystemErrors>(system);
+    }
+
     public async Task<Result<SystemMetadata, AccessControlSystemErrors>> FetchMetadata(
         Guid systemId,
         CancellationToken cancellationToken = default)
@@ -18,13 +44,29 @@ public class AccessControlSystemService(AccessPoliciesDbContext db)
         return system switch
         {
             null => Result.Failure<SystemMetadata, AccessControlSystemErrors>(AccessControlSystemErrors.SystemNotFound),
-            UnipassAccessControlSystem => Result.Success<SystemMetadata, AccessControlSystemErrors>(
-                new UnipassMetadata([], [])),
+            UnipassAccessControlSystem unipass => Result.Success<SystemMetadata, AccessControlSystemErrors>(
+                await FetchUnipassMetadata(unipass, cancellationToken)),
             LenelAccessControlSystem => Result.Success<SystemMetadata, AccessControlSystemErrors>(
                 new LenelMetadata([], [])),
             _ => Result.Failure<SystemMetadata, AccessControlSystemErrors>(AccessControlSystemErrors.SystemProviderMismatch)
         };
     }
+
+    private async Task<UnipassMetadata> FetchUnipassMetadata(
+        UnipassAccessControlSystem system,
+        CancellationToken cancellationToken)
+    {
+        using IUnipassApi api = unipassApiFactory.Create(system.Config);
+        List<UnipassSite> sites = await api.GetSites(ct: cancellationToken);
+        List<AccessRuleDto> accessRules = await api.GetAccessRules(ct: cancellationToken);
+
+        return new UnipassMetadata(
+            [.. sites.Select(site => new SystemMetadataObject(site.Id.ToString(), site.Name))],
+            [.. accessRules.Select(rule => new SystemMetadataObject(rule.Id.ToString(), GetAccessRuleName(rule)))]);
+    }
+
+    private static string GetAccessRuleName(AccessRuleDto rule) =>
+        new[] { rule.Name1, rule.Name2, rule.Name3 }.FirstOrDefault(name => !string.IsNullOrWhiteSpace(name)) ?? rule.Id.ToString();
 
     public async Task<Result<UnipassBadgeType, AccessControlSystemErrors>> AddUnipassBadgeType(
         Guid systemId,
@@ -198,7 +240,10 @@ public class AccessControlSystemService(AccessPoliciesDbContext db)
 
     public async Task<Result<AccessControlSystemErrors>> UpdateUnipassConfig(
         Guid systemId,
-        UnipassSystemConfig config,
+        string endpoint,
+        bool sslValidation,
+        string username,
+        string? password,
         CancellationToken cancellationToken = default)
     {
         Result<UnipassAccessControlSystem, AccessControlSystemErrors> systemResult =
@@ -208,7 +253,17 @@ public class AccessControlSystemService(AccessPoliciesDbContext db)
             return Result.Failure(error);
 
         systemResult.IsSuccess(out UnipassAccessControlSystem system);
-        Result<AccessControlSystemErrors> result = system.UpdateConfig(config);
+        Result<UnipassSystemConfig, AccessControlSystemErrors> config = UnipassSystemConfig.Create(
+            endpoint,
+            sslValidation,
+            username,
+            string.IsNullOrWhiteSpace(password) ? system.Config.Password : password);
+
+        if (config.IsFailure(out AccessControlSystemErrors configError))
+            return Result.Failure(configError);
+
+        config.IsSuccess(out UnipassSystemConfig value);
+        Result<AccessControlSystemErrors> result = system.UpdateConfig(value);
         if (result.IsFailure(out _))
             return result;
 
@@ -219,7 +274,9 @@ public class AccessControlSystemService(AccessPoliciesDbContext db)
 
     public async Task<Result<AccessControlSystemErrors>> UpdateLenelConfig(
         Guid systemId,
-        LenelSystemConfig config,
+        string endpoint,
+        bool sslValidation,
+        string? apiKey,
         CancellationToken cancellationToken = default)
     {
         Result<LenelAccessControlSystem, AccessControlSystemErrors> systemResult =
@@ -229,7 +286,16 @@ public class AccessControlSystemService(AccessPoliciesDbContext db)
             return Result.Failure(error);
 
         systemResult.IsSuccess(out LenelAccessControlSystem system);
-        Result<AccessControlSystemErrors> result = system.UpdateConfig(config);
+        Result<LenelSystemConfig, AccessControlSystemErrors> config = LenelSystemConfig.Create(
+            endpoint,
+            sslValidation,
+            string.IsNullOrWhiteSpace(apiKey) ? system.Config.ApiKey : apiKey);
+
+        if (config.IsFailure(out AccessControlSystemErrors configError))
+            return Result.Failure(configError);
+
+        config.IsSuccess(out LenelSystemConfig value);
+        Result<AccessControlSystemErrors> result = system.UpdateConfig(value);
         if (result.IsFailure(out _))
             return result;
 

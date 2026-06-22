@@ -14,16 +14,37 @@ public record ListIdentityMappingsRequest : BaseListRequest
     public string? Name { get; set; }
 }
 
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(CreateUnipassAccessControlSystemRequest), "unipass")]
+[JsonDerivedType(typeof(CreateLenelAccessControlSystemRequest), "lenel")]
+public abstract record CreateAccessControlSystemRequest
+{
+    public required string Name { get; init; }
+    public required string Endpoint { get; init; }
+    public required bool SslValidation { get; init; }
+}
+
+public sealed record CreateUnipassAccessControlSystemRequest : CreateAccessControlSystemRequest
+{
+    public required string Username { get; init; }
+    public required string Password { get; init; }
+}
+
+public sealed record CreateLenelAccessControlSystemRequest : CreateAccessControlSystemRequest
+{
+    public required string ApiKey { get; init; }
+}
+
 public sealed record UpdateUnipassConfigRequest(
     string Endpoint,
     bool SslValidation,
     string Username,
-    string Password);
+    string? Password);
 
 public sealed record UpdateLenelConfigRequest(
     string Endpoint,
     bool SslValidation,
-    string ApiKey);
+    string? ApiKey);
 
 public sealed record AddUnipassBadgeTypeRequest(
     string Name,
@@ -54,10 +75,14 @@ public abstract record AccessControlSystemResponse
 {
     public required Guid Id { get; init; }
     public required string Name { get; init; }
+    public required string Endpoint { get; init; }
+    public required bool SslValidation { get; init; }
+    public required bool HasSecret { get; init; }
 }
 
 public sealed record UnipassAccessControlSystemResponse : AccessControlSystemResponse
 {
+    public required string Username { get; init; }
     public required IReadOnlyList<UnipassBadgeTypeResponse> BadgeTypes { get; init; }
     public required IReadOnlyList<UnipassAccessLevelTypeResponse> AccessLevels { get; init; }
 }
@@ -128,6 +153,10 @@ public static class AccessControlSystemMapper
             {
                 Id = unipass.Id,
                 Name = unipass.Name,
+                Endpoint = unipass.Config.Endpoint,
+                SslValidation = unipass.Config.SslValidation,
+                HasSecret = !string.IsNullOrWhiteSpace(unipass.Config.Password),
+                Username = unipass.Config.Username,
                 BadgeTypes = unipass.BadgeTypes.Select(type => type.ToResponse()).ToList(),
                 AccessLevels = unipass.AccessLevels.Select(type => type.ToResponse()).ToList()
             },
@@ -135,6 +164,9 @@ public static class AccessControlSystemMapper
             {
                 Id = lenel.Id,
                 Name = lenel.Name,
+                Endpoint = lenel.Config.Endpoint,
+                SslValidation = lenel.Config.SslValidation,
+                HasSecret = !string.IsNullOrWhiteSpace(lenel.Config.ApiKey),
                 BadgeTypes = lenel.BadgeTypes.Select(type => type.ToResponse()).ToList(),
                 AccessLevels = lenel.AccessLevels.Select(type => type.ToResponse()).ToList()
             },

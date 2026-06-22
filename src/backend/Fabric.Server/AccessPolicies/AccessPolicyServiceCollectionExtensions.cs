@@ -19,6 +19,9 @@ public static class AccessPolicyServiceCollectionExtensions
 
         collection.AddScoped<AccessPolicyService>();
         collection.AddScoped<AccessControlSystemService>();
+        collection.AddScoped<UnipassApiFactory>();
+        collection.AddScoped<BadgeNumberAllocationService>();
+        collection.AddScoped<UnipassAccessPolicyReconciler>();
 
         return collection;
     }

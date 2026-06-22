@@ -18,6 +18,11 @@ public static class AccessControlSystemEndpoints
             .WithDescription("List access control systems")
             .WithSummary("List access control systems")
             .Produces<Page<AccessControlSystemResponse>>();
+        systems.MapPost("", CreateAccessControlSystem)
+            .WithDescription("Register access control system")
+            .WithSummary("Register access control system")
+            .Produces<AccessControlSystemResponse>(StatusCodes.Status201Created)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
         systems.MapGet("/{systemId:guid}", GetAccessControlSystem)
             .WithDescription("Get an access control system")
             .WithSummary("Get access control system")
@@ -81,6 +86,54 @@ public static class AccessControlSystemEndpoints
         return Results.Ok(result.Map(system => system.ToResponse()));
     }
 
+    private static async Task<IResult> CreateAccessControlSystem(
+        [FromBody] CreateAccessControlSystemRequest request,
+        AccessControlSystemService service,
+        CancellationToken cancellationToken = default)
+    {
+        Result<AccessControlSystem, AccessControlSystemErrors> result;
+
+        switch (request)
+        {
+            case CreateUnipassAccessControlSystemRequest unipass:
+            {
+                Result<UnipassSystemConfig, AccessControlSystemErrors> config = UnipassSystemConfig.Create(
+                    unipass.Endpoint,
+                    unipass.SslValidation,
+                    unipass.Username,
+                    unipass.Password);
+
+                if (config.IsFailure(out AccessControlSystemErrors error))
+                    return MapError(error).ToResult();
+
+                config.IsSuccess(out UnipassSystemConfig value);
+                result = await service.CreateUnipassSystem(unipass.Name, value, cancellationToken);
+                break;
+            }
+            case CreateLenelAccessControlSystemRequest lenel:
+            {
+                Result<LenelSystemConfig, AccessControlSystemErrors> config = LenelSystemConfig.Create(
+                    lenel.Endpoint,
+                    lenel.SslValidation,
+                    lenel.ApiKey);
+
+                if (config.IsFailure(out AccessControlSystemErrors error))
+                    return MapError(error).ToResult();
+
+                config.IsSuccess(out LenelSystemConfig value);
+                result = await service.CreateLenelSystem(lenel.Name, value, cancellationToken);
+                break;
+            }
+            default:
+                result = Result.Failure<AccessControlSystem, AccessControlSystemErrors>(AccessControlSystemErrors.SystemProviderMismatch);
+                break;
+        }
+
+        return result.Match(
+            system => Results.Created($"/api/access-policies/access-control-systems/{system.Id}", system.ToResponse()),
+            error => MapError(error).ToResult());
+    }
+
     private static async Task<IResult> GetAccessControlSystem(
         Guid systemId,
         AccessPoliciesDbContext db,
@@ -138,17 +191,13 @@ public static class AccessControlSystemEndpoints
         AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
-        Result<UnipassSystemConfig, AccessControlSystemErrors> config = UnipassSystemConfig.Create(
+        Result<AccessControlSystemErrors> result = await service.UpdateUnipassConfig(
+            systemId,
             request.Endpoint,
             request.SslValidation,
             request.Username,
-            request.Password);
-
-        if (config.IsFailure(out AccessControlSystemErrors error))
-            return MapError(error).ToResult();
-
-        config.IsSuccess(out UnipassSystemConfig value);
-        Result<AccessControlSystemErrors> result = await service.UpdateUnipassConfig(systemId, value, cancellationToken);
+            request.Password,
+            cancellationToken);
         return result.AsResponse(MapError);
     }
 
@@ -158,16 +207,12 @@ public static class AccessControlSystemEndpoints
         AccessControlSystemService service,
         CancellationToken cancellationToken = default)
     {
-        Result<LenelSystemConfig, AccessControlSystemErrors> config = LenelSystemConfig.Create(
+        Result<AccessControlSystemErrors> result = await service.UpdateLenelConfig(
+            systemId,
             request.Endpoint,
             request.SslValidation,
-            request.ApiKey);
-
-        if (config.IsFailure(out AccessControlSystemErrors error))
-            return MapError(error).ToResult();
-
-        config.IsSuccess(out LenelSystemConfig value);
-        Result<AccessControlSystemErrors> result = await service.UpdateLenelConfig(systemId, value, cancellationToken);
+            request.ApiKey,
+            cancellationToken);
         return result.AsResponse(MapError);
     }
 

@@ -10,7 +10,10 @@ public sealed record AccessPolicyChangeResult(
     IssuedResource? SatisfiedBy,
     SubjectSystemAccessState AccessState);
 
-public class AccessPolicyService(AccessPoliciesDbContext db, TimeProvider timeProvider)
+public class AccessPolicyService(
+    AccessPoliciesDbContext db,
+    TimeProvider timeProvider,
+    UnipassAccessPolicyReconciler unipassReconciler)
 {
     public async Task<Result<AccessPolicyChangeResult, AccessPolicyErrors>> CreateCredentialPolicy(
         Guid systemId,
@@ -96,6 +99,17 @@ public class AccessPolicyService(AccessPoliciesDbContext db, TimeProvider timePr
 
         Guid subjectId = policy.Subject.Id;
         Guid systemId = policy.SystemId;
+
+        Result<string> revokeResources = await unipassReconciler.RevokePolicyResources(policy, cancellationToken);
+        if (revokeResources.IsFailure(out string revokeReason))
+        {
+            policy.MarkReconciliationFailed(revokeReason);
+            await db.SaveChangesAsync(cancellationToken);
+
+            SubjectSystemAccessState failedState = SubjectSystemAccessState.Empty(subjectId, systemId);
+            return Result.Success<AccessPolicyChangeResult, AccessPolicyErrors>(
+                new AccessPolicyChangeResult(policy, null, failedState));
+        }
 
         db.AccessPolicies.Remove(policy);
         await db.SaveChangesAsync(cancellationToken);
@@ -194,15 +208,21 @@ public class AccessPolicyService(AccessPoliciesDbContext db, TimeProvider timePr
             .ToListAsync(cancellationToken);
     }
 
-    private static Task<Result<SubjectSystemAccessState, string>> ReconcileSubjectSystem(
+    private async Task<Result<SubjectSystemAccessState, string>> ReconcileSubjectSystem(
         Guid subjectId,
         Guid systemId,
         CancellationToken cancellationToken)
     {
-        // TODO: Load active policies for subject/system, fetch provider access state,
-        // normalize to local BadgeTypeId/AccessLevelTypeId, apply missing changes,
-        // then fetch and return final access state.
-        return Task.FromResult(Result.Success<SubjectSystemAccessState, string>(
-            SubjectSystemAccessState.Empty(subjectId, systemId)));
+        AccessControlSystem? system = await db.AccessControlSystems
+            .AsNoTracking()
+            .SingleOrDefaultAsync(accessSystem => accessSystem.Id == systemId, cancellationToken);
+
+        return system switch
+        {
+            null => Result.Failure<SubjectSystemAccessState, string>("System not found."),
+            UnipassAccessControlSystem => await unipassReconciler.ReconcileSubjectSystem(subjectId, systemId, cancellationToken),
+            LenelAccessControlSystem => Result.Success<SubjectSystemAccessState, string>(SubjectSystemAccessState.Empty(subjectId, systemId)),
+            _ => Result.Failure<SubjectSystemAccessState, string>("System provider mismatch.")
+        };
     }
 }

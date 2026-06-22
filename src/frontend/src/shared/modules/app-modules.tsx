@@ -22,7 +22,10 @@ export const appModules = [
     description: 'Manage physical locations, sites, buildings, and room inventory.',
     logo: Building2,
     to: '/facility',
-    navigation: [{ label: 'Locations', to: '/facility/locations' }],
+    navigation: [
+      { label: 'Locations', to: '/facility/locations' },
+      { label: 'Access Control', to: '/facility/access-control' },
+    ],
   },
   {
     id: 'visitors-management',

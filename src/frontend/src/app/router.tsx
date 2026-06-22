@@ -8,6 +8,8 @@ const AccessPage = lazy(() => import('@/features/access/access-page'));
 const AuditPage = lazy(() => import('@/features/audit/audit-page'));
 const AuthCallbackPage = lazy(() => import('@/features/auth/auth-callback-page'));
 const CredentialsPage = lazy(() => import('@/features/credentials/credentials-page'));
+const FacilityAccessControlEditPage = lazy(() => import('@/features/facility/access-control-edit-page'));
+const FacilityAccessControlPage = lazy(() => import('@/features/facility/access-control-page'));
 const FacilityBuildingEditPage = lazy(() => import('@/features/facility/building-edit-page'));
 const FacilityRoomEditPage = lazy(() => import('@/features/facility/room-edit-page'));
 const FacilitySiteCreatePage = lazy(() => import('@/features/facility/site-create-page'));
@@ -107,6 +109,18 @@ const facilityLocationsRoute = createRoute({
   getParentRoute: () => facilityRoute,
   path: '/locations',
   component: () => <LazyRoute component={<FacilityLocationsPage />} />,
+});
+
+const facilityAccessControlRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/access-control',
+  component: () => <LazyRoute component={<FacilityAccessControlPage />} />,
+});
+
+const facilityAccessControlEditRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/access-control/$systemId/edit',
+  component: () => <LazyRoute component={<FacilityAccessControlEditPage />} />,
 });
 
 const facilitySiteCreateRoute = createRoute({
@@ -232,7 +246,16 @@ const routeTree = rootRoute.addChildren([
   organizationsRoute,
   auditRoute,
   receptionDeskRoute,
-  facilityRoute.addChildren([facilityIndexRoute, facilityLocationsRoute, facilitySiteCreateRoute, facilitySiteEditRoute, facilityBuildingEditRoute, facilityRoomEditRoute]),
+  facilityRoute.addChildren([
+    facilityIndexRoute,
+    facilityLocationsRoute,
+    facilityAccessControlRoute,
+    facilityAccessControlEditRoute,
+    facilitySiteCreateRoute,
+    facilitySiteEditRoute,
+    facilityBuildingEditRoute,
+    facilityRoomEditRoute,
+  ]),
   settingsRoute.addChildren([settingsIndexRoute, visitorsSettingsRoute, receptionDeskSettingsRoute, tenantSettingsRoute]),
   visitorsManagementRoute.addChildren([visitsIndexRoute, visitsRoute, visitCreateRoute, visitEditRoute, visitorsRoute, organizersRoute, organizerCreateRoute, organizerEditRoute, visitorReportingRoute]),
 ]);

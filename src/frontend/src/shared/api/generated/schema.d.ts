@@ -279,9 +279,12 @@ export interface paths {
         get: {
             parameters: {
                 query: {
+                    Page?: number | string;
+                    PageSize?: number | string;
                     SystemId?: string;
                     SubjectId?: string;
                     Name?: string;
+                    ActiveOnly?: boolean;
                     ids: string[];
                 };
                 header?: never;
@@ -516,7 +519,43 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /**
+         * Register access control system
+         * @description Register access control system
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateAccessControlSystemRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessControlSystemResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -635,6 +674,8 @@ export interface paths {
         get: {
             parameters: {
                 query: {
+                    Page?: number | string;
+                    PageSize?: number | string;
                     Name?: string;
                     subjectIds: string[];
                 };
@@ -3029,6 +3070,9 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            endpoint: string;
+            sslValidation: boolean;
+            hasSecret: boolean;
         };
         AccessControlSystemResponseUnipassAccessControlSystemResponse: {
             /** @enum {string} */
@@ -3038,6 +3082,10 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            endpoint: string;
+            sslValidation: boolean;
+            hasSecret: boolean;
+            username: string;
         };
         AccessLevelTypeResponse: components["schemas"]["AccessLevelTypeResponseUnipassAccessLevelTypeResponse"] | components["schemas"]["AccessLevelTypeResponseLenelAccessLevelTypeResponse"];
         AccessLevelTypeResponseLenelAccessLevelTypeResponse: {
@@ -3257,6 +3305,24 @@ export interface components {
             effectiveFrom: string;
             /** Format: date-time */
             effectiveUntil: string;
+        };
+        CreateAccessControlSystemRequest: components["schemas"]["CreateAccessControlSystemRequestCreateUnipassAccessControlSystemRequest"] | components["schemas"]["CreateAccessControlSystemRequestCreateLenelAccessControlSystemRequest"];
+        CreateAccessControlSystemRequestCreateLenelAccessControlSystemRequest: {
+            /** @enum {string} */
+            type?: "lenel";
+            apiKey: string;
+            name: string;
+            endpoint: string;
+            sslValidation: boolean;
+        };
+        CreateAccessControlSystemRequestCreateUnipassAccessControlSystemRequest: {
+            /** @enum {string} */
+            type?: "unipass";
+            username: string;
+            password: string;
+            name: string;
+            endpoint: string;
+            sslValidation: boolean;
         };
         CreateAccessRuleAssignmentRequest: {
             /** Format: uuid */
@@ -3679,7 +3745,7 @@ export interface components {
         UpdateLenelConfigRequest: {
             endpoint: string;
             sslValidation: boolean;
-            apiKey: string;
+            apiKey: null | string;
         };
         UpdateOidcSettingsRequest: {
             metadataUrl: string;
@@ -3725,7 +3791,7 @@ export interface components {
             endpoint: string;
             sslValidation: boolean;
             username: string;
-            password: string;
+            password: null | string;
         };
         UpdateVisitSummaryRequest: {
             summary: string;

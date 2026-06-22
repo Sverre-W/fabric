@@ -77,6 +77,24 @@ const emptyAccessControlSystemPage = {
   isLastPage: true,
 };
 
+const emptyAccessPolicyPage = {
+  currentPage: 0,
+  totalPages: 0,
+  pageSize: 10,
+  totalItems: 0,
+  items: [],
+  isLastPage: true,
+};
+
+const emptyIdentityMappingPage = {
+  currentPage: 0,
+  totalPages: 0,
+  pageSize: 10,
+  totalItems: 0,
+  items: [],
+  isLastPage: true,
+};
+
 const tenantSettingsResponse = {
   oidc: {
     metadataUrl: 'http://localhost:7080/realms/dev/.well-known/openid-configuration',
@@ -228,6 +246,189 @@ describe('App', () => {
     expect(screen.getAllByText('Karl Johans gate 1').length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /add site/i })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /edit oslo hq/i }).length).toBeGreaterThan(0);
+  });
+
+  it('renders Access Control systems for Facility module', async () => {
+    window.history.pushState({}, '', '/facility/access-control');
+
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/access-policies/access-control-systems') {
+        return Promise.resolve({
+          data: {
+            ...emptyAccessControlSystemPage,
+            totalItems: 1,
+            items: [
+              {
+                type: 'unipass',
+                id: 'system-1',
+                name: 'Unipass HQ',
+                endpoint: 'https://unipass.example.test',
+                sslValidation: true,
+                hasSecret: true,
+                username: 'api-user',
+                badgeTypes: [{ type: 'unipass', id: 'badge-1', systemId: 'system-1', name: 'Visitor badge', rangeStart: 1, rangeStop: 100 }],
+                accessLevels: [{ type: 'unipass', id: 'level-1', systemId: 'system-1', name: 'Lobby access', siteId: 1, accessRuleId: 100 }],
+              },
+            ],
+          },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /access control/i })).toBeInTheDocument();
+    expect(await screen.findAllByText('Unipass HQ')).toHaveLength(2);
+    expect(screen.getAllByText('Unipass').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /register system/i })).toBeInTheDocument();
+  });
+
+  it('registers an Access Control system', async () => {
+    window.history.pushState({}, '', '/facility/access-control');
+    apiPostMock.mockResolvedValue({
+      data: {
+        type: 'unipass',
+        id: 'system-1',
+        name: 'Unipass HQ',
+        endpoint: 'https://unipass.example.test',
+        sslValidation: true,
+        hasSecret: true,
+        username: 'api-user',
+        badgeTypes: [],
+        accessLevels: [],
+      },
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /access control/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /register system/i }));
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Unipass HQ' } });
+    fireEvent.change(screen.getByLabelText('Endpoint'), { target: { value: 'https://unipass.example.test' } });
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'api-user' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
+    fireEvent.click(screen.getByRole('button', { name: /register access control system/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/access-policies/access-control-systems', {
+        body: {
+          type: 'unipass',
+          name: 'Unipass HQ',
+          endpoint: 'https://unipass.example.test',
+          sslValidation: true,
+          username: 'api-user',
+          password: 'secret',
+        },
+      });
+    });
+  });
+
+  it('renders Access Control edit panels and creates metadata-backed access rule', async () => {
+    window.history.pushState({}, '', '/facility/access-control/system-1/edit');
+
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/access-policies/access-control-systems/{systemId}') {
+        return Promise.resolve({
+          data: {
+            type: 'unipass',
+            id: 'system-1',
+            name: 'Unipass HQ',
+            endpoint: 'https://unipass.example.test',
+            sslValidation: true,
+            hasSecret: true,
+            username: 'api-user',
+            badgeTypes: [{ type: 'unipass', id: 'badge-1', systemId: 'system-1', name: 'Visitor badge', rangeStart: 1, rangeStop: 100 }],
+            accessLevels: [],
+          },
+        });
+      }
+
+      if (path === '/api/access-policies/access-control-systems/{systemId}/metadata') {
+        return Promise.resolve({
+          data: {
+            type: 'unipass',
+            sites: [{ id: '10', name: 'Main campus' }],
+            accessRules: [{ id: '200', name: 'Lobby access' }],
+          },
+        });
+      }
+
+      if (path === '/api/access-policies/policies') {
+        return Promise.resolve({
+          data: {
+            ...emptyAccessPolicyPage,
+            totalItems: 1,
+            items: [
+              {
+                id: 'policy-1',
+                systemId: 'system-1',
+                subject: { id: 'subject-1', firstName: 'Ada', lastName: 'Lovelace', subjectType: 'Employee' },
+                effectiveFrom: '2026-06-01T00:00:00Z',
+                effectiveUntil: '2026-07-01T00:00:00Z',
+                requirement: { type: 'credential', badgeType: { type: 'unipass', id: 'badge-1', systemId: 'system-1', name: 'Visitor badge', rangeStart: 1, rangeStop: 100 }, badgeNumber: null },
+                reconciliationStatus: 'Reconciled',
+                reconciliationFailureReason: null,
+              },
+            ],
+          },
+        });
+      }
+
+      if (path === '/api/access-policies/access-control-systems/{systemId}/identity-mappings') {
+        return Promise.resolve({
+          data: {
+            ...emptyIdentityMappingPage,
+            totalItems: 1,
+            items: [{ subjectId: 'subject-1', systemId: 'system-1', firstName: 'Ada', lastName: 'Lovelace', subjectType: 'Employee', externalId: 'external-1' }],
+          },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /unipass hq/i })).toBeInTheDocument();
+    expect(screen.getByText('Configuration')).toBeInTheDocument();
+    expect(screen.getByText('Badge Types and Access Rules')).toBeInTheDocument();
+    expect(screen.getByText('Active Policies')).toBeInTheDocument();
+    expect(screen.getByText('Identity Mappings')).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: 'Main campus' })).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: 'Lobby access' })).toBeInTheDocument();
+    expect(await screen.findAllByText('Ada Lovelace')).toHaveLength(2);
+
+    fireEvent.change(screen.getByPlaceholderText('Access rule name'), { target: { value: 'Main lobby' } });
+    fireEvent.click(screen.getByRole('button', { name: /add access rule/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/access-policies/access-control-systems/{systemId}/unipass/access-level-types', {
+        params: { path: { systemId: 'system-1' } },
+        body: {
+          name: 'Main lobby',
+          siteId: '10',
+          accessRuleId: '200',
+          metadata: { type: 'unipass', sites: [{ id: '10', name: 'Main campus' }], accessRules: [{ id: '200', name: 'Lobby access' }] },
+        },
+      });
+    });
+
+    expect(apiGetMock).toHaveBeenCalledWith('/api/access-policies/policies', {
+      params: { query: { SystemId: 'system-1', ActiveOnly: true, Page: 0, PageSize: 10, ids: [] } },
+    });
+    expect(apiGetMock).toHaveBeenCalledWith('/api/access-policies/access-control-systems/{systemId}/identity-mappings', {
+      params: { path: { systemId: 'system-1' }, query: { Page: 0, PageSize: 10, subjectIds: [] } },
+    });
   });
 
   it('creates a site and replaces create route with edit route', async () => {

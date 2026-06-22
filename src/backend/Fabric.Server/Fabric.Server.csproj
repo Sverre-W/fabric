@@ -30,4 +30,8 @@
   <ItemGroup>
     <Content Include="Sagas\VisitorPreOnboarding\default-templates\*.html" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\access-control\unipass\AccessControl.Unipass\AccessControl.Unipass.csproj" />
+  </ItemGroup>
 </Project>

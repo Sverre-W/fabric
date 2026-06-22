@@ -10,6 +10,7 @@ public record ListAccessPoliciesRequest : BaseListRequest
     public Guid? SystemId { get; set; }
     public Guid? SubjectId { get; set; }
     public string? Name { get; set; }
+    public bool? ActiveOnly { get; set; }
 }
 
 public sealed record SubjectRequest(Guid Id, string FirstName, string LastName, SubjectType SubjectType)

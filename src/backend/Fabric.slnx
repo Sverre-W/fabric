@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="Fabric.Server\Fabric.Server.csproj" />
+  <Project Path="access-control\unipass\AccessControl.Unipass\AccessControl.Unipass.csproj" />
+  <Project Path="access-control\unipass\AccessControl.Unipass.Tests\AccessControl.Unipass.Tests.csproj" />
 </Solution>

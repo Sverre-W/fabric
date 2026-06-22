@@ -15,6 +15,8 @@ public class AccessPoliciesDbContext : TenantDbContext
     public DbSet<BadgeType> BadgeTypes { get; set; } = null!;
     public DbSet<AccessLevelType> AccessLevelTypes { get; set; } = null!;
     public DbSet<IdentityMapping> IdentityMappings { get; set; } = null!;
+    public DbSet<UsedBadgeNumber> UsedBadgeNumbers { get; set; } = null!;
+    public DbSet<IssuedProviderResource> IssuedProviderResources { get; set; } = null!;
 
     public AccessPoliciesDbContext(DbContextOptions<AccessPoliciesDbContext> options, ITenantContext tenantContext)
         : base(options, tenantContext)
@@ -43,6 +45,8 @@ public class AccessPoliciesDbContext : TenantDbContext
         modelBuilder.ApplyConfiguration(new UnipassAccessControlSystemConfiguration());
         modelBuilder.ApplyConfiguration(new LenelAccessControlSystemConfiguration());
         modelBuilder.ApplyConfiguration(new IdentityMappingConfiguration());
+        modelBuilder.ApplyConfiguration(new UsedBadgeNumberConfiguration());
+        modelBuilder.ApplyConfiguration(new IssuedProviderResourceConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 }

@@ -262,6 +262,75 @@ namespace Fabric.Server.AccessPolicies.Persistence.Migrations
                     b.ToTable("identity_mappings", "access_policies");
                 });
 
+            modelBuilder.Entity("Fabric.Server.AccessPolicies.Domain.IssuedProviderResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AccessLevelTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("access_level_type_id");
+
+                    b.Property<int?>("BadgeNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("badge_number");
+
+                    b.Property<Guid?>("BadgeTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("badge_type_id");
+
+                    b.Property<string>("ExternalPersonId")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("external_person_id");
+
+                    b.Property<string>("ExternalResourceId")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("external_resource_id");
+
+                    b.Property<Guid>("PolicyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("policy_id");
+
+                    b.Property<string>("ResourceKind")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("resource_kind");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<Guid>("SystemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("system_id");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_issued_provider_resources");
+
+                    b.HasIndex("PolicyId")
+                        .HasDatabaseName("ix_issued_provider_resources_policy_id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_issued_provider_resources_tenant_id");
+
+                    b.HasIndex("SubjectId", "SystemId")
+                        .HasDatabaseName("ix_issued_provider_resources_subject_id_system_id");
+
+                    b.ToTable("issued_provider_resources", "access_policies");
+                });
+
             modelBuilder.Entity("Fabric.Server.AccessPolicies.Domain.PolicyRequirement", b =>
                 {
                     b.Property<Guid>("access_policy_id")
@@ -291,6 +360,47 @@ namespace Fabric.Server.AccessPolicies.Persistence.Migrations
                     b.HasDiscriminator<string>("requirement_type").HasValue("PolicyRequirement");
 
                     b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Fabric.Server.AccessPolicies.Domain.UsedBadgeNumber", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("BadgeNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("badge_number");
+
+                    b.Property<Guid>("BadgeTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("badge_type_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<Guid>("SystemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("system_id");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_used_badge_numbers");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_used_badge_numbers_tenant_id");
+
+                    b.HasIndex("TenantId", "SystemId", "BadgeTypeId", "BadgeNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_used_badge_numbers_tenant_id_system_id_badge_type_id_badge_number");
+
+                    b.ToTable("used_badge_numbers", "access_policies");
                 });
 
             modelBuilder.Entity("lenel_access_level_type_badge_types", b =>

@@ -43,6 +43,7 @@ public static class AccessPolicyEndpoints
         [AsParameters] ListAccessPoliciesRequest request,
         [FromQuery] Guid[]? ids,
         AccessPoliciesDbContext db,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
         IQueryable<AccessPolicy> query = AccessPoliciesWithRequirements(db).AsNoTracking();
@@ -55,6 +56,12 @@ public static class AccessPolicyEndpoints
 
         if (request.SubjectId.HasValue)
             query = query.Where(policy => policy.Subject.Id == request.SubjectId.Value);
+
+        if (request.ActiveOnly == true)
+        {
+            DateTimeOffset now = timeProvider.GetUtcNow();
+            query = query.Where(policy => policy.EffectiveFrom <= now && policy.EffectiveUntil > now);
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
