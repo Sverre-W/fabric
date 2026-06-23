@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, MailCheck, Route, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { api } from '@/shared/api/client';
+import type { components } from '@/shared/api/generated/schema';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
@@ -18,19 +20,47 @@ import {
   type VisitorPreOnboardingSagaConfigRequest,
 } from './visitor-pre-onboarding-config';
 
+type AccessControlSystem = components['schemas']['AccessControlSystemResponse'];
+
 export default function VisitorsSettingsPage() {
   const queryClient = useQueryClient();
   const configQuery = useQuery({
     queryKey: visitorPreOnboardingConfigQueryKey,
     queryFn: fetchVisitorPreOnboardingConfig,
   });
+  const systemsQuery = useQuery({
+    queryKey: ['settings', 'visitors', 'access-control-systems'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/access-policies/access-control-systems', {
+        params: { query: { ids: [] } },
+      });
+
+      if (error) {
+        throw new Error('Could not load access control systems.');
+      }
+
+      return data;
+    },
+  });
   const [values, setValues] = useState<VisitorPreOnboardingSagaConfigRequest>(getDefaultVisitorPreOnboardingConfig);
+  const systems = systemsQuery.data?.items ?? [];
+  const selectedSystem = systems.find((system) => system.id === values.systemId) ?? null;
+  const badgeTypes = selectedSystem?.badgeTypes ?? [];
+  const accessControlQrIncomplete = values.qrGenerationMode === 'AccessControlQr' && (!values.systemId || !values.badgeTypeId);
 
   useEffect(() => {
     if (configQuery.data) {
       setValues(toRequest(configQuery.data));
     }
   }, [configQuery.data]);
+
+  useEffect(() => {
+    if (values.qrGenerationMode !== 'AccessControlQr' || !systemsQuery.data) {
+      return;
+    }
+
+    setValues((current) => getValidAccessControlSelection(current, systems));
+  }, [systems, systemsQuery.data, values.qrGenerationMode]);
 
   const updateConfig = useMutation({
     mutationFn: updateVisitorPreOnboardingConfig,
@@ -45,7 +75,30 @@ export default function VisitorsSettingsPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (accessControlQrIncomplete) {
+      toast.error('Select access control system and badge type.');
+      return;
+    }
+
     updateConfig.mutate(normalize(values));
+  }
+
+  function handleQrGenerationModeChange(mode: CredentialGenerationMode) {
+    setValues((current) => {
+      const next = { ...current, qrGenerationMode: mode };
+
+      if (mode === 'PlatformQr' || !systemsQuery.data) {
+        return next;
+      }
+
+      return getValidAccessControlSelection(next, systems);
+    });
+  }
+
+  function handleSystemChange(systemId: string) {
+    const system = systems.find((item) => item.id === systemId);
+    setValues((current) => ({ ...current, systemId, badgeTypeId: system?.badgeTypes[0]?.id ?? null }));
   }
 
   return (
@@ -83,13 +136,43 @@ export default function VisitorsSettingsPage() {
                   id="qr-generation-mode"
                   className="h-9 w-full rounded-interactive border border-border bg-content px-3 text-[14px] outline-none transition focus:border-primary focus:ring-[3px] focus:ring-primary/20 md:max-w-sm"
                   value={values.qrGenerationMode}
-                  onChange={(event) => setValues((current) => ({ ...current, qrGenerationMode: event.target.value as CredentialGenerationMode }))}
+                  onChange={(event) => handleQrGenerationModeChange(event.target.value as CredentialGenerationMode)}
                 >
                   <option value="PlatformQr">Platform QR</option>
                   <option value="AccessControlQr">Access control QR</option>
                 </select>
                 <p className="text-[13px] text-muted-foreground">Controls which system should generate visitor credentials during pre-onboarding.</p>
               </div>
+
+              {values.qrGenerationMode === 'AccessControlQr' ? (
+                <div className="grid gap-4 rounded-structural border border-border bg-background p-4 lg:grid-cols-2">
+                  <div className="lg:col-span-2">
+                    <h2 className="text-[15px] font-semibold">Access control credential</h2>
+                    <p className="mt-1 text-[13px] text-muted-foreground">Select which access control system and badge type should issue visitor QR credentials.</p>
+                  </div>
+
+                  {systemsQuery.isLoading ? <p className="text-[14px] text-muted-foreground lg:col-span-2">Loading access control systems...</p> : null}
+                  {systemsQuery.isError ? <p className="rounded-interactive border border-error bg-error-background px-4 py-3 text-[14px] text-error lg:col-span-2">Could not load access control systems.</p> : null}
+
+                  {!systemsQuery.isLoading && !systemsQuery.isError ? (
+                    <>
+                      <SelectField label="Access control system" value={values.systemId ?? ''} onChange={handleSystemChange} required>
+                        <option value="" disabled>Select system</option>
+                        {systems.map((system) => (
+                          <option key={system.id} value={system.id}>{system.name}</option>
+                        ))}
+                      </SelectField>
+
+                      <SelectField label="Badge type" value={values.badgeTypeId ?? ''} onChange={(badgeTypeId) => setValues((current) => ({ ...current, badgeTypeId }))} required>
+                        <option value="" disabled>Select badge type</option>
+                        {badgeTypes.map((badgeType) => (
+                          <option key={badgeType.id} value={badgeType.id}>{badgeType.name}</option>
+                        ))}
+                      </SelectField>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className="grid gap-4 lg:grid-cols-2">
                 <NotificationTemplateSection
@@ -148,10 +231,25 @@ export default function VisitorsSettingsPage() {
                   onCustomSubjectChange={(subject) => setValues((current) => ({ ...current, customRescheduleNotification: updateCustomNotification(current.customRescheduleNotification, 'subject', subject) }))}
                   onCustomBodyChange={(body) => setValues((current) => ({ ...current, customRescheduleNotification: updateCustomNotification(current.customRescheduleNotification, 'body', body) }))}
                 />
+
+                <NotificationTemplateSection
+                  icon={<Bell className="size-4" aria-hidden="true" />}
+                  title="Relocation"
+                  description="Notify visitors when a planned visit changes location."
+                  sendEnabled={values.sendRelocationNotification}
+                  sendLabel="Send relocation notification"
+                  customEnabled={values.useCustomRelocationNotification}
+                  customSubject={values.customRelocationNotification?.subject ?? ''}
+                  customBody={values.customRelocationNotification?.body ?? ''}
+                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendRelocationNotification: checked, useCustomRelocationNotification: checked ? current.useCustomRelocationNotification : false, customRelocationNotification: checked ? current.customRelocationNotification : null }))}
+                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomRelocationNotification: checked, customRelocationNotification: checked ? current.customRelocationNotification : null }))}
+                  onCustomSubjectChange={(subject) => setValues((current) => ({ ...current, customRelocationNotification: updateCustomNotification(current.customRelocationNotification, 'subject', subject) }))}
+                  onCustomBodyChange={(body) => setValues((current) => ({ ...current, customRelocationNotification: updateCustomNotification(current.customRelocationNotification, 'body', body) }))}
+                />
               </div>
 
               <div className="flex justify-end border-t border-border pt-6">
-                <Button type="submit" className="w-full sm:w-auto" disabled={updateConfig.isPending}>
+                <Button type="submit" className="w-full sm:w-auto" disabled={updateConfig.isPending || systemsQuery.isLoading || accessControlQrIncomplete}>
                   {updateConfig.isPending ? 'Saving...' : 'Save visitor journey'}
                 </Button>
               </div>
@@ -160,6 +258,25 @@ export default function VisitorsSettingsPage() {
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+function SelectField({ label, value, required, children, onChange }: { readonly label: string; readonly value: string; readonly required?: boolean; readonly children: ReactNode; readonly onChange: (value: string) => void }) {
+  const id = useId();
+
+  return (
+    <div className="grid gap-2">
+      <label className="text-[14px] font-medium" htmlFor={id}>{label}</label>
+      <select
+        id={id}
+        className="h-9 w-full rounded-interactive border border-border bg-content px-3 text-[14px] outline-none transition focus:border-primary focus:ring-[3px] focus:ring-primary/20"
+        value={value}
+        required={required}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {children}
+      </select>
+    </div>
   );
 }
 
@@ -268,6 +385,8 @@ function toRequest(config: VisitorPreOnboardingSagaConfigRequest): VisitorPreOnb
     useCustomInviteNotification: config.useCustomInviteNotification,
     customInviteNotification: config.customInviteNotification,
     qrGenerationMode: config.qrGenerationMode,
+    systemId: config.systemId,
+    badgeTypeId: config.badgeTypeId,
     sendConfirmNotificationToOrganizer: config.sendConfirmNotificationToOrganizer,
     useCustomConfirmNotification: config.useCustomConfirmNotification,
     customConfirmNotification: config.customConfirmNotification,
@@ -277,16 +396,33 @@ function toRequest(config: VisitorPreOnboardingSagaConfigRequest): VisitorPreOnb
     sendRescheduleNotification: config.sendRescheduleNotification,
     useCustomRescheduleNotification: config.useCustomRescheduleNotification,
     customRescheduleNotification: config.customRescheduleNotification,
+    sendRelocationNotification: config.sendRelocationNotification,
+    useCustomRelocationNotification: config.useCustomRelocationNotification,
+    customRelocationNotification: config.customRelocationNotification,
   };
 }
 
 function normalize(config: VisitorPreOnboardingSagaConfigRequest): VisitorPreOnboardingSagaConfigRequest {
   return {
     ...config,
+    systemId: config.qrGenerationMode === 'AccessControlQr' ? config.systemId : null,
+    badgeTypeId: config.qrGenerationMode === 'AccessControlQr' ? config.badgeTypeId : null,
     customInviteNotification: normalizeNotification(config.useCustomInviteNotification, config.customInviteNotification),
     customConfirmNotification: normalizeNotification(config.useCustomConfirmNotification, config.customConfirmNotification),
     customCancellationNotification: normalizeNotification(config.useCustomCancellationNotification, config.customCancellationNotification),
     customRescheduleNotification: normalizeNotification(config.useCustomRescheduleNotification, config.customRescheduleNotification),
+    customRelocationNotification: normalizeNotification(config.useCustomRelocationNotification, config.customRelocationNotification),
+  };
+}
+
+function getValidAccessControlSelection(config: VisitorPreOnboardingSagaConfigRequest, systems: readonly AccessControlSystem[]): VisitorPreOnboardingSagaConfigRequest {
+  const system = systems.find((item) => item.id === config.systemId) ?? systems[0];
+  const badgeType = system?.badgeTypes.find((item) => item.id === config.badgeTypeId) ?? system?.badgeTypes[0];
+
+  return {
+    ...config,
+    systemId: system?.id ?? null,
+    badgeTypeId: badgeType?.id ?? null,
   };
 }
 

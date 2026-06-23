@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 
 namespace Fabric.Server.Sagas.VisitorPreOnboarding;
 
@@ -24,9 +25,39 @@ public static class VisitorPreOnboardingSagaEndpoints
         group.MapGet("/{visitId:guid}/{invitationId:guid}", GetOnboardingSaga)
             .Produces<VisitorPreOnboardingSaga>()
             .Produces(StatusCodes.Status404NotFound);
+        group.MapGet("/qr", GetQrCode)
+            .AllowAnonymous()
+            .WithDescription("Generate a visitor QR image")
+            .WithSummary("Generate visitor QR")
+            .Produces(StatusCodes.Status200OK, contentType: "image/png")
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         return app;
     }
+
+    private static IResult GetQrCode(
+        [FromQuery] string code,
+        [FromQuery] int size = 150)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return QrValidationProblem("QR code data is required.");
+
+        if (size is < 32 or > 1024)
+            return QrValidationProblem("QR size must be between 32 and 1024 pixels.");
+
+        using QRCodeData qrCodeData = QRCodeGenerator.GenerateQrCode(code, QRCodeGenerator.ECCLevel.Q);
+        using var qrCode = new PngByteQRCode(qrCodeData);
+        int pixelsPerModule = Math.Max(1, (int)Math.Round((double)size / qrCodeData.ModuleMatrix.Count));
+        byte[] image = qrCode.GetGraphic(pixelsPerModule);
+
+        return Results.File(image, "image/png");
+    }
+
+    private static IResult QrValidationProblem(string detail) =>
+        Results.Problem(
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "Invalid QR image request.",
+            detail: detail);
 
     private static async Task<IResult> RetrySaga(
         Guid id,
@@ -71,6 +102,8 @@ public static class VisitorPreOnboardingSagaEndpoints
             UseCustomInviteNotification = request.UseCustomInviteNotification,
             CustomInviteNotification = request.UseCustomInviteNotification ? request.CustomInviteNotification : null,
             QrGenerationMode = request.QrGenerationMode,
+            SystemId = request.QrGenerationMode == CredentialGenerationMode.AccessControlQr ? request.SystemId : null,
+            BadgeTypeId = request.QrGenerationMode == CredentialGenerationMode.AccessControlQr ? request.BadgeTypeId : null,
             SendConfirmNotificationToOrganizer = request.SendConfirmNotificationToOrganizer,
             UseCustomConfirmNotification = request.SendConfirmNotificationToOrganizer && request.UseCustomConfirmNotification,
             CustomConfirmNotification = request.SendConfirmNotificationToOrganizer && request.UseCustomConfirmNotification ? request.CustomConfirmNotification : null,
@@ -80,6 +113,9 @@ public static class VisitorPreOnboardingSagaEndpoints
             SendRescheduleNotification = request.SendRescheduleNotification,
             UseCustomRescheduleNotification = request.SendRescheduleNotification && request.UseCustomRescheduleNotification,
             CustomRescheduleNotification = request.SendRescheduleNotification && request.UseCustomRescheduleNotification ? request.CustomRescheduleNotification : null,
+            SendRelocationNotification = request.SendRelocationNotification,
+            UseCustomRelocationNotification = request.SendRelocationNotification && request.UseCustomRelocationNotification,
+            CustomRelocationNotification = request.SendRelocationNotification && request.UseCustomRelocationNotification ? request.CustomRelocationNotification : null,
         };
 
         VisitorPreOnboardingSagaConfig updated = await service.UpdateConfigurationAsync(config, cancellationToken);
@@ -91,6 +127,9 @@ public static class VisitorPreOnboardingSagaEndpoints
         if (!IsValidCustomNotification(request.UseCustomInviteNotification, request.CustomInviteNotification))
             return ValidationProblem("Custom invitation notification requires subject and body.");
 
+        if (request.QrGenerationMode == CredentialGenerationMode.AccessControlQr && (!request.SystemId.HasValue || !request.BadgeTypeId.HasValue))
+            return ValidationProblem("Access control QR requires system and badge type.");
+
         if (!IsValidCustomNotification(request.SendConfirmNotificationToOrganizer && request.UseCustomConfirmNotification, request.CustomConfirmNotification))
             return ValidationProblem("Custom confirmation notification requires subject and body.");
 
@@ -99,6 +138,9 @@ public static class VisitorPreOnboardingSagaEndpoints
 
         if (!IsValidCustomNotification(request.SendRescheduleNotification && request.UseCustomRescheduleNotification, request.CustomRescheduleNotification))
             return ValidationProblem("Custom reschedule notification requires subject and body.");
+
+        if (!IsValidCustomNotification(request.SendRelocationNotification && request.UseCustomRelocationNotification, request.CustomRelocationNotification))
+            return ValidationProblem("Custom relocation notification requires subject and body.");
 
         return null;
     }
@@ -158,6 +200,8 @@ public sealed record VisitorPreOnboardingSagaConfigRequest(
     bool UseCustomInviteNotification,
     CustomNotification? CustomInviteNotification,
     CredentialGenerationMode QrGenerationMode,
+    Guid? SystemId,
+    Guid? BadgeTypeId,
     bool SendConfirmNotificationToOrganizer,
     bool UseCustomConfirmNotification,
     CustomNotification? CustomConfirmNotification,
@@ -166,4 +210,7 @@ public sealed record VisitorPreOnboardingSagaConfigRequest(
     CustomNotification? CustomCancellationNotification,
     bool SendRescheduleNotification,
     bool UseCustomRescheduleNotification,
-    CustomNotification? CustomRescheduleNotification);
+    CustomNotification? CustomRescheduleNotification,
+    bool SendRelocationNotification,
+    bool UseCustomRelocationNotification,
+    CustomNotification? CustomRelocationNotification);

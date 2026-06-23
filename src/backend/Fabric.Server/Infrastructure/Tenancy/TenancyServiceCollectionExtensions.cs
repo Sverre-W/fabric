@@ -7,6 +7,7 @@ public static class TenancyServiceCollectionExtensions
         services.AddOptions<TenancyOptions>()
             .Bind(configuration.GetSection(TenancyOptions.SectionName))
             .Validate(options => Enum.IsDefined(options.Mode), "Tenancy mode must be SingleTenant or MultiTenant.")
+            .Validate(options => IsValidTenantBaseUrl(options.TenantBaseUrl), "Tenancy:TenantBaseUrl must be an absolute URL.")
             .Validate(options => options.Mode != TenancyMode.SingleTenant || !string.IsNullOrWhiteSpace(options.DefaultTenant.Id),
                 "Tenancy:DefaultTenant:Id is required in SingleTenant mode.")
             .Validate(options => options.Mode != TenancyMode.SingleTenant || IsValidOidcOptions(options.DefaultTenant.Oidc),
@@ -26,6 +27,7 @@ public static class TenancyServiceCollectionExtensions
         services.AddScoped<ITenantContext>(provider => provider.GetRequiredService<TenantContext>());
         services.AddScoped<ITenantContextAccessor>(provider => provider.GetRequiredService<TenantContext>());
         services.AddScoped<ITenantStore, TenantStore>();
+        services.AddScoped<TenantBaseUrlResolver>();
         services.AddScoped<TenantSeeder>();
 
         return services;
@@ -43,5 +45,11 @@ public static class TenancyServiceCollectionExtensions
             return false;
 
         return !options.RequireHttpsMetadata || metadataUrl.Scheme == Uri.UriSchemeHttps;
+    }
+
+    private static bool IsValidTenantBaseUrl(string tenantBaseUrl)
+    {
+        string sampleUrl = tenantBaseUrl.Replace("{tenant}", "tenant", StringComparison.OrdinalIgnoreCase);
+        return Uri.TryCreate(sampleUrl, UriKind.Absolute, out _);
     }
 }

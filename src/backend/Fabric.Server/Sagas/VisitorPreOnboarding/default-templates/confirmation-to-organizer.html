@@ -1,7 +1,54 @@
 <!doctype html>
 <html lang="en">
-<body>
-    <h1>Visitor confirmed</h1>
-    <p>A visitor has confirmed participation for your visit.</p>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Visitor confirmed</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6f8;color:#17202a;font-family:Arial,Helvetica,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">{{ Visitor.FirstName }} {{ Visitor.LastName }} has confirmed participation for your visit.</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f6f8;margin:0;padding:0;">
+        <tr>
+            <td align="center" style="padding:28px 12px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background-color:#ffffff;border:1px solid #dfe5eb;border-radius:14px;overflow:hidden;">
+                    <tr>
+                        <td style="padding:28px 32px 20px 32px;background-color:#ffffff;border-bottom:1px solid #e8edf2;">
+                            <div style="font-size:13px;line-height:18px;letter-spacing:0.08em;text-transform:uppercase;color:#637083;font-weight:700;">Fabric</div>
+                            <h1 style="margin:14px 0 8px 0;font-size:28px;line-height:34px;color:#111827;font-weight:700;">Visitor confirmed</h1>
+                            <p style="margin:0;font-size:16px;line-height:24px;color:#4b5563;">{{ Visitor.FirstName }} {{ Visitor.LastName }} has confirmed participation.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:28px 32px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8fafc;border:1px solid #e5eaf0;border-radius:12px;margin-bottom:18px;">
+                                <tr>
+                                    <td style="padding:22px 24px;">
+                                        <div style="font-size:13px;line-height:18px;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px;">Visitor</div>
+                                        <p style="margin:0 0 6px 0;font-size:18px;line-height:26px;color:#111827;font-weight:700;">{{ Visitor.FirstName }} {{ Visitor.LastName }}</p>
+                                        <p style="margin:0;font-size:14px;line-height:21px;color:#4b5563;">{{ Visitor.Email }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8fafc;border:1px solid #e5eaf0;border-radius:12px;">
+                                <tr>
+                                    <td style="padding:22px 24px;">
+                                        <div style="font-size:13px;line-height:18px;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px;">Visit information</div>
+                                        <p style="margin:0 0 16px 0;font-size:20px;line-height:28px;color:#111827;font-weight:700;">{{ Visit.Summary }}</p>
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                            <tr><td style="padding:8px 0;width:120px;font-size:14px;line-height:20px;color:#64748b;vertical-align:top;">Starts</td><td style="padding:8px 0;font-size:14px;line-height:20px;color:#111827;vertical-align:top;">{{ Visit.Start | date: "%d %b %Y %H:%M" }}</td></tr>
+                                            <tr><td style="padding:8px 0;width:120px;font-size:14px;line-height:20px;color:#64748b;vertical-align:top;">Ends</td><td style="padding:8px 0;font-size:14px;line-height:20px;color:#111827;vertical-align:top;">{{ Visit.Stop | date: "%d %b %Y %H:%M" }}</td></tr>
+                                            <tr><td style="padding:8px 0;width:120px;font-size:14px;line-height:20px;color:#64748b;vertical-align:top;">Location</td><td style="padding:8px 0;font-size:14px;line-height:20px;color:#111827;vertical-align:top;">{% if Location %}{{ Location.DisplayName }}{% else %}Not specified{% endif %}</td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr><td style="padding:20px 32px;background-color:#f8fafc;border-top:1px solid #e8edf2;"><p style="margin:0;font-size:12px;line-height:18px;color:#6b7280;">This message was sent by Fabric.</p></td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

@@ -14,6 +14,7 @@ public sealed class AccessPolicyConfiguration : IEntityTypeConfiguration<AccessP
 
         builder.Property(policy => policy.Id).HasColumnName("id").ValueGeneratedNever();
         builder.Property(policy => policy.SystemId).HasColumnName("system_id").IsRequired();
+        builder.Property(policy => policy.ProvisionFrom).HasColumnName("provision_from").IsRequired();
         builder.Property(policy => policy.EffectiveFrom).HasColumnName("effective_from").IsRequired();
         builder.Property(policy => policy.EffectiveUntil).HasColumnName("effective_until").IsRequired();
         builder.Property(policy => policy.ReconciliationStatus)
@@ -24,6 +25,15 @@ public sealed class AccessPolicyConfiguration : IEntityTypeConfiguration<AccessP
         builder.Property(policy => policy.ReconciliationFailureReason)
             .HasColumnName("reconciliation_failure_reason")
             .HasMaxLength(2_000);
+        builder.Property(policy => policy.SatisfiedByKind)
+            .HasColumnName("satisfied_by_kind")
+            .HasConversion<string>()
+            .HasMaxLength(50);
+        builder.Property(policy => policy.SatisfiedBySubjectId).HasColumnName("satisfied_by_subject_id");
+        builder.Property(policy => policy.SatisfiedBySystemId).HasColumnName("satisfied_by_system_id");
+        builder.Property(policy => policy.SatisfiedByBadgeTypeId).HasColumnName("satisfied_by_badge_type_id");
+        builder.Property(policy => policy.SatisfiedByBadgeNumber).HasColumnName("satisfied_by_badge_number").HasMaxLength(200);
+        builder.Property(policy => policy.SatisfiedByAccessLevelTypeId).HasColumnName("satisfied_by_access_level_type_id");
 
         builder.OwnsOne(policy => policy.Subject, subject =>
         {

@@ -24,14 +24,16 @@ public sealed record CreateCredentialPolicyRequest(
     Guid BadgeTypeId,
     int? BadgeNumber,
     DateTimeOffset EffectiveFrom,
-    DateTimeOffset EffectiveUntil);
+    DateTimeOffset EffectiveUntil,
+    DateTimeOffset? ProvisionFrom);
 
 public sealed record CreateAccessPolicyRequest(
     Guid SystemId,
     SubjectRequest Subject,
     Guid AccessLevelTypeId,
     DateTimeOffset EffectiveFrom,
-    DateTimeOffset EffectiveUntil);
+    DateTimeOffset EffectiveUntil,
+    DateTimeOffset? ProvisionFrom);
 
 public sealed record SubjectResponse(Guid Id, string FirstName, string LastName, SubjectType SubjectType);
 
@@ -81,11 +83,13 @@ public sealed record AccessPolicyResponse(
     Guid Id,
     Guid SystemId,
     SubjectResponse Subject,
+    DateTimeOffset ProvisionFrom,
     DateTimeOffset EffectiveFrom,
     DateTimeOffset EffectiveUntil,
     PolicyRequirementResponse Requirement,
     ReconciliationStatus ReconciliationStatus,
-    string? ReconciliationFailureReason);
+    string? ReconciliationFailureReason,
+    IssuedResourceResponse? SatisfiedBy);
 
 public static class AccessPolicyMapper
 {
@@ -94,11 +98,13 @@ public static class AccessPolicyMapper
             policy.Id,
             policy.SystemId,
             policy.Subject.ToResponse(),
+            policy.ProvisionFrom,
             policy.EffectiveFrom,
             policy.EffectiveUntil,
             policy.Requirement.ToResponse(),
             policy.ReconciliationStatus,
-            policy.ReconciliationFailureReason);
+            policy.ReconciliationFailureReason,
+            policy.SatisfiedBy?.ToResponse());
 
     public static SubjectResponse ToResponse(this Subject subject) =>
         new(subject.Id, subject.FirstName, subject.LastName, subject.SubjectType);

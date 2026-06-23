@@ -16,5 +16,7 @@ public enum AccessControlSystemErrors
     SiteNotFoundInMetadata,
     AccessRuleNotFoundInMetadata,
     BadgeTypeNotFoundInMetadata,
-    AccessLevelNotFoundInMetadata
+    AccessLevelNotFoundInMetadata,
+    IdentityMappingNotFound,
+    IdentityMappingCleanupFailed
 }

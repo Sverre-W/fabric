@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Fluid.Core" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
@@ -20,6 +21,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Graph" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="QRCoder" />
     <PackageReference Include="Riok.Mapperly" />
   </ItemGroup>
 

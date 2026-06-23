@@ -265,6 +265,24 @@ export default function AccessControlEditPage() {
     onError: () => toast.error('Could not delete access rule.'),
   });
 
+  const deleteIdentityMapping = useMutation({
+    mutationFn: async (subjectId: string) => {
+      const { error } = await api.DELETE('/api/access-policies/access-control-systems/{systemId}/identity-mappings/{subjectId}', {
+        params: { path: { systemId, subjectId } },
+      });
+
+      if (error) {
+        throw new Error('Could not delete identity mapping.');
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: [...systemsQueryKey, systemId, 'identity-mappings'] });
+      await queryClient.invalidateQueries({ queryKey: [...systemsQueryKey, systemId, 'policies'] });
+      toast.success('Identity mapping deleted.');
+    },
+    onError: () => toast.error('Could not delete identity mapping.'),
+  });
+
   const retractPolicy = useMutation({
     mutationFn: async (policyId: string) => {
       const { error } = await api.POST('/api/access-policies/policies/{policyId}/retract', {
@@ -348,7 +366,11 @@ export default function AccessControlEditPage() {
             onDeleteAccessLevel={(id) => deleteAccessLevel.mutate(id)}
           />
           <PoliciesPanel query={policiesQuery} page={policiesPage} setPage={setPoliciesPage} isRetracting={retractPolicy.isPending} onRetract={(id) => retractPolicy.mutate(id)} />
-          <IdentityMappingsPanel query={mappingsQuery} page={mappingsPage} setPage={setMappingsPage} />
+          <IdentityMappingsPanel query={mappingsQuery} page={mappingsPage} setPage={setMappingsPage} isDeleting={deleteIdentityMapping.isPending} onDelete={(mapping) => {
+            if (window.confirm(`Delete identity mapping for ${mapping.firstName} ${mapping.lastName}? This will remove this subject's policies and Fabric-managed resources for this system.`)) {
+              deleteIdentityMapping.mutate(mapping.subjectId);
+            }
+          }} />
         </>
       ) : null}
     </div>
@@ -494,7 +516,7 @@ function PoliciesPanel({ query, page, setPage, isRetracting, onRetract }: { read
   );
 }
 
-function IdentityMappingsPanel({ query, page, setPage }: { readonly query: ReturnType<typeof useQuery<components['schemas']['PageOfIdentityMappingResponse'] | undefined>>; readonly page: number; readonly setPage: (page: number) => void }) {
+function IdentityMappingsPanel({ query, page, setPage, isDeleting, onDelete }: { readonly query: ReturnType<typeof useQuery<components['schemas']['PageOfIdentityMappingResponse'] | undefined>>; readonly page: number; readonly setPage: (page: number) => void; readonly isDeleting: boolean; readonly onDelete: (mapping: IdentityMapping) => void }) {
   const mappings = query.data?.items ?? [];
   const pagination = getPaginationState(query.data, mappings.length, page);
 
@@ -504,7 +526,7 @@ function IdentityMappingsPanel({ query, page, setPage }: { readonly query: Retur
       {query.isLoading ? <p className="text-[14px] text-muted-foreground">Loading identity mappings...</p> : null}
       {query.isError ? <PanelError>Could not load identity mappings.</PanelError> : null}
       {!query.isLoading && !query.isError && mappings.length === 0 ? <p className="rounded-structural border border-dashed border-border p-6 text-[14px] text-muted-foreground">No identity mappings.</p> : null}
-      {mappings.length > 0 ? <MappingsTable mappings={mappings} /> : null}
+      {mappings.length > 0 ? <MappingsTable mappings={mappings} isDeleting={isDeleting} onDelete={onDelete} /> : null}
       <PagedFooter label="identity mappings" pagination={pagination} isVisible={!query.isLoading && !query.isError && pagination.totalItems > 0} setPage={setPage} />
     </Card>
   );
@@ -550,11 +572,11 @@ function PoliciesTable({ policies, isRetracting, onRetract }: { readonly policie
   );
 }
 
-function MappingsTable({ mappings }: { readonly mappings: IdentityMapping[] }) {
+function MappingsTable({ mappings, isDeleting, onDelete }: { readonly mappings: IdentityMapping[]; readonly isDeleting: boolean; readonly onDelete: (mapping: IdentityMapping) => void }) {
   return (
     <div className="overflow-x-auto rounded-structural border border-border">
       <table className="w-full min-w-[46rem] border-collapse text-left text-[14px]">
-        <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground"><tr><th className="px-4 py-3 font-semibold">Name</th><th className="px-4 py-3 font-semibold">Subject type</th><th className="px-4 py-3 font-semibold">Subject ID</th><th className="px-4 py-3 font-semibold">External ID</th></tr></thead>
+        <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground"><tr><th className="px-4 py-3 font-semibold">Name</th><th className="px-4 py-3 font-semibold">Subject type</th><th className="px-4 py-3 font-semibold">Subject ID</th><th className="px-4 py-3 font-semibold">External ID</th><th className="px-4 py-3 text-right font-semibold">Actions</th></tr></thead>
         <tbody className="divide-y divide-border">
           {mappings.map((mapping) => (
             <tr key={`${mapping.systemId}-${mapping.subjectId}`}>
@@ -562,6 +584,9 @@ function MappingsTable({ mappings }: { readonly mappings: IdentityMapping[] }) {
               <td className="px-4 py-4 text-muted-foreground">{mapping.subjectType}</td>
               <td className="px-4 py-4 text-muted-foreground">{mapping.subjectId}</td>
               <td className="px-4 py-4 text-muted-foreground">{mapping.externalId}</td>
+              <td className="px-4 py-4 text-right">
+                <Button type="button" variant="outline" disabled={isDeleting} aria-label={`Delete identity mapping for ${mapping.firstName} ${mapping.lastName}`} onClick={() => onDelete(mapping)}>Delete</Button>
+              </td>
             </tr>
           ))}
         </tbody>

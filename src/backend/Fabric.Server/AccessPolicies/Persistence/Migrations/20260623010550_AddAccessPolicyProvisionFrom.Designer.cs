@@ -3,6 +3,7 @@ using System;
 using Fabric.Server.AccessPolicies.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.AccessPolicies.Persistence.Migrations
 {
     [DbContext(typeof(AccessPoliciesDbContext))]
-    partial class AccessPoliciesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260623010550_AddAccessPolicyProvisionFrom")]
+    partial class AddAccessPolicyProvisionFrom
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

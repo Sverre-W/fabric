@@ -2,6 +2,9 @@ using Azure.Identity;
 using Fabric.Server.Core;
 using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Notifications;
+using Fabric.Server.Sagas.VisitorPreOnboarding;
+using Fabric.Server.Visitors.Domain;
+using Fluid;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Extensions.Options;
@@ -14,6 +17,8 @@ public sealed class EmailNotificationSender(
     ILogger<EmailNotificationSender> logger)
 {
     private const string GraphEndpoint = "https://graph.microsoft.com/.default";
+    private static readonly FluidParser _parser = new();
+    private static readonly TemplateOptions _templateOptions = CreateTemplateOptions();
 
     public async Task<Result<EmailErrors>> SendEmail(string subject, string body, object model, IEnumerable<string> receivers, IEnumerable<string>? carbonCopy = null, CancellationToken ct = default)
     {
@@ -25,6 +30,20 @@ public sealed class EmailNotificationSender(
 
         if (string.IsNullOrWhiteSpace(subject))
             return Result.Failure(EmailErrors.EmptySubject);
+
+        string renderedSubject;
+        string renderedBody;
+
+        try
+        {
+            renderedSubject = await RenderTemplate(subject, model);
+            renderedBody = await RenderTemplate(body, model);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.EmailTemplateRenderFailed(ex);
+            return Result.Failure(EmailErrors.GraphFailed);
+        }
 
         GraphEmailSettings? emailSettings = tenantContext.Configuration.GraphEmail ?? options.Value.Graph;
         if (emailSettings is null || !emailSettings.IsConfigured())
@@ -41,8 +60,8 @@ public sealed class EmailNotificationSender(
 
             var message = new Message
             {
-                Subject = subject,
-                Body = new ItemBody { ContentType = BodyType.Html, Content = body },
+                Subject = renderedSubject,
+                Body = new ItemBody { ContentType = BodyType.Html, Content = renderedBody },
                 Sender = new Recipient
                 {
                     EmailAddress = new EmailAddress { Address = emailSettings.FromEmail, Name = emailSettings.FromName },
@@ -79,6 +98,26 @@ public sealed class EmailNotificationSender(
     {
         return addresses.Select(addr => new Recipient { EmailAddress = new EmailAddress { Address = addr } }).ToList();
     }
+
+    private static async Task<string> RenderTemplate(string templateText, object model)
+    {
+        IFluidTemplate template = _parser.Parse(templateText);
+        var context = new TemplateContext(model, _templateOptions);
+        return await template.RenderAsync(context);
+    }
+
+    private static TemplateOptions CreateTemplateOptions()
+    {
+        var options = new TemplateOptions();
+
+        options.MemberAccessStrategy.Register<SagaNotificationModel>();
+        options.MemberAccessStrategy.Register<VisitNotificationModel>();
+        options.MemberAccessStrategy.Register<LocationNotificationModel>();
+        options.MemberAccessStrategy.Register<LocationPartNotificationModel>();
+        options.MemberAccessStrategy.Register<VisitInvitation>();
+
+        return options;
+    }
 }
 
 
@@ -97,4 +136,7 @@ internal static partial class EmailNotificationSenderLog
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to send email to {Receivers} via Graph API.")]
     public static partial void EmailSendFailed(this ILogger logger, Exception exception, string receivers);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to render email template.")]
+    public static partial void EmailTemplateRenderFailed(this ILogger logger, Exception exception);
 }

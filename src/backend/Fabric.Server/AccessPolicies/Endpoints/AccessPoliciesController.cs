@@ -60,7 +60,7 @@ public static class AccessPolicyEndpoints
         if (request.ActiveOnly == true)
         {
             DateTimeOffset now = timeProvider.GetUtcNow();
-            query = query.Where(policy => policy.EffectiveFrom <= now && policy.EffectiveUntil > now);
+            query = query.Where(policy => policy.ProvisionFrom <= now && policy.EffectiveUntil > now);
         }
 
         if (!string.IsNullOrWhiteSpace(request.Name))
@@ -92,6 +92,7 @@ public static class AccessPolicyEndpoints
             request.BadgeNumber,
             request.EffectiveFrom,
             request.EffectiveUntil,
+            request.ProvisionFrom,
             cancellationToken);
 
         return result.Map(change => change.ToResponse()).AsResponse(MapError);
@@ -108,6 +109,7 @@ public static class AccessPolicyEndpoints
             request.AccessLevelTypeId,
             request.EffectiveFrom,
             request.EffectiveUntil,
+            request.ProvisionFrom,
             cancellationToken);
 
         return result.Map(change => change.ToResponse()).AsResponse(MapError);

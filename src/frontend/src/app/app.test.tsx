@@ -429,6 +429,15 @@ describe('App', () => {
     expect(apiGetMock).toHaveBeenCalledWith('/api/access-policies/access-control-systems/{systemId}/identity-mappings', {
       params: { path: { systemId: 'system-1' }, query: { Page: 0, PageSize: 10, subjectIds: [] } },
     });
+
+    fireEvent.click(screen.getByRole('button', { name: /delete identity mapping for ada lovelace/i }));
+
+    await waitFor(() => {
+      expect(window.confirm).toHaveBeenCalledWith("Delete identity mapping for Ada Lovelace? This will remove this subject's policies and Fabric-managed resources for this system.");
+      expect(apiDeleteMock).toHaveBeenCalledWith('/api/access-policies/access-control-systems/{systemId}/identity-mappings/{subjectId}', {
+        params: { path: { systemId: 'system-1', subjectId: 'subject-1' } },
+      });
+    });
   });
 
   it('creates a site and replaces create route with edit route', async () => {
@@ -853,6 +862,86 @@ describe('App', () => {
           gracePeriodMinutes: 0,
         },
       });
+    });
+  });
+
+  it('keeps saved visitor badge type selected after systems load', async () => {
+    window.history.pushState({}, '', '/settings/visitors');
+    let resolveSystems: (value: unknown) => void = () => {};
+    const systemsPromise = new Promise((resolve) => {
+      resolveSystems = resolve;
+    });
+
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/sagas/visitor-pre-onboarding/configuration') {
+        return Promise.resolve({
+          data: {
+            useCustomInviteNotification: false,
+            customInviteNotification: null,
+            qrGenerationMode: 'AccessControlQr',
+            systemId: 'system-1',
+            badgeTypeId: 'badge-2',
+            sendConfirmNotificationToOrganizer: false,
+            useCustomConfirmNotification: false,
+            customConfirmNotification: null,
+            sendCancellationNotification: false,
+            useCustomCancellationNotification: false,
+            customCancellationNotification: null,
+            sendRescheduleNotification: false,
+            useCustomRescheduleNotification: false,
+            customRescheduleNotification: null,
+            sendRelocationNotification: false,
+            useCustomRelocationNotification: false,
+            customRelocationNotification: null,
+          },
+        });
+      }
+
+      if (path === '/api/access-policies/access-control-systems') {
+        return systemsPromise;
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /visitors/i })).toBeInTheDocument();
+    expect(await screen.findByText(/loading access control systems/i)).toBeInTheDocument();
+
+    resolveSystems({
+      data: {
+        ...emptyAccessControlSystemPage,
+        totalItems: 1,
+        items: [
+          {
+            type: 'unipass',
+            id: 'system-1',
+            name: 'Unipass',
+            endpoint: 'https://unipass.example.test',
+            sslValidation: true,
+            hasSecret: true,
+            username: 'api-user',
+            badgeTypes: [
+              { type: 'unipass', id: 'badge-1', systemId: 'system-1', name: 'Contractor badge', rangeStart: 1, rangeStop: 100 },
+              { type: 'unipass', id: 'badge-2', systemId: 'system-1', name: 'Visitor badge', rangeStart: 101, rangeStop: 200 },
+            ],
+            accessLevels: [
+              { type: 'unipass', id: 'level-1', systemId: 'system-1', name: 'Lobby access', siteId: 1, accessRuleId: 100 },
+              { type: 'unipass', id: 'level-2', systemId: 'system-1', name: 'Office access', siteId: 1, accessRuleId: 200 },
+            ],
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Access control system')).toHaveValue('system-1');
+      expect(screen.getByLabelText('Badge type')).toHaveValue('badge-2');
     });
   });
 

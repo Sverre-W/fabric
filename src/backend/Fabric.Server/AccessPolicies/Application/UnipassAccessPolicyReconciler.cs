@@ -32,12 +32,17 @@ public sealed class UnipassAccessPolicyReconciler(
         if (system is null)
             return Result.Failure<SubjectSystemAccessState, string>("Unipass system not found.");
 
-        List<AccessPolicy> policies = await GetActivePolicies(subjectId, systemId, cancellationToken);
+        using IUnipassApi api = apiFactory.Create(system.Config);
+
+        List<AccessPolicy> policies = await GetProvisionablePolicies(subjectId, systemId, cancellationToken);
         if (policies.Count == 0)
-            return Result.Success<SubjectSystemAccessState, string>(SubjectSystemAccessState.Empty(subjectId, systemId));
+        {
+            var emptyState = SubjectSystemAccessState.Empty(subjectId, systemId);
+            await CleanupUnneededManagedResources(api, policies, emptyState, cancellationToken);
+            return Result.Success<SubjectSystemAccessState, string>(emptyState);
+        }
 
         Subject subject = policies[0].Subject;
-        using IUnipassApi api = apiFactory.Create(system.Config);
 
         int personId;
         try
@@ -58,6 +63,8 @@ public sealed class UnipassAccessPolicyReconciler(
             }
 
             UnipassProviderState finalState = await FetchState(api, subjectId, systemId, personId, system, cancellationToken);
+            await CleanupUnneededManagedResources(api, policies, finalState.AccessState, cancellationToken);
+            finalState = await FetchState(api, subjectId, systemId, personId, system, cancellationToken);
             return Result.Success<SubjectSystemAccessState, string>(finalState.AccessState);
         }
         catch (Exception ex)
@@ -145,7 +152,7 @@ public sealed class UnipassAccessPolicyReconciler(
 
         List<UnipassCredentialState> credentials = [.. person.Cards.Select(card => new UnipassCredentialState(card.Id, card.BadgeNumber))];
         List<UnipassAccessRuleState> accessRules = [.. assignedRules
-            .Where(IsCurrentlyEffective)
+            .Where(IsNotEnded)
             .Select(rule => new UnipassAccessRuleState(rule.Id, rule.SiteId, rule.RuleId))];
 
         List<IssuedResource> resources = [];
@@ -311,7 +318,43 @@ public sealed class UnipassAccessPolicyReconciler(
         }
     }
 
-    private async Task<List<AccessPolicy>> GetActivePolicies(Guid subjectId, Guid systemId, CancellationToken cancellationToken)
+    private async Task CleanupUnneededManagedResources(
+        IUnipassApi api,
+        IReadOnlyList<AccessPolicy> provisionablePolicies,
+        SubjectSystemAccessState state,
+        CancellationToken cancellationToken)
+    {
+        List<IssuedProviderResource> resources = await db.IssuedProviderResources
+            .Where(resource => resource.SubjectId == state.SubjectId && resource.SystemId == state.SystemId)
+            .ToListAsync(cancellationToken);
+
+        foreach (IssuedProviderResource resource in resources)
+        {
+            IssuedResource? issuedResource = ToIssuedResource(resource);
+            if (issuedResource is not null && provisionablePolicies.Any(policy => issuedResource.Satisfies(policy.Requirement)))
+                continue;
+
+            await RevokeResource(api, resource, cancellationToken);
+            if (resource.ResourceKind == ProviderResourceKind.Credential && resource.BadgeTypeId.HasValue && resource.BadgeNumber.HasValue)
+                await badgeNumbers.ReleaseBadgeNumber(resource.SystemId, resource.BadgeTypeId.Value, resource.BadgeNumber.Value, cancellationToken);
+
+            db.IssuedProviderResources.Remove(resource);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private static IssuedResource? ToIssuedResource(IssuedProviderResource resource) =>
+        resource.ResourceKind switch
+        {
+            ProviderResourceKind.Credential when resource.BadgeTypeId.HasValue && resource.BadgeNumber.HasValue =>
+                UnipassCredential.Create(resource.SubjectId, resource.BadgeTypeId.Value, resource.SystemId, resource.BadgeNumber.Value.ToString()),
+            ProviderResourceKind.AccessLevel when resource.AccessLevelTypeId.HasValue =>
+                UnipassAccessLevel.Create(resource.SubjectId, resource.AccessLevelTypeId.Value, resource.SystemId),
+            _ => null
+        };
+
+    private async Task<List<AccessPolicy>> GetProvisionablePolicies(Guid subjectId, Guid systemId, CancellationToken cancellationToken)
     {
         DateTimeOffset now = timeProvider.GetUtcNow();
 
@@ -321,15 +364,14 @@ public sealed class UnipassAccessPolicyReconciler(
             .Include(policy => ((AccessRequirement)policy.Requirement).AccessLevel)
             .Where(policy => policy.Subject.Id == subjectId)
             .Where(policy => policy.SystemId == systemId)
-            .Where(policy => policy.EffectiveFrom <= now && policy.EffectiveUntil > now)
+            .Where(policy => policy.ProvisionFrom <= now && policy.EffectiveUntil > now)
             .ToListAsync(cancellationToken);
     }
 
-    private bool IsCurrentlyEffective(UnipassAssignedAccessRule rule)
+    private bool IsNotEnded(UnipassAssignedAccessRule rule)
     {
         DateTimeOffset now = timeProvider.GetUtcNow();
-        return (rule.StartDate is null || rule.StartDate <= now.Add(AccessRuleSkew)) &&
-               (rule.EndDate is null || rule.EndDate > now.Subtract(AccessRuleSkew));
+        return rule.EndDate is null || rule.EndDate > now.Subtract(AccessRuleSkew);
     }
 
     private sealed record UnipassProviderState(

@@ -3,6 +3,7 @@ using System;
 using Fabric.Server.Sagas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.Sagas.Persistence.Migrations
 {
     [DbContext(typeof(SagasDbContext))]
-    partial class SagasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260622231018_AddVisitorAccessControlQrAndRelocationConfig")]
+    partial class AddVisitorAccessControlQrAndRelocationConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,9 +105,9 @@ namespace Fabric.Server.Sagas.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("BadgeTypeId")
+                    b.Property<Guid?>("AccessLevelTypeId")
                         .HasColumnType("uuid")
-                        .HasColumnName("badge_type_id");
+                        .HasColumnName("access_level_type_id");
 
                     b.Property<string>("QrGenerationMode")
                         .IsRequired()
@@ -167,7 +170,7 @@ namespace Fabric.Server.Sagas.Persistence.Migrations
 
                     b.ToTable("visitor_pre_onboarding_saga_configs", "sagas", t =>
                         {
-                            t.HasCheckConstraint("ck_vpo_config_access_control_qr_ids", "(qr_generation_mode <> 'AccessControlQr') OR (system_id IS NOT NULL AND badge_type_id IS NOT NULL)");
+                            t.HasCheckConstraint("ck_vpo_config_access_control_qr_ids", "(qr_generation_mode <> 'AccessControlQr') OR (system_id IS NOT NULL AND access_level_type_id IS NOT NULL)");
 
                             t.HasCheckConstraint("ck_vpo_config_cancellation_notification_all_or_null", "(custom_cancellation_notification_subject IS NULL) = (custom_cancellation_notification_body IS NULL)");
 

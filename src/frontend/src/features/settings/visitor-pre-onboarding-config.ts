@@ -35,6 +35,8 @@ export function getDefaultVisitorPreOnboardingConfig(): VisitorPreOnboardingSaga
     useCustomInviteNotification: false,
     customInviteNotification: null,
     qrGenerationMode: 'PlatformQr',
+    systemId: null,
+    badgeTypeId: null,
     sendConfirmNotificationToOrganizer: false,
     useCustomConfirmNotification: false,
     customConfirmNotification: null,
@@ -44,6 +46,9 @@ export function getDefaultVisitorPreOnboardingConfig(): VisitorPreOnboardingSaga
     sendRescheduleNotification: false,
     useCustomRescheduleNotification: false,
     customRescheduleNotification: null,
+    sendRelocationNotification: false,
+    useCustomRelocationNotification: false,
+    customRelocationNotification: null,
   };
 }
 
@@ -54,6 +59,8 @@ function toRequest(config: VisitorPreOnboardingSagaConfig): VisitorPreOnboarding
     useCustomInviteNotification: config.useCustomInviteNotification ?? defaults.useCustomInviteNotification,
     customInviteNotification: config.customInviteNotification ?? defaults.customInviteNotification,
     qrGenerationMode: config.qrGenerationMode ?? defaults.qrGenerationMode,
+    systemId: config.systemId ?? defaults.systemId,
+    badgeTypeId: config.badgeTypeId ?? defaults.badgeTypeId,
     sendConfirmNotificationToOrganizer: config.sendConfirmNotificationToOrganizer ?? defaults.sendConfirmNotificationToOrganizer,
     useCustomConfirmNotification: config.useCustomConfirmNotification ?? defaults.useCustomConfirmNotification,
     customConfirmNotification: config.customConfirmNotification ?? defaults.customConfirmNotification,
@@ -63,5 +70,8 @@ function toRequest(config: VisitorPreOnboardingSagaConfig): VisitorPreOnboarding
     sendRescheduleNotification: config.sendRescheduleNotification ?? defaults.sendRescheduleNotification,
     useCustomRescheduleNotification: config.useCustomRescheduleNotification ?? defaults.useCustomRescheduleNotification,
     customRescheduleNotification: config.customRescheduleNotification ?? defaults.customRescheduleNotification,
+    sendRelocationNotification: config.sendRelocationNotification ?? defaults.sendRelocationNotification,
+    useCustomRelocationNotification: config.useCustomRelocationNotification ?? defaults.useCustomRelocationNotification,
+    customRelocationNotification: config.customRelocationNotification ?? defaults.customRelocationNotification,
   };
 }

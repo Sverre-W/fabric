@@ -16,6 +16,7 @@ Secrets should not be committed. Use environment-specific config, user secrets, 
   },
   "Tenancy": {
     "Mode": "SingleTenant",
+    "TenantBaseUrl": "http://localhost:5173",
     "DefaultTenant": {
       "Id": "main-tenant",
       "Oidc": {
@@ -34,6 +35,8 @@ Secrets should not be committed. Use environment-specific config, user secrets, 
 
 `Tenancy:Mode` controls how tenant config is resolved.
 
+`Tenancy:TenantBaseUrl` controls externally visible platform URLs used outside request handling, such as visitor email links. It may contain a `{tenant}` placeholder. In `SingleTenant` mode the placeholder can be omitted.
+
 Allowed values:
 
 - `SingleTenant`
@@ -49,6 +52,7 @@ The backend uses `Tenancy:DefaultTenant` to seed the default tenant when migrati
 {
   "Tenancy": {
     "Mode": "SingleTenant",
+    "TenantBaseUrl": "https://portal.example.com",
     "DefaultTenant": {
       "Id": "main-tenant",
       "Oidc": {
@@ -75,7 +79,8 @@ Use `MultiTenant` when one backend serves multiple tenants.
 ```json
 {
   "Tenancy": {
-    "Mode": "MultiTenant"
+    "Mode": "MultiTenant",
+    "TenantBaseUrl": "https://{tenant}.example.com"
   },
   "AdminOidc": {
     "MetadataUrl": "https://login.example.com/.well-known/openid-configuration",
@@ -171,6 +176,7 @@ Examples:
 ```bash
 ConnectionStrings__Database="Host=localhost;Username=user;Password=password;Database=fabric"
 Tenancy__Mode="SingleTenant"
+Tenancy__TenantBaseUrl="https://portal.example.com"
 Tenancy__DefaultTenant__Id="main-tenant"
 Tenancy__DefaultTenant__Oidc__MetadataUrl="https://login.example.com/.well-known/openid-configuration"
 Tenancy__DefaultTenant__Oidc__ClientId="fabric-portal"

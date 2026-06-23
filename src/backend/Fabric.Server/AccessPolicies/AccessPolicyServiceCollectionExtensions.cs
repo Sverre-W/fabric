@@ -22,6 +22,8 @@ public static class AccessPolicyServiceCollectionExtensions
         collection.AddScoped<UnipassApiFactory>();
         collection.AddScoped<BadgeNumberAllocationService>();
         collection.AddScoped<UnipassAccessPolicyReconciler>();
+        collection.AddSingleton<AccessPolicyReconciliationTrigger>();
+        collection.AddHostedService<AccessPolicyReconciliationWorker>();
 
         return collection;
     }

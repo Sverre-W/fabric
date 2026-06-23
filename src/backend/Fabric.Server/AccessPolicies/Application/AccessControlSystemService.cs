@@ -7,7 +7,10 @@ using AccessControl.Unipass.Entities;
 
 namespace Fabric.Server.AccessPolicies.Application;
 
-public class AccessControlSystemService(AccessPoliciesDbContext db, UnipassApiFactory unipassApiFactory)
+public class AccessControlSystemService(
+    AccessPoliciesDbContext db,
+    UnipassApiFactory unipassApiFactory,
+    UnipassAccessPolicyReconciler unipassReconciler)
 {
     public async Task<Result<AccessControlSystem, AccessControlSystemErrors>> CreateUnipassSystem(
         string name,
@@ -236,6 +239,54 @@ public class AccessControlSystemService(AccessPoliciesDbContext db, UnipassApiFa
             await db.SaveChangesAsync(cancellationToken);
 
         return result;
+    }
+
+    public async Task<Result<AccessControlSystemErrors>> DeleteIdentityMapping(
+        Guid systemId,
+        Guid subjectId,
+        CancellationToken cancellationToken = default)
+    {
+        AccessControlSystem? system = await db.AccessControlSystems
+            .SingleOrDefaultAsync(accessSystem => accessSystem.Id == systemId, cancellationToken);
+
+        if (system is null)
+            return Result.Failure(AccessControlSystemErrors.SystemNotFound);
+
+        IdentityMapping? mapping = await db.IdentityMappings
+            .SingleOrDefaultAsync(item => item.SystemId == systemId && item.SubjectId == subjectId, cancellationToken);
+
+        if (mapping is null)
+            return Result.Failure(AccessControlSystemErrors.IdentityMappingNotFound);
+
+        List<AccessPolicy> policies = await db.AccessPolicies
+            .Include(policy => policy.Requirement)
+            .Where(policy => policy.SystemId == systemId && policy.Subject.Id == subjectId)
+            .ToListAsync(cancellationToken);
+
+        if (system is UnipassAccessControlSystem)
+        {
+            foreach (AccessPolicy policy in policies)
+            {
+                Result<string> revokeResult = await unipassReconciler.RevokePolicyResources(policy, cancellationToken);
+                if (revokeResult.IsFailure(out _))
+                    return Result.Failure(AccessControlSystemErrors.IdentityMappingCleanupFailed);
+            }
+        }
+
+        List<IssuedProviderResource> remainingResources = await db.IssuedProviderResources
+            .Where(resource => resource.SystemId == systemId && resource.SubjectId == subjectId)
+            .ToListAsync(cancellationToken);
+        List<UsedBadgeNumber> remainingBadgeNumbers = await db.UsedBadgeNumbers
+            .Where(number => number.SystemId == systemId && number.SubjectId == subjectId)
+            .ToListAsync(cancellationToken);
+
+        db.IssuedProviderResources.RemoveRange(remainingResources);
+        db.UsedBadgeNumbers.RemoveRange(remainingBadgeNumbers);
+        db.AccessPolicies.RemoveRange(policies);
+        db.IdentityMappings.Remove(mapping);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Result.Success<AccessControlSystemErrors>();
     }
 
     public async Task<Result<AccessControlSystemErrors>> UpdateUnipassConfig(

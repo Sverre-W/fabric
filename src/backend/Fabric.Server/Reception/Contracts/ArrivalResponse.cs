@@ -11,7 +11,7 @@ public record ArrivalResponse(
     string FirstName,
     string LastName,
     string? Company,
-    string ArrivalCode,
+    string? ArrivalCode,
     OnboardingStatus Status,
     DateTimeOffset? OnboardedAt,
     DateTimeOffset? OffboardedAt,

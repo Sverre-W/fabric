@@ -1,8 +1,70 @@
 <!doctype html>
 <html lang="en">
-<body>
-    <h1>You are invited</h1>
-    <p>You have been invited to a visit.</p>
-    <p>Please complete pre-onboarding before arrival.</p>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>You're invited to a visit</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6f8;color:#17202a;font-family:Arial,Helvetica,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">You have been invited to a visit. Review your visit details and bring your QR code when you arrive.</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f6f8;margin:0;padding:0;">
+        <tr>
+            <td align="center" style="padding:28px 12px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background-color:#ffffff;border:1px solid #dfe5eb;border-radius:14px;overflow:hidden;">
+                    <tr>
+                        <td style="padding:28px 32px 20px 32px;background-color:#ffffff;border-bottom:1px solid #e8edf2;">
+                            <div style="font-size:13px;line-height:18px;letter-spacing:0.08em;text-transform:uppercase;color:#637083;font-weight:700;">Fabric</div>
+                            <h1 style="margin:14px 0 8px 0;font-size:28px;line-height:34px;color:#111827;font-weight:700;">You're invited to a visit</h1>
+                            <p style="margin:0;font-size:16px;line-height:24px;color:#4b5563;">Hello {{ Visitor.FirstName }}, please review your visit details before arrival.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:28px 32px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8fafc;border:1px solid #e5eaf0;border-radius:12px;">
+                                <tr>
+                                    <td style="padding:22px 24px;">
+                                        <div style="font-size:13px;line-height:18px;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px;">Visit information</div>
+                                        <p style="margin:0 0 16px 0;font-size:20px;line-height:28px;color:#111827;font-weight:700;">{{ Visit.Summary }}</p>
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding:8px 0;width:120px;font-size:14px;line-height:20px;color:#64748b;vertical-align:top;">Starts</td>
+                                                <td style="padding:8px 0;font-size:14px;line-height:20px;color:#111827;vertical-align:top;">{{ Visit.Start | date: "%d %b %Y %H:%M" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:8px 0;width:120px;font-size:14px;line-height:20px;color:#64748b;vertical-align:top;">Ends</td>
+                                                <td style="padding:8px 0;font-size:14px;line-height:20px;color:#111827;vertical-align:top;">{{ Visit.Stop | date: "%d %b %Y %H:%M" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:8px 0;width:120px;font-size:14px;line-height:20px;color:#64748b;vertical-align:top;">Location</td>
+                                                <td style="padding:8px 0;font-size:14px;line-height:20px;color:#111827;vertical-align:top;">{% if Location %}{{ Location.DisplayName }}{% else %}Not specified{% endif %}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% if QrCodeLink %}
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;background-color:#ffffff;border:1px solid #e5eaf0;border-radius:12px;">
+                                <tr>
+                                    <td style="padding:24px;text-align:center;">
+                                        <div style="font-size:13px;line-height:18px;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px;">Arrival QR code</div>
+                                        <img src="{{ QrCodeLink }}" width="150" height="150" alt="Visit QR code" style="display:block;margin:0 auto 14px auto;border:0;outline:none;text-decoration:none;width:150px;height:150px;">
+                                        <p style="margin:0;font-size:14px;line-height:21px;color:#4b5563;">Show this QR code when you arrive. If images are blocked, open this email again after enabling images.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+                            <p style="margin:22px 0 0 0;font-size:15px;line-height:23px;color:#4b5563;">Please bring valid identification and check in at reception when you arrive.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px;background-color:#f8fafc;border-top:1px solid #e8edf2;">
+                            <p style="margin:0;font-size:12px;line-height:18px;color:#6b7280;">This message was sent by Fabric. If you were not expecting this visit, contact your host.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

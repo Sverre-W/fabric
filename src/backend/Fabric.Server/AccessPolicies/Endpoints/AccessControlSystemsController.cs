@@ -37,6 +37,12 @@ public static class AccessControlSystemEndpoints
             .WithDescription("List identity mappings for an access control system")
             .WithSummary("List identity mappings")
             .Produces<Page<IdentityMappingResponse>>();
+        systems.MapDelete("/{systemId:guid}/identity-mappings/{subjectId:guid}", DeleteIdentityMapping)
+            .WithDescription("Delete an identity mapping and cleanup subject resources for an access control system")
+            .WithSummary("Delete identity mapping")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
         systems.MapPut("/{systemId:guid}/unipass/config", UpdateUnipassConfig)
             .WithDescription("Update Unipass system config")
             .WithSummary("Update Unipass config")
@@ -185,6 +191,16 @@ public static class AccessControlSystemEndpoints
         return Results.Ok(result.Map(mapping => mapping.ToResponse()));
     }
 
+    private static async Task<IResult> DeleteIdentityMapping(
+        Guid systemId,
+        Guid subjectId,
+        AccessControlSystemService service,
+        CancellationToken cancellationToken = default)
+    {
+        Result<AccessControlSystemErrors> result = await service.DeleteIdentityMapping(systemId, subjectId, cancellationToken);
+        return result.AsResponse(MapError);
+    }
+
     private static async Task<IResult> UpdateUnipassConfig(
         Guid systemId,
         [FromBody] UpdateUnipassConfigRequest request,
@@ -328,6 +344,8 @@ public static class AccessControlSystemEndpoints
             AccessControlSystemErrors.AccessLevelTypeAlreadyExists => Problem(StatusCodes.Status409Conflict, "Access level type already exists."),
             AccessControlSystemErrors.BadgeTypeInUse => Problem(StatusCodes.Status409Conflict, "Badge type is in use."),
             AccessControlSystemErrors.AccessLevelTypeInUse => Problem(StatusCodes.Status409Conflict, "Access level type is in use."),
+            AccessControlSystemErrors.IdentityMappingNotFound => Problem(StatusCodes.Status404NotFound, "Identity mapping not found."),
+            AccessControlSystemErrors.IdentityMappingCleanupFailed => Problem(StatusCodes.Status409Conflict, "Identity mapping cleanup failed."),
             _ => Problem(StatusCodes.Status500InternalServerError, "Unexpected access control system error.")
         };
 

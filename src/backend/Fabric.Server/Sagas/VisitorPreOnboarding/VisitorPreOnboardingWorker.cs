@@ -80,9 +80,34 @@ public class VisitorPreOnboardingWorker(
         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
         VisitorPreOnboardingSagaService service = scope.ServiceProvider.GetRequiredService<VisitorPreOnboardingSagaService>();
 
-        int count = await service.ExpirePassedSagasForAllTenantsAsync(cancellationToken);
+        IReadOnlyList<VisitorPreOnboardingSagaWorkItem> workItems = await service.GetExpiredWorkItemsAsync(cancellationToken);
+        int count = 0;
+        foreach (VisitorPreOnboardingSagaWorkItem workItem in workItems)
+        {
+            if (await ExpireSagaAsync(workItem, cancellationToken))
+                count++;
+        }
+
         if (count > 0)
             logger.LogInformation("Expired {Count} sagas past their visit date", count);
+    }
+
+    private async Task<bool> ExpireSagaAsync(VisitorPreOnboardingSagaWorkItem workItem, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+            if (!await SetTenantAsync(scope.ServiceProvider, workItem.TenantId, cancellationToken))
+                return false;
+
+            VisitorPreOnboardingSagaService service = scope.ServiceProvider.GetRequiredService<VisitorPreOnboardingSagaService>();
+            return await service.ExpireAsync(workItem.SagaId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error expiring saga {SagaId} for tenant {TenantId}", workItem.SagaId, workItem.TenantId);
+            return false;
+        }
     }
 
     private static async Task<bool> SetTenantAsync(IServiceProvider serviceProvider, string tenantId, CancellationToken cancellationToken)

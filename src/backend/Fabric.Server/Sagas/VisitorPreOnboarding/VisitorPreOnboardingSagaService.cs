@@ -1,5 +1,9 @@
+using Fabric.Server.AccessPolicies.Application;
+using Fabric.Server.AccessPolicies.Domain;
 using Fabric.Server.Core;
 using Fabric.Server.Infrastructure.Tenancy;
+using Fabric.Server.Locations.Application;
+using Fabric.Server.Locations.Domain;
 using Fabric.Server.Notifications.Services;
 using Fabric.Server.Reception.Application;
 using Fabric.Server.Reception.Domain;
@@ -18,7 +22,10 @@ public enum SagaStepResult
 
 public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContext visitorsDb,
         ReceptionService receptionService,
+        AccessPolicyService accessPolicyService,
+        LocationService locationService,
         EmailNotificationSender emailNotificationSender,
+        TenantBaseUrlResolver tenantBaseUrlResolver,
         IWebHostEnvironment webHostEnvironment,
         TimeProvider timeProvider)
 {
@@ -28,10 +35,12 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
     private const string ConfirmationTemplate = "confirmation-to-organizer.html";
     private const string CancellationTemplate = "cancellation.html";
     private const string RescheduleTemplate = "reschedule.html";
+    private const string RelocationTemplate = "relocation.html";
     private const string InvitationSubject = "You're invited to a visit";
     private const string ConfirmationSubject = "Visitor confirmed participation";
     private const string CancellationSubject = "Your visit has been cancelled";
     private const string RescheduleSubject = "Your visit has been rescheduled";
+    private const string RelocationSubject = "Your visit location has changed";
 
     public async Task<VisitorPreOnboardingSagaConfig> GetConfigurationAsync(CancellationToken cancellationToken = default)
     {
@@ -56,6 +65,8 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         existing.UseCustomInviteNotification = config.UseCustomInviteNotification;
         existing.CustomInviteNotification = config.CustomInviteNotification;
         existing.QrGenerationMode = config.QrGenerationMode;
+        existing.SystemId = config.SystemId;
+        existing.BadgeTypeId = config.BadgeTypeId;
         existing.SendConfirmNotificationToOrganizer = config.SendConfirmNotificationToOrganizer;
         existing.UseCustomConfirmNotification = config.UseCustomConfirmNotification;
         existing.CustomConfirmNotification = config.CustomConfirmNotification;
@@ -65,6 +76,9 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         existing.SendRescheduleNotification = config.SendRescheduleNotification;
         existing.UseCustomRescheduleNotification = config.UseCustomRescheduleNotification;
         existing.CustomRescheduleNotification = config.CustomRescheduleNotification;
+        existing.SendRelocationNotification = config.SendRelocationNotification;
+        existing.UseCustomRelocationNotification = config.UseCustomRelocationNotification;
+        existing.CustomRelocationNotification = config.CustomRelocationNotification;
 
         await db.SaveChangesAsync(cancellationToken);
         return existing;
@@ -110,7 +124,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
 
         VisitorPreOnboardingSagaConfig config = await GetConfigurationAsync(cancellationToken);
         if (config.SendConfirmNotificationToOrganizer)
-            await SendConfirmationToOrganizerAsync(config, visitId, invitationId, cancellationToken);
+            await SendConfirmationToOrganizerAsync(config, saga, cancellationToken);
     }
 
     public async Task RejectAsync(Guid visitId, Guid invitationId, CancellationToken cancellationToken = default)
@@ -148,7 +162,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
             return;
 
         foreach (VisitorPreOnboardingSaga saga in sagas)
-            await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, RescheduleTemplate, config.UseCustomRescheduleNotification, config.CustomRescheduleNotification, RescheduleSubject, cancellationToken);
+            await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, saga.QrCode, RescheduleTemplate, config.UseCustomRescheduleNotification, config.CustomRescheduleNotification, RescheduleSubject, cancellationToken);
 
     }
 
@@ -163,6 +177,13 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
             if (saga.ArrivalId.HasValue)
                 _ = await receptionService.Relocate(saga.ArrivalId.Value, locationId, cancellationToken);
         }
+
+        VisitorPreOnboardingSagaConfig config = await GetConfigurationAsync(cancellationToken);
+        if (!config.SendRelocationNotification)
+            return;
+
+        foreach (VisitorPreOnboardingSaga saga in sagas)
+            await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, saga.QrCode, RelocationTemplate, config.UseCustomRelocationNotification, config.CustomRelocationNotification, RelocationSubject, cancellationToken);
     }
 
     public async Task CancelForVisitAsync(Guid visitId, CancellationToken cancellationToken = default)
@@ -170,9 +191,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         List<VisitorPreOnboardingSaga> sagas = await db.VisitorPreOnboardingSagas
         .Where(x => x.VisitId == visitId)
         .Where(x => x.State != VisitorPreOnboardingState.Cancelled
-                 && x.State != VisitorPreOnboardingState.Expired
-                 && x.State != VisitorPreOnboardingState.Confirmed
-                 && x.State != VisitorPreOnboardingState.Rejected)
+                 && x.State != VisitorPreOnboardingState.Expired)
         .ToListAsync(cancellationToken);
 
         foreach (VisitorPreOnboardingSaga? saga in sagas)
@@ -183,6 +202,9 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         }
 
         await db.SaveChangesAsync(cancellationToken);
+
+        foreach (VisitorPreOnboardingSaga saga in sagas)
+            await ProcessAsync(saga, cancellationToken);
     }
 
     public async Task RetryAsync(Guid sagaId, CancellationToken cancellationToken = default)
@@ -247,14 +269,18 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         .Where(x => x.ExpiresAt <= now)
         .ToListAsync(cancellationToken);
 
+        int count = 0;
         foreach (VisitorPreOnboardingSaga? saga in expired)
-            saga.State = VisitorPreOnboardingState.Expired;
+        {
+            if (await ExpireSagaAsync(saga, cancellationToken))
+                count++;
+        }
 
         await db.SaveChangesAsync(cancellationToken);
-        return expired.Count;
+        return count;
     }
 
-    public async Task<int> ExpirePassedSagasForAllTenantsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<VisitorPreOnboardingSagaWorkItem>> GetExpiredWorkItemsAsync(CancellationToken cancellationToken = default)
     {
         DateTimeOffset now = timeProvider.GetUtcNow();
 
@@ -264,9 +290,35 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
                      || x.State == VisitorPreOnboardingState.GeneratingQr
                      || x.State == VisitorPreOnboardingState.UpdatingArrivalQr
                      || x.State == VisitorPreOnboardingState.SendingInvitation
+                      || x.State == VisitorPreOnboardingState.AwaitingConfirmation)
+            .Where(x => x.ExpiresAt <= now)
+            .Select(x => new VisitorPreOnboardingSagaWorkItem(
+                EF.Property<string>(x, TenantDbContext.TenantIdPropertyName),
+                x.Id))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ExpireAsync(Guid sagaId, CancellationToken cancellationToken = default)
+    {
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        VisitorPreOnboardingSaga? saga = await db.VisitorPreOnboardingSagas
+            .Where(x => x.Id == sagaId)
+            .Where(x => x.State == VisitorPreOnboardingState.RegisteringArrival
+                     || x.State == VisitorPreOnboardingState.GeneratingQr
+                     || x.State == VisitorPreOnboardingState.UpdatingArrivalQr
+                     || x.State == VisitorPreOnboardingState.SendingInvitation
                      || x.State == VisitorPreOnboardingState.AwaitingConfirmation)
             .Where(x => x.ExpiresAt <= now)
-            .ExecuteUpdateAsync(x => x.SetProperty(saga => saga.State, VisitorPreOnboardingState.Expired), cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (saga is null)
+            return false;
+
+        if (!await ExpireSagaAsync(saga, cancellationToken))
+            return false;
+
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task ProcessAsync(Guid sagaId, CancellationToken cancellationToken)
@@ -344,7 +396,10 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
 
     private async Task<SagaStepResult> GenerateQrCodeAsync(VisitorPreOnboardingSaga saga, CancellationToken cancellationToken)
     {
-        // TODO: Call access control system to generate QR — may fail
+        VisitorPreOnboardingSagaConfig config = await GetConfigurationAsync(cancellationToken);
+        if (config.QrGenerationMode == CredentialGenerationMode.AccessControlQr)
+            return await GenerateAccessControlQrCodeAsync(saga, config, cancellationToken);
+
         saga.QrCode = Guid.NewGuid().ToString();
         saga.State = VisitorPreOnboardingState.UpdatingArrivalQr;
         saga.RetryCount = 0;
@@ -352,6 +407,65 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         await db.SaveChangesAsync(cancellationToken);
         return SagaStepResult.Continue;
     }
+
+    private async Task<SagaStepResult> GenerateAccessControlQrCodeAsync(VisitorPreOnboardingSaga saga, VisitorPreOnboardingSagaConfig config, CancellationToken cancellationToken)
+    {
+        if (!config.SystemId.HasValue || !config.BadgeTypeId.HasValue)
+        {
+            SagaStepResult result = ScheduleRetry(saga);
+            await db.SaveChangesAsync(cancellationToken);
+            return result;
+        }
+
+        Visit? visit = await visitorsDb.Visits
+            .Include(x => x.Invitations)
+            .SingleOrDefaultAsync(x => x.Id == saga.VisitId, cancellationToken);
+        VisitInvitation? invitation = visit?.Invitations.FirstOrDefault(x => x.Id == saga.InvitationId);
+        if (visit is null || invitation is null)
+        {
+            SagaStepResult result = ScheduleRetry(saga);
+            await db.SaveChangesAsync(cancellationToken);
+            return result;
+        }
+
+        if (!saga.AccessPolicyId.HasValue)
+        {
+            Result<AccessPolicyChangeResult, AccessPolicyErrors> result = await accessPolicyService.CreateCredentialPolicy(
+                config.SystemId.Value,
+                Subject.Create(invitation.VisitorId, invitation.FirstName, invitation.LastName, SubjectType.Visitor),
+                config.BadgeTypeId.Value,
+                null,
+                visit.Start,
+                visit.Stop,
+                provisionFrom: null,
+                options: new CreateAccessPolicyOptions(AccessPolicyReconciliationFailureBehavior.FailAndRetractPolicy),
+                cancellationToken: cancellationToken);
+
+            if (!result.IsSuccess(out AccessPolicyChangeResult? change) || change.Policy is null || change.Policy.ReconciliationStatus != ReconciliationStatus.Reconciled)
+            {
+                SagaStepResult retry = ScheduleRetry(saga);
+                await db.SaveChangesAsync(cancellationToken);
+                return retry;
+            }
+
+            saga.AccessPolicyId = change.Policy.Id;
+            saga.QrCode = GetAccessControlArrivalCode(change.Policy);
+        }
+
+        saga.QrCode ??= saga.AccessPolicyId.Value.ToString();
+        saga.State = VisitorPreOnboardingState.UpdatingArrivalQr;
+        saga.RetryCount = 0;
+        saga.NextRetryAt = null;
+        await db.SaveChangesAsync(cancellationToken);
+        return SagaStepResult.Continue;
+    }
+
+    private static string GetAccessControlArrivalCode(AccessPolicy policy) =>
+        policy.SatisfiedBy switch
+        {
+            Credential credential => credential.BadgeNumber,
+            _ => policy.Id.ToString()
+        };
 
     private async Task<SagaStepResult> UpdateArrivalQrAsync(VisitorPreOnboardingSaga saga, CancellationToken cancellationToken)
     {
@@ -402,7 +516,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         Result<EmailErrors> emailResult = await emailNotificationSender.SendEmail(
             notification.Subject,
             notification.Body,
-            new SagaNotificationModel(visit, invitation),
+            await CreateNotificationModelAsync(visit, invitation, saga.QrCode, cancellationToken),
             [invitation.Email],
             ct: cancellationToken);
 
@@ -427,16 +541,23 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
             _ = await receptionService.Cancel(saga.ArrivalId.Value, cancellationToken);
         }
 
-        if (saga.QrCode is not null)
+        if (saga.AccessPolicyId.HasValue)
         {
-            // TODO: Cancel QR at access control system
-            await Task.Delay(100, cancellationToken);
+            Result<AccessPolicyChangeResult, AccessPolicyErrors> retract = await accessPolicyService.RetractPolicy(saga.AccessPolicyId.Value, cancellationToken);
+            if (retract.IsFailure(out AccessPolicyErrors error) && error != AccessPolicyErrors.PolicyNotFound)
+            {
+                SagaStepResult result = ScheduleRetry(saga);
+                await db.SaveChangesAsync(cancellationToken);
+                return result;
+            }
+
+            saga.AccessPolicyId = null;
         }
 
         VisitorPreOnboardingSagaConfig config = await GetConfigurationAsync(cancellationToken);
         if (config.SendCancellationNotification)
         {
-            bool sent = await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, CancellationTemplate, config.UseCustomCancellationNotification, config.CustomCancellationNotification, CancellationSubject, cancellationToken);
+            bool sent = await SendVisitorNotificationAsync(saga.VisitId, saga.InvitationId, saga.QrCode, CancellationTemplate, config.UseCustomCancellationNotification, config.CustomCancellationNotification, CancellationSubject, cancellationToken);
             if (!sent)
             {
                 SagaStepResult result = ScheduleRetry(saga);
@@ -452,6 +573,23 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         return SagaStepResult.Continue;
     }
 
+    private async Task<bool> ExpireSagaAsync(VisitorPreOnboardingSaga saga, CancellationToken cancellationToken)
+    {
+        if (saga.AccessPolicyId.HasValue)
+        {
+            Result<AccessPolicyChangeResult, AccessPolicyErrors> retract = await accessPolicyService.RetractPolicy(saga.AccessPolicyId.Value, cancellationToken);
+            if (retract.IsFailure(out AccessPolicyErrors error) && error != AccessPolicyErrors.PolicyNotFound)
+                return false;
+
+            saga.AccessPolicyId = null;
+        }
+
+        saga.State = VisitorPreOnboardingState.Expired;
+        saga.RetryCount = 0;
+        saga.NextRetryAt = null;
+        return true;
+    }
+
     private SagaStepResult ScheduleRetry(VisitorPreOnboardingSaga saga)
     {
         saga.RetryCount++;
@@ -461,16 +599,16 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         return SagaStepResult.Retry;
     }
 
-    private async Task SendConfirmationToOrganizerAsync(VisitorPreOnboardingSagaConfig config, Guid visitId, Guid invitationId, CancellationToken cancellationToken)
+    private async Task SendConfirmationToOrganizerAsync(VisitorPreOnboardingSagaConfig config, VisitorPreOnboardingSaga saga, CancellationToken cancellationToken)
     {
         Visit? visit = await visitorsDb.Visits
             .Include(x => x.Invitations)
-            .SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
+            .SingleOrDefaultAsync(x => x.Id == saga.VisitId, cancellationToken);
 
         if (visit is null)
             return;
 
-        VisitInvitation? invitation = visit.Invitations.FirstOrDefault(x => x.Id == invitationId);
+        VisitInvitation? invitation = visit.Invitations.FirstOrDefault(x => x.Id == saga.InvitationId);
         if (invitation is null)
             return;
 
@@ -482,7 +620,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         _ = await emailNotificationSender.SendEmail(
             notification.Subject,
             notification.Body,
-            new SagaNotificationModel(visit, invitation),
+            await CreateNotificationModelAsync(visit, invitation, saga.QrCode, cancellationToken),
             [organizer.Email],
             ct: cancellationToken);
     }
@@ -490,6 +628,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
     private async Task<bool> SendVisitorNotificationAsync(
         Guid visitId,
         Guid invitationId,
+        string? qrCode,
         string defaultTemplate,
         bool useCustomTemplate,
         CustomNotification? customNotification,
@@ -511,11 +650,28 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         Result<EmailErrors> emailResult = await emailNotificationSender.SendEmail(
             notification.Subject,
             notification.Body,
-            new SagaNotificationModel(visit, invitation),
+            await CreateNotificationModelAsync(visit, invitation, qrCode, cancellationToken),
             [invitation.Email],
             ct: cancellationToken);
 
         return emailResult.IsSuccess(out _);
+    }
+
+    private async Task<SagaNotificationModel> CreateNotificationModelAsync(Visit visit, VisitInvitation invitation, string? qrCode, CancellationToken cancellationToken)
+    {
+        string platformBaseUrl = tenantBaseUrlResolver.GetBaseUrl();
+        string? qrCodeLink = string.IsNullOrWhiteSpace(qrCode)
+            ? null
+            : $"{platformBaseUrl}/api/sagas/visitor-pre-onboarding/qr?code={Uri.EscapeDataString(qrCode)}&size=150";
+
+        LocationNotificationModel? location = null;
+        if (visit.LocationId.HasValue)
+        {
+            Location? visitLocation = await locationService.GetLocationById(visit.LocationId.Value, cancellationToken);
+            location = visitLocation is null ? null : LocationNotificationModel.FromLocation(visitLocation);
+        }
+
+        return new SagaNotificationModel(invitation, VisitNotificationModel.FromVisit(visit), location, platformBaseUrl, qrCodeLink);
     }
 
     private async Task<NotificationContent> GetNotificationContentAsync(string defaultSubject, string defaultTemplate, bool useCustomTemplate, CustomNotification? customNotification, CancellationToken cancellationToken)

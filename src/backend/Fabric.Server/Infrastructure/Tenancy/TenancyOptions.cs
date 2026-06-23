@@ -7,6 +7,7 @@ public sealed class TenancyOptions
     public const string SectionName = "Tenancy";
 
     public TenancyMode Mode { get; set; } = TenancyMode.SingleTenant;
+    public string TenantBaseUrl { get; set; } = "http://localhost:5173";
     public DefaultTenantOptions DefaultTenant { get; set; } = new();
 }
 

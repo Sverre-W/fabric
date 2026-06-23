@@ -81,13 +81,13 @@ public class ReceptionAccessPolicyService(
             return;
 
         TimeSpan gracePeriod = TimeSpan.FromMinutes(assignment.GracePeriodMinutes);
-        Result<AccessPolicyChangeResult, AccessPolicyErrors> result = await accessPolicyService.CreateAccessPolicy(
+        Result<AccessPolicyChangeResult, AccessPolicyErrors> result = await accessPolicyService.CreateAccessPolicyAsync(
             assignment.SystemId,
             Subject.Create(subjectId, arrival.FirstName, arrival.LastName, GetSubjectType(arrival)),
             assignment.AccessLevelTypeId,
             arrival.ExpectedArrivalTime.Subtract(gracePeriod),
             arrival.ExpectedOffboardTime.Add(gracePeriod),
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (!result.IsSuccess(out AccessPolicyChangeResult? change) || change.Policy is null)
             return;

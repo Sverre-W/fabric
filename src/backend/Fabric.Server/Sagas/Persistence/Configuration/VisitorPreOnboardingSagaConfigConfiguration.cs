@@ -17,6 +17,8 @@ public sealed class VisitorPreOnboardingSagaConfigConfiguration : IEntityTypeCon
         builder.Property(x => x.UseCustomInviteNotification).HasColumnName("use_custom_invite_notification").IsRequired();
         ConfigureCustomNotification(builder, x => x.CustomInviteNotification, "custom_invite_notification");
         builder.Property(x => x.QrGenerationMode).HasColumnName("qr_generation_mode").IsRequired().HasConversion<string>().HasMaxLength(50);
+        builder.Property(x => x.SystemId).HasColumnName("system_id");
+        builder.Property(x => x.BadgeTypeId).HasColumnName("badge_type_id");
         builder.Property(x => x.SendConfirmNotificationToOrganizer).HasColumnName("send_confirm_notification_to_organizer").IsRequired();
         builder.Property(x => x.UseCustomConfirmNotification).HasColumnName("use_custom_confirm_notification").IsRequired();
         ConfigureCustomNotification(builder, x => x.CustomConfirmNotification, "custom_confirm_notification");
@@ -26,6 +28,9 @@ public sealed class VisitorPreOnboardingSagaConfigConfiguration : IEntityTypeCon
         builder.Property(x => x.SendRescheduleNotification).HasColumnName("send_reschedule_notification").IsRequired();
         builder.Property(x => x.UseCustomRescheduleNotification).HasColumnName("use_custom_reschedule_notification").IsRequired();
         ConfigureCustomNotification(builder, x => x.CustomRescheduleNotification, "custom_reschedule_notification");
+        builder.Property(x => x.SendRelocationNotification).HasColumnName("send_relocation_notification").IsRequired();
+        builder.Property(x => x.UseCustomRelocationNotification).HasColumnName("use_custom_relocation_notification").IsRequired();
+        ConfigureCustomNotification(builder, x => x.CustomRelocationNotification, "custom_relocation_notification");
 
         builder.ToTable(x =>
         {
@@ -33,6 +38,10 @@ public sealed class VisitorPreOnboardingSagaConfigConfiguration : IEntityTypeCon
             AddCustomNotificationCheckConstraint(x, "confirm", "custom_confirm_notification");
             AddCustomNotificationCheckConstraint(x, "cancellation", "custom_cancellation_notification");
             AddCustomNotificationCheckConstraint(x, "reschedule", "custom_reschedule_notification");
+            AddCustomNotificationCheckConstraint(x, "relocation", "custom_relocation_notification");
+            x.HasCheckConstraint(
+                "ck_vpo_config_access_control_qr_ids",
+                "(qr_generation_mode <> 'AccessControlQr') OR (system_id IS NOT NULL AND badge_type_id IS NOT NULL)");
         });
 
         TenantDbContext.ConfigureTenantProperty(builder);

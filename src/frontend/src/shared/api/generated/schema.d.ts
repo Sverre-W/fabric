@@ -279,8 +279,6 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    Page?: number | string;
-                    PageSize?: number | string;
                     SystemId?: string;
                     SubjectId?: string;
                     Name?: string;
@@ -530,7 +528,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["CreateAccessControlSystemRequest"];
                 };
@@ -674,8 +672,6 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    Page?: number | string;
-                    PageSize?: number | string;
                     Name?: string;
                     subjectIds: string[];
                 };
@@ -701,6 +697,64 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-policies/access-control-systems/{systemId}/identity-mappings/{subjectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete identity mapping
+         * @description Delete an identity mapping and cleanup subject resources for an access control system
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    systemId: string;
+                    subjectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -3057,6 +3111,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sagas/visitor-pre-onboarding/qr": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Generate visitor QR
+         * @description Generate a visitor QR image
+         */
+        get: {
+            parameters: {
+                query: {
+                    code: string;
+                    size?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3077,6 +3180,7 @@ export interface components {
         AccessControlSystemResponseUnipassAccessControlSystemResponse: {
             /** @enum {string} */
             type?: "unipass";
+            username: string;
             badgeTypes: components["schemas"]["UnipassBadgeTypeResponse"][];
             accessLevels: components["schemas"]["UnipassAccessLevelTypeResponse"][];
             /** Format: uuid */
@@ -3085,7 +3189,6 @@ export interface components {
             endpoint: string;
             sslValidation: boolean;
             hasSecret: boolean;
-            username: string;
         };
         AccessLevelTypeResponse: components["schemas"]["AccessLevelTypeResponseUnipassAccessLevelTypeResponse"] | components["schemas"]["AccessLevelTypeResponseLenelAccessLevelTypeResponse"];
         AccessLevelTypeResponseLenelAccessLevelTypeResponse: {
@@ -3125,12 +3228,15 @@ export interface components {
             systemId: string;
             subject: components["schemas"]["SubjectResponse"];
             /** Format: date-time */
+            provisionFrom: string;
+            /** Format: date-time */
             effectiveFrom: string;
             /** Format: date-time */
             effectiveUntil: string;
             requirement: components["schemas"]["PolicyRequirementResponse"];
             reconciliationStatus: components["schemas"]["ReconciliationStatus"];
             reconciliationFailureReason: null | string;
+            satisfiedBy: null | components["schemas"]["IssuedResourceResponse"];
         };
         AccessRuleAssignmentResponse: {
             /** Format: uuid */
@@ -3214,7 +3320,7 @@ export interface components {
             firstName: string;
             lastName: string;
             company: null | string;
-            arrivalCode: string;
+            arrivalCode: null | string;
             status: components["schemas"]["OnboardingStatus"];
             /** Format: date-time */
             onboardedAt: null | string;
@@ -3295,17 +3401,6 @@ export interface components {
             transport: components["schemas"]["ModeOfTransport"];
             licensePlate: null | string;
         };
-        CreateAccessPolicyRequest: {
-            /** Format: uuid */
-            systemId: string;
-            subject: components["schemas"]["SubjectRequest"];
-            /** Format: uuid */
-            accessLevelTypeId: string;
-            /** Format: date-time */
-            effectiveFrom: string;
-            /** Format: date-time */
-            effectiveUntil: string;
-        };
         CreateAccessControlSystemRequest: components["schemas"]["CreateAccessControlSystemRequestCreateUnipassAccessControlSystemRequest"] | components["schemas"]["CreateAccessControlSystemRequestCreateLenelAccessControlSystemRequest"];
         CreateAccessControlSystemRequestCreateLenelAccessControlSystemRequest: {
             /** @enum {string} */
@@ -3323,6 +3418,19 @@ export interface components {
             name: string;
             endpoint: string;
             sslValidation: boolean;
+        };
+        CreateAccessPolicyRequest: {
+            /** Format: uuid */
+            systemId: string;
+            subject: components["schemas"]["SubjectRequest"];
+            /** Format: uuid */
+            accessLevelTypeId: string;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveUntil: string;
+            /** Format: date-time */
+            provisionFrom: null | string;
         };
         CreateAccessRuleAssignmentRequest: {
             /** Format: uuid */
@@ -3347,6 +3455,8 @@ export interface components {
             effectiveFrom: string;
             /** Format: date-time */
             effectiveUntil: string;
+            /** Format: date-time */
+            provisionFrom: null | string;
         };
         CreateSiteRequest: {
             /** Format: uuid */
@@ -3822,6 +3932,8 @@ export interface components {
             invitationId?: string;
             /** Format: uuid */
             arrivalId?: null | string;
+            /** Format: uuid */
+            accessPolicyId?: null | string;
             qrCode?: null | string;
             /** Format: date-time */
             createdAt?: string;
@@ -3839,6 +3951,10 @@ export interface components {
             useCustomInviteNotification?: boolean;
             customInviteNotification?: null | components["schemas"]["CustomNotification"];
             qrGenerationMode?: components["schemas"]["CredentialGenerationMode"];
+            /** Format: uuid */
+            systemId?: null | string;
+            /** Format: uuid */
+            badgeTypeId?: null | string;
             sendConfirmNotificationToOrganizer?: boolean;
             useCustomConfirmNotification?: boolean;
             customConfirmNotification?: null | components["schemas"]["CustomNotification"];
@@ -3848,11 +3964,18 @@ export interface components {
             sendRescheduleNotification?: boolean;
             useCustomRescheduleNotification?: boolean;
             customRescheduleNotification?: null | components["schemas"]["CustomNotification"];
+            sendRelocationNotification?: boolean;
+            useCustomRelocationNotification?: boolean;
+            customRelocationNotification?: null | components["schemas"]["CustomNotification"];
         };
         VisitorPreOnboardingSagaConfigRequest: {
             useCustomInviteNotification: boolean;
             customInviteNotification: null | components["schemas"]["CustomNotification"];
             qrGenerationMode: components["schemas"]["CredentialGenerationMode"];
+            /** Format: uuid */
+            systemId: null | string;
+            /** Format: uuid */
+            badgeTypeId: null | string;
             sendConfirmNotificationToOrganizer: boolean;
             useCustomConfirmNotification: boolean;
             customConfirmNotification: null | components["schemas"]["CustomNotification"];
@@ -3862,6 +3985,9 @@ export interface components {
             sendRescheduleNotification: boolean;
             useCustomRescheduleNotification: boolean;
             customRescheduleNotification: null | components["schemas"]["CustomNotification"];
+            sendRelocationNotification: boolean;
+            useCustomRelocationNotification: boolean;
+            customRelocationNotification: null | components["schemas"]["CustomNotification"];
         };
         /** @enum {unknown} */
         VisitorPreOnboardingState: "RegisteringArrival" | "GeneratingQr" | "UpdatingArrivalQr" | "SendingInvitation" | "AwaitingConfirmation" | "Confirmed" | "Rejected" | "Cancelling" | "Cancelled" | "Expired";

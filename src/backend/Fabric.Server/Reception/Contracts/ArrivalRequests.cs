@@ -16,7 +16,7 @@ public record RegisterVisitorArrivalRequest(
     Guid InvitationId,
     DateTimeOffset ExpectedArrivalTime,
     DateTimeOffset ExpectedOffboardTime,
-    string ArrivalCode,
+    string? ArrivalCode,
     Guid LocationId
 );
 
@@ -25,7 +25,7 @@ public record RegisterContractorArrivalRequest(
     Guid JobAssignmentId,
     DateTimeOffset ExpectedArrivalTime,
     DateTimeOffset ExpectedOffboardTime,
-    string ArrivalCode,
+    string? ArrivalCode,
     Guid LocationId
 );
 
