@@ -94,8 +94,7 @@ public sealed class Visit
         if (invitation is null)
             return Result.Failure(VisitErrors.InvitationNotFound);
 
-        invitation.Reject(timestamp);
-        return Result.Success<VisitErrors>();
+        return invitation.Reject(timestamp);
     }
 
     public Result<VisitErrors> Cancel()

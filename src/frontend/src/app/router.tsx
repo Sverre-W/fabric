@@ -24,6 +24,7 @@ const ReceptionDeskSettingsPage = lazy(() => import('@/features/settings/recepti
 const TenantSettingsPage = lazy(() => import('@/features/settings/tenant-settings-page'));
 const VisitorsSettingsPage = lazy(() => import('@/features/settings/visitors-settings-page'));
 const VisitorsManagementLayout = lazy(() => import('@/features/visitors-management/visitors-management-layout'));
+const VisitorConfirmationPage = lazy(() => import('@/features/visitor-confirmation/visitor-confirmation-page'));
 const OrganizerCreatePage = lazy(() => import('@/features/visitors-management/organizer-create-page'));
 const OrganizerEditPage = lazy(() => import('@/features/visitors-management/organizer-edit-page'));
 const OrganizersPage = lazy(() => import('@/features/visitors-management/organizers-page'));
@@ -87,6 +88,12 @@ const receptionDeskRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/reception-desk',
   component: () => <ProtectedLazyRoute component={<ReceptionDeskPage />} />,
+});
+
+const visitorConfirmationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/visitor-confirmation/$visitId/$invitationId',
+  component: () => <LazyRoute component={<VisitorConfirmationPage />} />,
 });
 
 const facilityRoute = createRoute({
@@ -246,6 +253,7 @@ const routeTree = rootRoute.addChildren([
   organizationsRoute,
   auditRoute,
   receptionDeskRoute,
+  visitorConfirmationRoute,
   facilityRoute.addChildren([
     facilityIndexRoute,
     facilityLocationsRoute,

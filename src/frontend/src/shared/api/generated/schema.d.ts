@@ -2605,6 +2605,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/visitors/visits/{visitId}/invitations/{invitationId}/confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve visit confirmation
+         * @description Retrieve anonymous visit confirmation details
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    visitId: string;
+                    invitationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VisitConfirmationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/visitors/visits/{visitId}/invitations/{invitationId}/confirm": {
         parameters: {
             query?: never;
@@ -3905,6 +3954,37 @@ export interface components {
         };
         UpdateVisitSummaryRequest: {
             summary: string;
+        };
+        VisitConfirmationResponse: {
+            /** Format: uuid */
+            visitId: string;
+            /** Format: uuid */
+            invitationId: string;
+            summary: string;
+            status: components["schemas"]["VisitStatus"];
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            stop: string;
+            /** Format: uuid */
+            locationId: null | string;
+            organizer: components["schemas"]["OrganizerResponse"];
+            visitor: components["schemas"]["VisitConfirmationVisitorResponse"];
+            confirmationStatus: components["schemas"]["ParticipantConfirmationStatus"];
+            /** Format: date-time */
+            rejectedAt: null | string;
+            /** Format: date-time */
+            confirmedAt: null | string;
+            transport: null | components["schemas"]["ModeOfTransport"];
+        };
+        VisitConfirmationVisitorResponse: {
+            /** Format: uuid */
+            visitorId: string;
+            firstName: string;
+            lastName: string;
+            email: string;
+            company: string;
+            licensePlate: null | string;
         };
         VisitInvitationResponse: {
             /** Format: uuid */

@@ -58,6 +58,9 @@ public sealed class VisitInvitation
         string? licensePlate,
         DateTimeOffset timestamp)
     {
+        if (ConfirmationStatus != ParticipantConfirmationStatus.Tentative)
+            return Result.Failure(VisitErrors.InvitationAlreadyResponded);
+
         if (modeOfTransport == ModeOfTransport.Car && string.IsNullOrWhiteSpace(licensePlate))
             return Result.Failure(VisitErrors.LicensePlateRequired);
 
@@ -70,14 +73,19 @@ public sealed class VisitInvitation
         return Result.Success<VisitErrors>();
     }
 
-    internal void Reject(DateTimeOffset timestamp)
+    internal Result<VisitErrors> Reject(DateTimeOffset timestamp)
     {
+        if (ConfirmationStatus != ParticipantConfirmationStatus.Tentative)
+            return Result.Failure(VisitErrors.InvitationAlreadyResponded);
+
         ConfirmationStatus = ParticipantConfirmationStatus.Rejected;
         RejectedAt = timestamp;
         ConfirmedAt = null;
         Transport = null;
         LicensePlate = null;
         NoShowAt = null;
+
+        return Result.Success<VisitErrors>();
     }
 
     internal void MarkArrived(DateTimeOffset timestamp)

@@ -23,6 +23,8 @@ namespace Fabric.Server.Visitors;
 [JsonSerializable(typeof(UpdateOrganizerRequest))]
 [JsonSerializable(typeof(UpdateVisitSummaryRequest))]
 [JsonSerializable(typeof(VisitInvitationResponse))]
+[JsonSerializable(typeof(VisitConfirmationResponse))]
+[JsonSerializable(typeof(VisitConfirmationVisitorResponse))]
 [JsonSerializable(typeof(VisitResponse))]
 [JsonSerializable(typeof(VisitStatus[]))]
 internal sealed partial class VisitorsJsonSerializerContext : JsonSerializerContext;

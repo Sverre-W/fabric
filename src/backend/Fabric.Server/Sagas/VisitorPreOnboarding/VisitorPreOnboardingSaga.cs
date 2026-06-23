@@ -157,7 +157,7 @@ public sealed record CustomNotification
     public required string Body { get; init; }
 }
 
-public record SagaNotificationModel(VisitInvitation Visitor, VisitNotificationModel Visit, LocationNotificationModel? Location, string PlatformBaseUrl, string? QrCodeLink);
+public record SagaNotificationModel(VisitInvitation Visitor, VisitNotificationModel Visit, LocationNotificationModel? Location, string PlatformBaseUrl, string? QrCodeLink, string ConfirmationLink);
 
 public record VisitNotificationModel(
     Guid Id,

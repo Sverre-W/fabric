@@ -915,6 +915,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         string? qrCodeLink = string.IsNullOrWhiteSpace(qrCode)
             ? null
             : $"{platformBaseUrl}/api/sagas/visitor-pre-onboarding/qr?code={Uri.EscapeDataString(qrCode)}&size=150";
+        string confirmationLink = $"{platformBaseUrl}/visitor-confirmation/{visit.Id}/{invitation.Id}";
 
         LocationNotificationModel? location = null;
         if (visit.LocationId.HasValue)
@@ -923,7 +924,7 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
             location = visitLocation is null ? null : LocationNotificationModel.FromLocation(visitLocation);
         }
 
-        return new SagaNotificationModel(invitation, VisitNotificationModel.FromVisit(visit), location, platformBaseUrl, qrCodeLink);
+        return new SagaNotificationModel(invitation, VisitNotificationModel.FromVisit(visit), location, platformBaseUrl, qrCodeLink, confirmationLink);
     }
 
     private async Task<NotificationContent> GetNotificationContentAsync(string defaultSubject, string defaultTemplate, bool useCustomTemplate, CustomNotification? customNotification, CancellationToken cancellationToken)

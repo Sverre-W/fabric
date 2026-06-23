@@ -1038,4 +1038,111 @@ describe('App', () => {
       expect(window.sessionStorage.getItem('fabric.visits.calendar')).toContain('Completed');
     });
   });
+
+  it('renders anonymous visitor confirmation details', async () => {
+    authState.isAuthenticated = false;
+    authState.user = undefined;
+    window.history.pushState({}, '', '/visitor-confirmation/visit-1/invitation-1');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/visitors/visits/{visitId}/invitations/{invitationId}/confirmation') {
+        return Promise.resolve({ data: visitConfirmationResponse() });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: 'Board review' })).toBeInTheDocument();
+    expect(screen.getByText(/Invited as Ada Lovelace/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /accept visit/i })).toBeEnabled();
+    expect(signinRedirectMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts an anonymous visitor confirmation once', async () => {
+    authState.isAuthenticated = false;
+    authState.user = undefined;
+    window.history.pushState({}, '', '/visitor-confirmation/visit-1/invitation-1');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/visitors/visits/{visitId}/invitations/{invitationId}/confirmation') {
+        return Promise.resolve({ data: visitConfirmationResponse() });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByDisplayValue('Ada')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /accept visit/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/visitors/visits/{visitId}/invitations/{invitationId}/confirm', expect.objectContaining({
+        params: { path: { visitId: 'visit-1', invitationId: 'invitation-1' } },
+        body: expect.objectContaining({ firstName: 'Ada', lastName: 'Lovelace', transport: 'Car', licensePlate: 'AB12345' }),
+      }));
+    });
+  });
+
+  it('disables anonymous confirmation when invitation is already answered', async () => {
+    authState.isAuthenticated = false;
+    authState.user = undefined;
+    window.history.pushState({}, '', '/visitor-confirmation/visit-1/invitation-1');
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/visitors/visits/{visitId}/invitations/{invitationId}/confirmation') {
+        return Promise.resolve({ data: visitConfirmationResponse({ confirmationStatus: 'Confirmed', confirmedAt: '2026-07-01T09:00:00.000Z' }) });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByText('Visit accepted')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /accept visit/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /reject visit/i })).toBeDisabled();
+  });
 });
+
+function visitConfirmationResponse(overrides: Record<string, unknown> = {}) {
+  return {
+    visitId: 'visit-1',
+    invitationId: 'invitation-1',
+    summary: 'Board review',
+    status: 'Scheduled',
+    start: '2026-07-01T09:00:00.000Z',
+    stop: '2026-07-01T10:00:00.000Z',
+    locationId: null,
+    organizer: {
+      id: 'organizer-1',
+      firstName: 'Grace',
+      lastName: 'Hopper',
+      email: 'grace@example.test',
+    },
+    visitor: {
+      visitorId: 'visitor-1',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      email: 'ada@example.test',
+      company: 'Analytical Engines',
+      licensePlate: 'AB12345',
+    },
+    confirmationStatus: 'Tentative',
+    rejectedAt: null,
+    confirmedAt: null,
+    transport: null,
+    ...overrides,
+  };
+}

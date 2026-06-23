@@ -70,7 +70,14 @@ public static class VisitorEndpoints
             .Produces<VisitInvitationResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        visits.MapGet("/{visitId:guid}/invitations/{invitationId:guid}/confirmation", GetVisitConfirmation)
+            .AllowAnonymous()
+            .WithDescription("Retrieve anonymous visit confirmation details")
+            .WithSummary("Retrieve visit confirmation")
+            .Produces<VisitConfirmationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
         visits.MapPost("/{visitId:guid}/invitations/{invitationId:guid}/confirm", ConfirmInvitation)
+            .AllowAnonymous()
             .WithDescription("Confirm participation in a visit")
             .WithSummary("Confirm invitation")
             .Produces(StatusCodes.Status204NoContent)
@@ -78,6 +85,7 @@ public static class VisitorEndpoints
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
         visits.MapPost("/{visitId:guid}/invitations/{invitationId:guid}/reject", RejectInvitation)
+            .AllowAnonymous()
             .WithDescription("Reject participation in a visit")
             .WithSummary("Reject invitation")
             .Produces(StatusCodes.Status204NoContent)
@@ -105,6 +113,7 @@ public static class VisitorEndpoints
             query = query.Where(visitor =>
                 EF.Functions.ILike(visitor.FirstName, filter)
                 || EF.Functions.ILike(visitor.LastName, filter)
+                || EF.Functions.ILike(visitor.FirstName + " " + visitor.LastName, filter)
                 || EF.Functions.ILike(visitor.Email, filter)
                 || EF.Functions.ILike(visitor.Company!, filter)
             );
@@ -316,6 +325,30 @@ public static class VisitorEndpoints
         return result.Map(x => x.ToResponse()).AsResponse(MapError);
     }
 
+    private static async Task<IResult> GetVisitConfirmation(
+        Guid visitId,
+        Guid invitationId,
+        VisitorsDbContext db,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Visit? visit = await db
+            .Visits.Include(x => x.Invitations.Where(invitation => invitation.Id == invitationId))
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
+
+        VisitInvitation? invitation = visit?.Invitations.SingleOrDefault();
+        if (visit is null || invitation is null)
+            return Results.NotFound();
+
+        Organizer organizer = await db.Organizers.AsNoTracking().SingleAsync(
+            x => x.Id == visit.OrganizerId,
+            cancellationToken
+        );
+
+        return Results.Ok(visit.ToConfirmationResponse(invitation, organizer));
+    }
+
     private static async Task<IResult> ConfirmInvitation(
 
         Guid visitId,
@@ -398,6 +431,10 @@ public static class VisitorEndpoints
             VisitErrors.DuplicateInvitationEmail => Problem(
                 StatusCodes.Status409Conflict,
                 "Invitation email already exists."
+            ),
+            VisitErrors.InvitationAlreadyResponded => Problem(
+                StatusCodes.Status409Conflict,
+                "Invitation has already been responded to."
             ),
             VisitErrors.LicensePlateRequired => Problem(
                 StatusCodes.Status400BadRequest,
