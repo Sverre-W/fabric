@@ -3922,6 +3922,10 @@ export interface components {
             confirmedAt: null | string;
             transport: null | components["schemas"]["ModeOfTransport"];
             licensePlate: null | string;
+            /** Format: date-time */
+            arrivedAt: null | string;
+            /** Format: date-time */
+            noShowAt: null | string;
         };
         VisitorPreOnboardingSaga: {
             /** Format: uuid */
@@ -3935,6 +3939,8 @@ export interface components {
             /** Format: uuid */
             accessPolicyId?: null | string;
             qrCode?: null | string;
+            /** Format: date-time */
+            arrivalNotificationSentAt?: null | string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -3967,6 +3973,9 @@ export interface components {
             sendRelocationNotification?: boolean;
             useCustomRelocationNotification?: boolean;
             customRelocationNotification?: null | components["schemas"]["CustomNotification"];
+            sendArrivalNotificationToOrganizer?: boolean;
+            useCustomArrivalNotification?: boolean;
+            customArrivalNotification?: null | components["schemas"]["CustomNotification"];
         };
         VisitorPreOnboardingSagaConfigRequest: {
             useCustomInviteNotification: boolean;
@@ -3988,6 +3997,9 @@ export interface components {
             sendRelocationNotification: boolean;
             useCustomRelocationNotification: boolean;
             customRelocationNotification: null | components["schemas"]["CustomNotification"];
+            sendArrivalNotificationToOrganizer: boolean;
+            useCustomArrivalNotification: boolean;
+            customArrivalNotification: null | components["schemas"]["CustomNotification"];
         };
         /** @enum {unknown} */
         VisitorPreOnboardingState: "RegisteringArrival" | "GeneratingQr" | "UpdatingArrivalQr" | "SendingInvitation" | "AwaitingConfirmation" | "Confirmed" | "Rejected" | "Cancelling" | "Cancelled" | "Expired";

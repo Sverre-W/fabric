@@ -3,6 +3,7 @@ using Fabric.Server.Reception.Application;
 using Fabric.Server.Reception.Contracts;
 using Fabric.Server.Reception.Domain;
 using Fabric.Server.Reception.Persistence;
+using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -117,6 +118,8 @@ public static class ArrivalEndpoints
         Guid id,
         [FromBody] OnboardArrivalRequest request,
         ReceptionService receptionService,
+        ReceptionDbContext db,
+        VisitorPreOnboardingSagaService onboardingSagaService,
         CancellationToken cancellationToken = default)
     {
         List<CheckInDocumentRequirement> requiredDocs = request.RequiredDocuments
@@ -133,6 +136,13 @@ public static class ArrivalEndpoints
 ;
 
         Result<ReceptionErrors> result = await receptionService.Onboard(id, requiredDocs, providedDocs, cancellationToken);
+        if (result.IsSuccess(out _))
+        {
+            ExpectedArrival? arrival = await db.Arrivals.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (arrival?.Type == ArrivalType.Visitor)
+                await onboardingSagaService.EnqueueVisitorArrivedAsync(id, cancellationToken);
+        }
+
         return result.AsResponse(MapError);
     }
 

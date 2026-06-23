@@ -80,7 +80,7 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
 
         if (visit is null)
             return Result.Failure(VisitErrors.VisitNotFound);
-        Result<VisitErrors> result = visit.Complete();
+        Result<VisitErrors> result = visit.Complete(timeProvider.GetUtcNow());
 
         if (result.IsSuccess(out _))
             await db.SaveChangesAsync(cancellationToken);
@@ -221,6 +221,23 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
         await db.SaveChangesAsync(cancellationToken);
 
         return Result.Success<Visitor, VisitErrors>(visitor);
+    }
+
+    public async Task<Result<VisitErrors>> MarkVisitorArrived(Guid visitId, Guid invitationId,
+        CancellationToken cancellationToken = default)
+    {
+        Visit? visit = await GetVisitAggregate(visitId, cancellationToken);
+
+        if (visit is null)
+            return Result.Failure(VisitErrors.VisitNotFound);
+
+        Result<VisitErrors> result = visit.MarkVisitorArrived(invitationId, timeProvider.GetUtcNow());
+
+        if (result.IsSuccess(out _))
+            await db.SaveChangesAsync(cancellationToken);
+
+        return result;
+
     }
 
 }

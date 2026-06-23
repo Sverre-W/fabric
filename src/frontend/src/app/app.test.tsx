@@ -897,6 +897,9 @@ describe('App', () => {
             sendRelocationNotification: false,
             useCustomRelocationNotification: false,
             customRelocationNotification: null,
+            sendArrivalNotificationToOrganizer: false,
+            useCustomArrivalNotification: false,
+            customArrivalNotification: null,
           },
         });
       }

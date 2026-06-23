@@ -110,7 +110,7 @@ public sealed class Visit
         return Result.Success<VisitErrors>();
     }
 
-    public Result<VisitErrors> Complete()
+    public Result<VisitErrors> Complete(DateTimeOffset timestamp)
     {
         if (Status == VisitStatus.Cancelled)
             return Result.Failure(VisitErrors.Cancelled);
@@ -118,7 +118,24 @@ public sealed class Visit
         if (Status == VisitStatus.Completed)
             return Result.Failure(VisitErrors.Completed);
 
+        foreach (VisitInvitation invitation in Invitations)
+            invitation.MarkNoShow(timestamp);
+
         Status = VisitStatus.Completed;
+        return Result.Success<VisitErrors>();
+    }
+
+    public Result<VisitErrors> MarkVisitorArrived(Guid invitationId, DateTimeOffset timestamp)
+    {
+        Result<VisitErrors> guard = GuardScheduled();
+        if (guard.IsFailure(out _))
+            return guard;
+
+        VisitInvitation? invitation = Invitations.SingleOrDefault(x => x.Id == invitationId);
+        if (invitation is null)
+            return Result.Failure(VisitErrors.InvitationNotFound);
+
+        invitation.MarkArrived(timestamp);
         return Result.Success<VisitErrors>();
     }
 

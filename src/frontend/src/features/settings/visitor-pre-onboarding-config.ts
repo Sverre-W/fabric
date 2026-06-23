@@ -49,6 +49,9 @@ export function getDefaultVisitorPreOnboardingConfig(): VisitorPreOnboardingSaga
     sendRelocationNotification: false,
     useCustomRelocationNotification: false,
     customRelocationNotification: null,
+    sendArrivalNotificationToOrganizer: false,
+    useCustomArrivalNotification: false,
+    customArrivalNotification: null,
   };
 }
 
@@ -73,5 +76,8 @@ function toRequest(config: VisitorPreOnboardingSagaConfig): VisitorPreOnboarding
     sendRelocationNotification: config.sendRelocationNotification ?? defaults.sendRelocationNotification,
     useCustomRelocationNotification: config.useCustomRelocationNotification ?? defaults.useCustomRelocationNotification,
     customRelocationNotification: config.customRelocationNotification ?? defaults.customRelocationNotification,
+    sendArrivalNotificationToOrganizer: config.sendArrivalNotificationToOrganizer ?? defaults.sendArrivalNotificationToOrganizer,
+    useCustomArrivalNotification: config.useCustomArrivalNotification ?? defaults.useCustomArrivalNotification,
+    customArrivalNotification: config.customArrivalNotification ?? defaults.customArrivalNotification,
   };
 }

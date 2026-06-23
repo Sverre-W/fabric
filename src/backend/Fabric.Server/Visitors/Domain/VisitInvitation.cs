@@ -36,6 +36,8 @@ public sealed class VisitInvitation
 
     public ModeOfTransport? Transport { get; internal set; }
     public string? LicensePlate { get; internal set; }
+    public DateTimeOffset? ArrivedAt { get; internal set; }
+    public DateTimeOffset? NoShowAt { get; internal set; }
 
     internal static VisitInvitation Create(Guid id, Guid visitorId, string firstName, string lastName, string email, string company)
     {
@@ -75,5 +77,20 @@ public sealed class VisitInvitation
         ConfirmedAt = null;
         Transport = null;
         LicensePlate = null;
+        NoShowAt = null;
+    }
+
+    internal void MarkArrived(DateTimeOffset timestamp)
+    {
+        ArrivedAt ??= timestamp;
+        NoShowAt = null;
+    }
+
+    internal void MarkNoShow(DateTimeOffset timestamp)
+    {
+        if (ConfirmationStatus == ParticipantConfirmationStatus.Rejected || ArrivedAt.HasValue)
+            return;
+
+        NoShowAt ??= timestamp;
     }
 }

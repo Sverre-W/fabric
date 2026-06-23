@@ -1,6 +1,6 @@
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bell, MailCheck, Route, Send } from 'lucide-react';
+import { Bell, MailCheck, Route, Send, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { api } from '@/shared/api/client';
@@ -203,6 +203,21 @@ export default function VisitorsSettingsPage() {
                 />
 
                 <NotificationTemplateSection
+                  icon={<UserCheck className="size-4" aria-hidden="true" />}
+                  title="Organizer arrival"
+                  description="Optionally notify organizers when reception marks a visitor as arrived."
+                  sendEnabled={values.sendArrivalNotificationToOrganizer}
+                  sendLabel="Send arrival to organizer"
+                  customEnabled={values.useCustomArrivalNotification}
+                  customSubject={values.customArrivalNotification?.subject ?? ''}
+                  customBody={values.customArrivalNotification?.body ?? ''}
+                  onSendEnabledChange={(checked) => setValues((current) => ({ ...current, sendArrivalNotificationToOrganizer: checked, useCustomArrivalNotification: checked ? current.useCustomArrivalNotification : false, customArrivalNotification: checked ? current.customArrivalNotification : null }))}
+                  onCustomEnabledChange={(checked) => setValues((current) => ({ ...current, useCustomArrivalNotification: checked, customArrivalNotification: checked ? current.customArrivalNotification : null }))}
+                  onCustomSubjectChange={(subject) => setValues((current) => ({ ...current, customArrivalNotification: updateCustomNotification(current.customArrivalNotification, 'subject', subject) }))}
+                  onCustomBodyChange={(body) => setValues((current) => ({ ...current, customArrivalNotification: updateCustomNotification(current.customArrivalNotification, 'body', body) }))}
+                />
+
+                <NotificationTemplateSection
                   icon={<Bell className="size-4" aria-hidden="true" />}
                   title="Cancellation"
                   description="Notify visitors when visit cancellation moves their onboarding saga into cancellation."
@@ -399,6 +414,9 @@ function toRequest(config: VisitorPreOnboardingSagaConfigRequest): VisitorPreOnb
     sendRelocationNotification: config.sendRelocationNotification,
     useCustomRelocationNotification: config.useCustomRelocationNotification,
     customRelocationNotification: config.customRelocationNotification,
+    sendArrivalNotificationToOrganizer: config.sendArrivalNotificationToOrganizer,
+    useCustomArrivalNotification: config.useCustomArrivalNotification,
+    customArrivalNotification: config.customArrivalNotification,
   };
 }
 
@@ -412,6 +430,7 @@ function normalize(config: VisitorPreOnboardingSagaConfigRequest): VisitorPreOnb
     customCancellationNotification: normalizeNotification(config.useCustomCancellationNotification, config.customCancellationNotification),
     customRescheduleNotification: normalizeNotification(config.useCustomRescheduleNotification, config.customRescheduleNotification),
     customRelocationNotification: normalizeNotification(config.useCustomRelocationNotification, config.customRelocationNotification),
+    customArrivalNotification: normalizeNotification(config.useCustomArrivalNotification, config.customArrivalNotification),
   };
 }
 

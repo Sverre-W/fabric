@@ -18,6 +18,7 @@ public sealed class VisitorPreOnboardingSagaConfiguration : IEntityTypeConfigura
         builder.Property(x => x.ArrivalId).HasColumnName("arrival_id");
         builder.Property(x => x.AccessPolicyId).HasColumnName("access_policy_id");
         builder.Property(x => x.QrCode).HasColumnName("qr_code").HasMaxLength(2000);
+        builder.Property(x => x.ArrivalNotificationSentAt).HasColumnName("arrival_notification_sent_at");
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.ExpiresAt).HasColumnName("expires_at").IsRequired();
         builder.Property(x => x.NextRetryAt).HasColumnName("next_retry_at");

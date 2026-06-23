@@ -12,11 +12,73 @@ public class VisitorPreOnboardingSaga
     public Guid? ArrivalId { get; set; }
     public Guid? AccessPolicyId { get; set; }
     public string? QrCode { get; set; }
+    public DateTimeOffset? ArrivalNotificationSentAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset? NextRetryAt { get; set; }
     public int RetryCount { get; set; }
     public VisitorPreOnboardingState State { get; set; }
+}
+
+public sealed class VisitorPreOnboardingSagaEvent
+{
+    private VisitorPreOnboardingSagaEvent() { }
+
+    public Guid Id { get; private set; }
+    public VisitorPreOnboardingSagaEventType Type { get; private set; }
+    public Guid? SagaId { get; private set; }
+    public Guid? VisitId { get; private set; }
+    public Guid? InvitationId { get; private set; }
+    public Guid? ArrivalId { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset? NextRetryAt { get; private set; }
+    public int RetryCount { get; private set; }
+    public DateTimeOffset? ProcessedAt { get; private set; }
+    public string? FailureReason { get; private set; }
+
+    public static VisitorPreOnboardingSagaEvent Create(
+        VisitorPreOnboardingSagaEventType type,
+        DateTimeOffset createdAt,
+        Guid? sagaId = null,
+        Guid? visitId = null,
+        Guid? invitationId = null,
+        Guid? arrivalId = null) =>
+        new()
+        {
+            Id = Guid.NewGuid(),
+            Type = type,
+            SagaId = sagaId,
+            VisitId = visitId,
+            InvitationId = invitationId,
+            ArrivalId = arrivalId,
+            CreatedAt = createdAt,
+            RetryCount = 0,
+        };
+
+    public void MarkProcessed(DateTimeOffset timestamp)
+    {
+        ProcessedAt = timestamp;
+        FailureReason = null;
+        NextRetryAt = null;
+    }
+
+    public void ScheduleRetry(DateTimeOffset nextRetryAt, string? failureReason)
+    {
+        RetryCount++;
+        NextRetryAt = nextRetryAt;
+        FailureReason = string.IsNullOrWhiteSpace(failureReason) ? null : failureReason;
+    }
+}
+
+public enum VisitorPreOnboardingSagaEventType
+{
+    Started,
+    VisitorConfirmed,
+    VisitorRejected,
+    VisitCancelled,
+    VisitRescheduled,
+    VisitRelocated,
+    VisitorArrived,
 }
 
 public enum VisitorPreOnboardingState
@@ -59,6 +121,9 @@ public class VisitorPreOnboardingSagaConfig
     public bool SendRelocationNotification { get; set; }
     public bool UseCustomRelocationNotification { get; set; }
     public CustomNotification? CustomRelocationNotification { get; set; }
+    public bool SendArrivalNotificationToOrganizer { get; set; }
+    public bool UseCustomArrivalNotification { get; set; }
+    public CustomNotification? CustomArrivalNotification { get; set; }
 
     public static VisitorPreOnboardingSagaConfig Default => new()
     {
@@ -80,6 +145,9 @@ public class VisitorPreOnboardingSagaConfig
         SendRelocationNotification = false,
         UseCustomRelocationNotification = false,
         CustomRelocationNotification = null,
+        SendArrivalNotificationToOrganizer = false,
+        UseCustomArrivalNotification = false,
+        CustomArrivalNotification = null,
     };
 }
 

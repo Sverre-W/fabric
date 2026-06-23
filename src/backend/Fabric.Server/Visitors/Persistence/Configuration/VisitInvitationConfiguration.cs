@@ -25,6 +25,8 @@ public sealed class VisitInvitationConfiguration : IEntityTypeConfiguration<Visi
         builder.Property(invitation => invitation.ConfirmedAt).HasColumnName("confirmed_at");
         builder.Property(invitation => invitation.Transport).HasColumnName("transport").HasConversion<string>().HasMaxLength(50);
         builder.Property(invitation => invitation.LicensePlate).HasColumnName("license_plate").HasMaxLength(50);
+        builder.Property(invitation => invitation.ArrivedAt).HasColumnName("arrived_at");
+        builder.Property(invitation => invitation.NoShowAt).HasColumnName("no_show_at");
 
         TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(TenantDbContext.TenantIdPropertyName, "visit_id", nameof(VisitInvitation.Email))

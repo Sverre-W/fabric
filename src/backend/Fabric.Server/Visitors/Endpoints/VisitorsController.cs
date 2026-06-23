@@ -1,5 +1,4 @@
 using Fabric.Server.Core;
-using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Fabric.Server.Visitors.Application;
 using Fabric.Server.Visitors.Contracts;
@@ -228,7 +227,7 @@ public static class VisitorEndpoints
 
         if (result.IsSuccess(out _))
         {
-            await onboardingSagaService.CancelForVisitAsync(id, cancellationToken);
+            await onboardingSagaService.EnqueueVisitCancelledAsync(id, cancellationToken);
         }
 
         return result.AsResponse(MapError);
@@ -251,7 +250,7 @@ public static class VisitorEndpoints
 
         if (result.IsSuccess(out _))
         {
-            await onboardingSagaService.VisitRescheduled(id, request.Start, request.Stop, cancellationToken);
+            await onboardingSagaService.EnqueueVisitRescheduledAsync(id, cancellationToken);
         }
 
         return result.AsResponse(MapError);
@@ -280,7 +279,7 @@ public static class VisitorEndpoints
         Result<VisitErrors> result = await visitService.Relocate(id, request.LocationId, cancellationToken);
 
         if (result.IsSuccess(out _) && request.LocationId.HasValue)
-            await onboardingSagaService.VisitRelocated(id, request.LocationId.Value, cancellationToken);
+            await onboardingSagaService.EnqueueVisitRelocatedAsync(id, cancellationToken);
 
         return result.AsResponse(MapError);
     }
@@ -290,8 +289,6 @@ public static class VisitorEndpoints
         [FromBody] InviteVisitRequest request,
         VisitService visitService,
         VisitorPreOnboardingSagaService onboardingSagaService,
-        VisitorPreOnboardingSagaTrigger onboardingSagaTrigger,
-        ITenantContext tenantContext,
         VisitorsDbContext db,
         CancellationToken cancellationToken = default
     )
@@ -308,14 +305,12 @@ public static class VisitorEndpoints
         if (result.IsSuccess(out VisitInvitation? invitation))
         {
             Visit visit = await db.Visits.SingleAsync(x => x.Id == id, cancellationToken);
-            VisitorPreOnboardingSaga saga = await onboardingSagaService.StartAsync(
+            _ = await onboardingSagaService.StartAsync(
                 visit.Id,
                 invitation.Id,
                 visit.Start,
                 cancellationToken
             );
-
-            await onboardingSagaTrigger.EnqueueAsync(new VisitorPreOnboardingSagaWorkItem(tenantContext.TenantId, saga.Id), cancellationToken);
         }
 
         return result.Map(x => x.ToResponse()).AsResponse(MapError);
@@ -345,7 +340,7 @@ public static class VisitorEndpoints
 
         if (result.IsSuccess(out Visitor visitor))
         {
-            await onboardingSagaService.ConfirmAsync(visitor, visitId, invitationId, cancellationToken);
+            await onboardingSagaService.EnqueueVisitorConfirmedAsync(visitId, invitationId, cancellationToken);
         }
 
         return result.AsResponse(MapError);
@@ -363,7 +358,7 @@ public static class VisitorEndpoints
 
         if (result.IsSuccess(out _))
         {
-            await onboardingSagaService.RejectAsync(visitId, invitationId, cancellationToken);
+            await onboardingSagaService.EnqueueVisitorRejectedAsync(visitId, invitationId, cancellationToken);
         }
 
         return result.AsResponse(MapError);

@@ -7,6 +7,7 @@ using Fabric.Server.Locations.Domain;
 using Fabric.Server.Notifications.Services;
 using Fabric.Server.Reception.Application;
 using Fabric.Server.Reception.Domain;
+using Fabric.Server.Visitors.Application;
 using Fabric.Server.Visitors.Domain;
 using Fabric.Server.Visitors.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -22,10 +23,12 @@ public enum SagaStepResult
 
 public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContext visitorsDb,
         ReceptionService receptionService,
+        VisitService visitService,
         AccessPolicyService accessPolicyService,
         LocationService locationService,
         EmailNotificationSender emailNotificationSender,
         TenantBaseUrlResolver tenantBaseUrlResolver,
+        VisitorPreOnboardingSagaTrigger trigger,
         IWebHostEnvironment webHostEnvironment,
         TimeProvider timeProvider)
 {
@@ -36,11 +39,13 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
     private const string CancellationTemplate = "cancellation.html";
     private const string RescheduleTemplate = "reschedule.html";
     private const string RelocationTemplate = "relocation.html";
+    private const string ArrivalTemplate = "arrival-to-organizer.html";
     private const string InvitationSubject = "You're invited to a visit";
     private const string ConfirmationSubject = "Visitor confirmed participation";
     private const string CancellationSubject = "Your visit has been cancelled";
     private const string RescheduleSubject = "Your visit has been rescheduled";
     private const string RelocationSubject = "Your visit location has changed";
+    private const string ArrivalSubject = "Visitor has arrived";
 
     public async Task<VisitorPreOnboardingSagaConfig> GetConfigurationAsync(CancellationToken cancellationToken = default)
     {
@@ -79,6 +84,9 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         existing.SendRelocationNotification = config.SendRelocationNotification;
         existing.UseCustomRelocationNotification = config.UseCustomRelocationNotification;
         existing.CustomRelocationNotification = config.CustomRelocationNotification;
+        existing.SendArrivalNotificationToOrganizer = config.SendArrivalNotificationToOrganizer;
+        existing.UseCustomArrivalNotification = config.UseCustomArrivalNotification;
+        existing.CustomArrivalNotification = config.CustomArrivalNotification;
 
         await db.SaveChangesAsync(cancellationToken);
         return existing;
@@ -105,16 +113,60 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
         };
 
         db.VisitorPreOnboardingSagas.Add(saga);
+        db.VisitorPreOnboardingSagaEvents.Add(VisitorPreOnboardingSagaEvent.Create(
+            VisitorPreOnboardingSagaEventType.Started,
+            timeProvider.GetUtcNow(),
+            sagaId: saga.Id));
         await db.SaveChangesAsync(cancellationToken);
+        trigger.Notify();
         return saga;
+    }
+
+    public async Task EnqueueVisitorConfirmedAsync(Guid visitId, Guid invitationId, CancellationToken cancellationToken = default) =>
+        await EnqueueEventAsync(VisitorPreOnboardingSagaEventType.VisitorConfirmed, visitId: visitId, invitationId: invitationId, cancellationToken: cancellationToken);
+
+    public async Task EnqueueVisitorRejectedAsync(Guid visitId, Guid invitationId, CancellationToken cancellationToken = default) =>
+        await EnqueueEventAsync(VisitorPreOnboardingSagaEventType.VisitorRejected, visitId: visitId, invitationId: invitationId, cancellationToken: cancellationToken);
+
+    public async Task EnqueueVisitCancelledAsync(Guid visitId, CancellationToken cancellationToken = default) =>
+        await EnqueueEventAsync(VisitorPreOnboardingSagaEventType.VisitCancelled, visitId: visitId, cancellationToken: cancellationToken);
+
+    public async Task EnqueueVisitRescheduledAsync(Guid visitId, CancellationToken cancellationToken = default) =>
+        await EnqueueEventAsync(VisitorPreOnboardingSagaEventType.VisitRescheduled, visitId: visitId, cancellationToken: cancellationToken);
+
+    public async Task EnqueueVisitRelocatedAsync(Guid visitId, CancellationToken cancellationToken = default) =>
+        await EnqueueEventAsync(VisitorPreOnboardingSagaEventType.VisitRelocated, visitId: visitId, cancellationToken: cancellationToken);
+
+    public async Task EnqueueVisitorArrivedAsync(Guid arrivalId, CancellationToken cancellationToken = default) =>
+        await EnqueueEventAsync(VisitorPreOnboardingSagaEventType.VisitorArrived, arrivalId: arrivalId, cancellationToken: cancellationToken);
+
+    private async Task EnqueueEventAsync(
+        VisitorPreOnboardingSagaEventType type,
+        Guid? sagaId = null,
+        Guid? visitId = null,
+        Guid? invitationId = null,
+        Guid? arrivalId = null,
+        CancellationToken cancellationToken = default)
+    {
+        db.VisitorPreOnboardingSagaEvents.Add(VisitorPreOnboardingSagaEvent.Create(
+            type,
+            timeProvider.GetUtcNow(),
+            sagaId,
+            visitId,
+            invitationId,
+            arrivalId));
+        await db.SaveChangesAsync(cancellationToken);
+        trigger.Notify();
     }
 
     public async Task ConfirmAsync(Visitor visitor, Guid visitId, Guid invitationId, CancellationToken cancellationToken = default)
     {
-        VisitorPreOnboardingSaga saga = await db.VisitorPreOnboardingSagas
+        VisitorPreOnboardingSaga? saga = await db.VisitorPreOnboardingSagas
         .Where(x => x.VisitId == visitId && x.InvitationId == invitationId)
-        .Where(x => x.State == VisitorPreOnboardingState.AwaitingConfirmation)
-        .SingleAsync(cancellationToken);
+        .SingleOrDefaultAsync(cancellationToken);
+
+        if (saga is null || saga.State is VisitorPreOnboardingState.Confirmed or VisitorPreOnboardingState.Cancelled or VisitorPreOnboardingState.Expired)
+            return;
 
         if (saga.ArrivalId.HasValue)
             _ = await receptionService.ConfirmVisitor(visitor.FirstName, visitor.LastName, visitor.Company, saga.ArrivalId.Value, cancellationToken);
@@ -129,10 +181,12 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
 
     public async Task RejectAsync(Guid visitId, Guid invitationId, CancellationToken cancellationToken = default)
     {
-        VisitorPreOnboardingSaga saga = await db.VisitorPreOnboardingSagas
+        VisitorPreOnboardingSaga? saga = await db.VisitorPreOnboardingSagas
         .Where(x => x.VisitId == visitId && x.InvitationId == invitationId)
-        .Where(x => x.State == VisitorPreOnboardingState.AwaitingConfirmation)
-        .SingleAsync(cancellationToken);
+        .SingleOrDefaultAsync(cancellationToken);
+
+        if (saga is null || saga.State is VisitorPreOnboardingState.Rejected or VisitorPreOnboardingState.Cancelled or VisitorPreOnboardingState.Expired)
+            return;
 
         if (saga.ArrivalId.HasValue)
             _ = await receptionService.RejectConfirmationVisitor(saga.ArrivalId.Value, cancellationToken);
@@ -319,6 +373,185 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
 
         await db.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetDueEventIdsAsync(int take, CancellationToken cancellationToken = default)
+    {
+        DateTimeOffset now = timeProvider.GetUtcNow();
+
+        return await db.VisitorPreOnboardingSagaEvents
+            .AsNoTracking()
+            .Where(x => x.ProcessedAt == null)
+            .Where(x => x.NextRetryAt == null || x.NextRetryAt <= now)
+            .OrderBy(x => x.CreatedAt)
+            .Take(take)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<VisitorPreOnboardingSagaEventWorkItem>> GetDueEventWorkItemsAsync(int take, CancellationToken cancellationToken = default)
+    {
+        DateTimeOffset now = timeProvider.GetUtcNow();
+
+        return await db.VisitorPreOnboardingSagaEvents
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(x => x.ProcessedAt == null)
+            .Where(x => x.NextRetryAt == null || x.NextRetryAt <= now)
+            .OrderBy(x => x.CreatedAt)
+            .Take(take)
+            .Select(x => new VisitorPreOnboardingSagaEventWorkItem(
+                EF.Property<string>(x, TenantDbContext.TenantIdPropertyName),
+                x.Id))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task ProcessEventAsync(Guid eventId, CancellationToken cancellationToken = default)
+    {
+        VisitorPreOnboardingSagaEvent? sagaEvent = await db.VisitorPreOnboardingSagaEvents
+            .SingleOrDefaultAsync(x => x.Id == eventId && x.ProcessedAt == null, cancellationToken);
+
+        if (sagaEvent is null)
+            return;
+
+        try
+        {
+            bool processed = await HandleEventAsync(sagaEvent, cancellationToken);
+            if (processed)
+            {
+                sagaEvent.MarkProcessed(timeProvider.GetUtcNow());
+            }
+            else
+            {
+                ScheduleEventRetry(sagaEvent, "Event handler could not complete.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ScheduleEventRetry(sagaEvent, ex.Message);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<bool> HandleEventAsync(VisitorPreOnboardingSagaEvent sagaEvent, CancellationToken cancellationToken) =>
+        sagaEvent.Type switch
+        {
+            VisitorPreOnboardingSagaEventType.Started when sagaEvent.SagaId.HasValue => await HandleStartedEventAsync(sagaEvent.SagaId.Value, cancellationToken),
+            VisitorPreOnboardingSagaEventType.VisitorConfirmed when sagaEvent.VisitId.HasValue && sagaEvent.InvitationId.HasValue => await HandleVisitorConfirmedEventAsync(sagaEvent.VisitId.Value, sagaEvent.InvitationId.Value, cancellationToken),
+            VisitorPreOnboardingSagaEventType.VisitorRejected when sagaEvent.VisitId.HasValue && sagaEvent.InvitationId.HasValue => await HandleVisitorRejectedEventAsync(sagaEvent.VisitId.Value, sagaEvent.InvitationId.Value, cancellationToken),
+            VisitorPreOnboardingSagaEventType.VisitCancelled when sagaEvent.VisitId.HasValue => await HandleVisitCancelledEventAsync(sagaEvent.VisitId.Value, cancellationToken),
+            VisitorPreOnboardingSagaEventType.VisitRescheduled when sagaEvent.VisitId.HasValue => await HandleVisitRescheduledEventAsync(sagaEvent.VisitId.Value, cancellationToken),
+            VisitorPreOnboardingSagaEventType.VisitRelocated when sagaEvent.VisitId.HasValue => await HandleVisitRelocatedEventAsync(sagaEvent.VisitId.Value, cancellationToken),
+            VisitorPreOnboardingSagaEventType.VisitorArrived when sagaEvent.ArrivalId.HasValue => await HandleVisitorArrivedEventAsync(sagaEvent.ArrivalId.Value, cancellationToken),
+            _ => true,
+        };
+
+    private async Task<bool> HandleStartedEventAsync(Guid sagaId, CancellationToken cancellationToken)
+    {
+        await ProcessAsync(sagaId, cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> HandleVisitorConfirmedEventAsync(Guid visitId, Guid invitationId, CancellationToken cancellationToken)
+    {
+        VisitorPreOnboardingSaga? saga = await db.VisitorPreOnboardingSagas
+            .SingleOrDefaultAsync(x => x.VisitId == visitId && x.InvitationId == invitationId, cancellationToken);
+        if (saga is null)
+            return false;
+
+        if (saga.State is VisitorPreOnboardingState.Confirmed or VisitorPreOnboardingState.Cancelled or VisitorPreOnboardingState.Expired)
+            return true;
+
+        if (saga.State != VisitorPreOnboardingState.AwaitingConfirmation)
+            return false;
+
+        Visit? visit = await visitorsDb.Visits
+            .Include(x => x.Invitations)
+            .SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
+        VisitInvitation? invitation = visit?.Invitations.SingleOrDefault(x => x.Id == invitationId);
+        if (visit is null || invitation is null)
+            return false;
+
+        Visitor? visitor = await visitorsDb.Visitors.SingleOrDefaultAsync(x => x.Id == invitation.VisitorId, cancellationToken);
+        if (visitor is null)
+            return false;
+
+        await ConfirmAsync(visitor, visitId, invitationId, cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> HandleVisitorRejectedEventAsync(Guid visitId, Guid invitationId, CancellationToken cancellationToken)
+    {
+        VisitorPreOnboardingSaga? saga = await db.VisitorPreOnboardingSagas
+            .SingleOrDefaultAsync(x => x.VisitId == visitId && x.InvitationId == invitationId, cancellationToken);
+        if (saga is null)
+            return false;
+
+        if (saga.State is VisitorPreOnboardingState.Rejected or VisitorPreOnboardingState.Cancelled or VisitorPreOnboardingState.Expired)
+            return true;
+
+        if (saga.State != VisitorPreOnboardingState.AwaitingConfirmation)
+            return false;
+
+        await RejectAsync(visitId, invitationId, cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> HandleVisitCancelledEventAsync(Guid visitId, CancellationToken cancellationToken)
+    {
+        await CancelForVisitAsync(visitId, cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> HandleVisitRescheduledEventAsync(Guid visitId, CancellationToken cancellationToken)
+    {
+        Visit? visit = await visitorsDb.Visits.AsNoTracking().SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
+        if (visit is null)
+            return false;
+
+        await VisitRescheduled(visitId, visit.Start, visit.Stop, cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> HandleVisitRelocatedEventAsync(Guid visitId, CancellationToken cancellationToken)
+    {
+        Visit? visit = await visitorsDb.Visits.AsNoTracking().SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
+        if (visit is null || !visit.LocationId.HasValue)
+            return false;
+
+        await VisitRelocated(visitId, visit.LocationId.Value, cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> HandleVisitorArrivedEventAsync(Guid arrivalId, CancellationToken cancellationToken)
+    {
+        VisitorPreOnboardingSaga? saga = await db.VisitorPreOnboardingSagas
+            .SingleOrDefaultAsync(x => x.ArrivalId == arrivalId, cancellationToken);
+        if (saga is null)
+            return false;
+
+        Result<VisitErrors> result = await visitService.MarkVisitorArrived(saga.VisitId, saga.InvitationId, cancellationToken);
+        if (result.IsFailure(out _))
+            return false;
+
+        VisitorPreOnboardingSagaConfig config = await GetConfigurationAsync(cancellationToken);
+        if (config.SendArrivalNotificationToOrganizer && !saga.ArrivalNotificationSentAt.HasValue)
+        {
+            bool sent = await SendOrganizerNotificationAsync(config, saga, ArrivalTemplate, config.UseCustomArrivalNotification, config.CustomArrivalNotification, ArrivalSubject, cancellationToken);
+            if (!sent)
+                return false;
+
+            saga.ArrivalNotificationSentAt = timeProvider.GetUtcNow();
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private void ScheduleEventRetry(VisitorPreOnboardingSagaEvent sagaEvent, string? failureReason)
+    {
+        sagaEvent.ScheduleRetry(GetRetryAt(sagaEvent.RetryCount + 1), failureReason);
     }
 
     public async Task ProcessAsync(Guid sagaId, CancellationToken cancellationToken)
@@ -593,36 +826,55 @@ public class VisitorPreOnboardingSagaService(SagasDbContext db, VisitorsDbContex
     private SagaStepResult ScheduleRetry(VisitorPreOnboardingSaga saga)
     {
         saga.RetryCount++;
-        var delay = TimeSpan.FromMinutes(5 * Math.Pow(2, saga.RetryCount - 1));
-        var capped = TimeSpan.FromMinutes(Math.Min(delay.TotalMinutes, 60));
-        saga.NextRetryAt = timeProvider.GetUtcNow().Add(capped);
+        saga.NextRetryAt = GetRetryAt(saga.RetryCount);
         return SagaStepResult.Retry;
     }
 
+    private DateTimeOffset GetRetryAt(int retryCount)
+    {
+        var delay = TimeSpan.FromMinutes(5 * Math.Pow(2, retryCount - 1));
+        var capped = TimeSpan.FromMinutes(Math.Min(delay.TotalMinutes, 60));
+        return timeProvider.GetUtcNow().Add(capped);
+    }
+
     private async Task SendConfirmationToOrganizerAsync(VisitorPreOnboardingSagaConfig config, VisitorPreOnboardingSaga saga, CancellationToken cancellationToken)
+    {
+        _ = await SendOrganizerNotificationAsync(config, saga, ConfirmationTemplate, config.UseCustomConfirmNotification, config.CustomConfirmNotification, ConfirmationSubject, cancellationToken);
+    }
+
+    private async Task<bool> SendOrganizerNotificationAsync(
+        VisitorPreOnboardingSagaConfig config,
+        VisitorPreOnboardingSaga saga,
+        string defaultTemplate,
+        bool useCustomTemplate,
+        CustomNotification? customNotification,
+        string subject,
+        CancellationToken cancellationToken)
     {
         Visit? visit = await visitorsDb.Visits
             .Include(x => x.Invitations)
             .SingleOrDefaultAsync(x => x.Id == saga.VisitId, cancellationToken);
 
         if (visit is null)
-            return;
+            return false;
 
         VisitInvitation? invitation = visit.Invitations.FirstOrDefault(x => x.Id == saga.InvitationId);
         if (invitation is null)
-            return;
+            return false;
 
         Organizer? organizer = await visitorsDb.Organizers.SingleOrDefaultAsync(x => x.Id == visit.OrganizerId, cancellationToken);
         if (organizer is null)
-            return;
+            return false;
 
-        NotificationContent notification = await GetNotificationContentAsync(ConfirmationSubject, ConfirmationTemplate, config.UseCustomConfirmNotification, config.CustomConfirmNotification, cancellationToken);
-        _ = await emailNotificationSender.SendEmail(
+        NotificationContent notification = await GetNotificationContentAsync(subject, defaultTemplate, useCustomTemplate, customNotification, cancellationToken);
+        Result<EmailErrors> emailResult = await emailNotificationSender.SendEmail(
             notification.Subject,
             notification.Body,
             await CreateNotificationModelAsync(visit, invitation, saga.QrCode, cancellationToken),
             [organizer.Email],
             ct: cancellationToken);
+
+        return emailResult.IsSuccess(out _);
     }
 
     private async Task<bool> SendVisitorNotificationAsync(

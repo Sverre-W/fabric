@@ -3,21 +3,23 @@ using System.Threading.Channels;
 namespace Fabric.Server.Sagas.VisitorPreOnboarding;
 
 public sealed record VisitorPreOnboardingSagaWorkItem(string TenantId, Guid SagaId);
+public sealed record VisitorPreOnboardingSagaEventWorkItem(string TenantId, Guid EventId);
 
 public sealed class VisitorPreOnboardingSagaTrigger
 {
-    private readonly Channel<VisitorPreOnboardingSagaWorkItem> _channel = Channel.CreateUnbounded<VisitorPreOnboardingSagaWorkItem>(new UnboundedChannelOptions
+    private readonly Channel<bool> _channel = Channel.CreateBounded<bool>(new BoundedChannelOptions(1)
     {
         SingleReader = true,
         SingleWriter = false,
+        FullMode = BoundedChannelFullMode.DropWrite,
     });
 
-    public ValueTask EnqueueAsync(VisitorPreOnboardingSagaWorkItem workItem, CancellationToken cancellationToken = default) =>
-        _channel.Writer.WriteAsync(workItem, cancellationToken);
+    public void Notify() =>
+        _channel.Writer.TryWrite(true);
 
     public ValueTask<bool> WaitToReadAsync(CancellationToken cancellationToken) =>
         _channel.Reader.WaitToReadAsync(cancellationToken);
 
-    public bool TryRead(out VisitorPreOnboardingSagaWorkItem? workItem) =>
-        _channel.Reader.TryRead(out workItem);
+    public bool TryRead() =>
+        _channel.Reader.TryRead(out _);
 }

@@ -31,6 +31,9 @@ public sealed class VisitorPreOnboardingSagaConfigConfiguration : IEntityTypeCon
         builder.Property(x => x.SendRelocationNotification).HasColumnName("send_relocation_notification").IsRequired();
         builder.Property(x => x.UseCustomRelocationNotification).HasColumnName("use_custom_relocation_notification").IsRequired();
         ConfigureCustomNotification(builder, x => x.CustomRelocationNotification, "custom_relocation_notification");
+        builder.Property(x => x.SendArrivalNotificationToOrganizer).HasColumnName("send_arrival_notification_to_organizer").IsRequired();
+        builder.Property(x => x.UseCustomArrivalNotification).HasColumnName("use_custom_arrival_notification").IsRequired();
+        ConfigureCustomNotification(builder, x => x.CustomArrivalNotification, "custom_arrival_notification");
 
         builder.ToTable(x =>
         {
@@ -39,6 +42,7 @@ public sealed class VisitorPreOnboardingSagaConfigConfiguration : IEntityTypeCon
             AddCustomNotificationCheckConstraint(x, "cancellation", "custom_cancellation_notification");
             AddCustomNotificationCheckConstraint(x, "reschedule", "custom_reschedule_notification");
             AddCustomNotificationCheckConstraint(x, "relocation", "custom_relocation_notification");
+            AddCustomNotificationCheckConstraint(x, "arrival", "custom_arrival_notification");
             x.HasCheckConstraint(
                 "ck_vpo_config_access_control_qr_ids",
                 "(qr_generation_mode <> 'AccessControlQr') OR (system_id IS NOT NULL AND badge_type_id IS NOT NULL)");

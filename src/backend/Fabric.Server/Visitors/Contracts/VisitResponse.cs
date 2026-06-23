@@ -24,7 +24,9 @@ public record VisitInvitationResponse(
     DateTimeOffset? RejectedAt,
     DateTimeOffset? ConfirmedAt,
     ModeOfTransport? Transport,
-    string? LicensePlate);
+    string? LicensePlate,
+    DateTimeOffset? ArrivedAt,
+    DateTimeOffset? NoShowAt);
 
 public record VisitorResponse(Guid Id, string FirstName, string LastName, string Email, string? Company, string? LicensePlate);
 

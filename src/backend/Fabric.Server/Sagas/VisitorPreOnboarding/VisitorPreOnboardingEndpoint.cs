@@ -116,6 +116,9 @@ public static class VisitorPreOnboardingSagaEndpoints
             SendRelocationNotification = request.SendRelocationNotification,
             UseCustomRelocationNotification = request.SendRelocationNotification && request.UseCustomRelocationNotification,
             CustomRelocationNotification = request.SendRelocationNotification && request.UseCustomRelocationNotification ? request.CustomRelocationNotification : null,
+            SendArrivalNotificationToOrganizer = request.SendArrivalNotificationToOrganizer,
+            UseCustomArrivalNotification = request.SendArrivalNotificationToOrganizer && request.UseCustomArrivalNotification,
+            CustomArrivalNotification = request.SendArrivalNotificationToOrganizer && request.UseCustomArrivalNotification ? request.CustomArrivalNotification : null,
         };
 
         VisitorPreOnboardingSagaConfig updated = await service.UpdateConfigurationAsync(config, cancellationToken);
@@ -141,6 +144,9 @@ public static class VisitorPreOnboardingSagaEndpoints
 
         if (!IsValidCustomNotification(request.SendRelocationNotification && request.UseCustomRelocationNotification, request.CustomRelocationNotification))
             return ValidationProblem("Custom relocation notification requires subject and body.");
+
+        if (!IsValidCustomNotification(request.SendArrivalNotificationToOrganizer && request.UseCustomArrivalNotification, request.CustomArrivalNotification))
+            return ValidationProblem("Custom arrival notification requires subject and body.");
 
         return null;
     }
@@ -213,4 +219,7 @@ public sealed record VisitorPreOnboardingSagaConfigRequest(
     CustomNotification? CustomRescheduleNotification,
     bool SendRelocationNotification,
     bool UseCustomRelocationNotification,
-    CustomNotification? CustomRelocationNotification);
+    CustomNotification? CustomRelocationNotification,
+    bool SendArrivalNotificationToOrganizer,
+    bool UseCustomArrivalNotification,
+    CustomNotification? CustomArrivalNotification);

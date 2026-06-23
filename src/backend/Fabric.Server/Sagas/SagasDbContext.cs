@@ -10,6 +10,7 @@ public class SagasDbContext : TenantDbContext
     public const string Schema = "sagas";
     public DbSet<VisitorPreOnboardingSaga> VisitorPreOnboardingSagas { get; set; } = null!;
     public DbSet<VisitorPreOnboardingSagaConfig> VisitorPreOnboardingSagaConfigs { get; set; } = null!;
+    public DbSet<VisitorPreOnboardingSagaEvent> VisitorPreOnboardingSagaEvents { get; set; } = null!;
 
     public SagasDbContext(DbContextOptions<SagasDbContext> options, ITenantContext tenantContext)
         : base(options, tenantContext)
@@ -26,6 +27,7 @@ public class SagasDbContext : TenantDbContext
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfiguration(new VisitorPreOnboardingSagaConfiguration());
         modelBuilder.ApplyConfiguration(new VisitorPreOnboardingSagaConfigConfiguration());
+        modelBuilder.ApplyConfiguration(new VisitorPreOnboardingSagaEventConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 }

@@ -8,7 +8,8 @@ public class VisitorPreOnboardingWorker(
     ILogger<VisitorPreOnboardingWorker> logger,
     TimeProvider timeProvider) : BackgroundService
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(5);
+    private const int EventBatchSize = 100;
+    private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(1);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -25,7 +26,8 @@ public class VisitorPreOnboardingWorker(
                 if (!await triggerReady)
                     break;
 
-                await ProcessTriggeredSagasAsync(stoppingToken);
+                while (trigger.TryRead()) { }
+                await ProcessDueEventsAsync(stoppingToken);
                 triggerReady = trigger.WaitToReadAsync(stoppingToken).AsTask();
             }
 
@@ -34,6 +36,7 @@ public class VisitorPreOnboardingWorker(
                 if (!await timerReady)
                     break;
 
+                await ProcessDueEventsAsync(stoppingToken);
                 await ProcessDueSagasAsync(stoppingToken);
                 await ExpireSagasAsync(stoppingToken);
                 timerReady = timer.WaitForNextTickAsync(stoppingToken).AsTask();
@@ -41,10 +44,20 @@ public class VisitorPreOnboardingWorker(
         }
     }
 
-    private async Task ProcessTriggeredSagasAsync(CancellationToken cancellationToken)
+    private async Task ProcessDueEventsAsync(CancellationToken cancellationToken)
     {
-        while (trigger.TryRead(out VisitorPreOnboardingSagaWorkItem? workItem) && workItem is not null)
-            await ProcessSagaAsync(workItem, cancellationToken);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+            VisitorPreOnboardingSagaService service = scope.ServiceProvider.GetRequiredService<VisitorPreOnboardingSagaService>();
+
+            IReadOnlyList<VisitorPreOnboardingSagaEventWorkItem> workItems = await service.GetDueEventWorkItemsAsync(EventBatchSize, cancellationToken);
+            foreach (VisitorPreOnboardingSagaEventWorkItem workItem in workItems)
+                await ProcessEventAsync(workItem, cancellationToken);
+
+            if (workItems.Count < EventBatchSize)
+                break;
+        }
     }
 
     private async Task ProcessDueSagasAsync(CancellationToken cancellationToken)
@@ -72,6 +85,23 @@ public class VisitorPreOnboardingWorker(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing saga {SagaId} for tenant {TenantId}", workItem.SagaId, workItem.TenantId);
+        }
+    }
+
+    private async Task ProcessEventAsync(VisitorPreOnboardingSagaEventWorkItem workItem, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+            if (!await SetTenantAsync(scope.ServiceProvider, workItem.TenantId, cancellationToken))
+                return;
+
+            VisitorPreOnboardingSagaService service = scope.ServiceProvider.GetRequiredService<VisitorPreOnboardingSagaService>();
+            await service.ProcessEventAsync(workItem.EventId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error processing saga event {EventId} for tenant {TenantId}", workItem.EventId, workItem.TenantId);
         }
     }
 
