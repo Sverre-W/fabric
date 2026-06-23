@@ -203,27 +203,10 @@ public class AccessPolicyService(
 
         db.AccessPolicies.Remove(policy);
         await db.SaveChangesAsync(cancellationToken);
-
-        Result<SubjectSystemAccessState, string> reconciliation = await ReconcileSubjectSystem(
-            subjectId,
-            systemId,
-            cancellationToken);
-
-        if (reconciliation.IsFailure(out string reason))
-        {
-            await MarkSubjectSystemPoliciesFailed(subjectId, systemId, reason, cancellationToken);
-            await db.SaveChangesAsync(cancellationToken);
-
-            return Result.Success<AccessPolicyChangeResult, AccessPolicyErrors>(
-                new AccessPolicyChangeResult(null, null, SubjectSystemAccessState.Empty(subjectId, systemId)));
-        }
-
-        reconciliation.IsSuccess(out SubjectSystemAccessState state);
-        await MarkSubjectSystemPoliciesReconciled(state, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        await EnqueueReconciliation(subjectId, systemId, cancellationToken);
 
         return Result.Success<AccessPolicyChangeResult, AccessPolicyErrors>(
-            new AccessPolicyChangeResult(null, null, state));
+            new AccessPolicyChangeResult(null, null, SubjectSystemAccessState.Empty(subjectId, systemId)));
     }
 
     public async Task<Result<AccessPolicyChangeResult, AccessPolicyErrors>> ReconcileSubjectSystemPolicies(
