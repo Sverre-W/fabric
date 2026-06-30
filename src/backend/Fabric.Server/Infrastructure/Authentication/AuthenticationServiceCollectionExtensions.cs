@@ -15,6 +15,9 @@ public static class AuthenticationServiceCollectionExtensions
                 _ => { })
             .AddScheme<AuthenticationSchemeOptions, ReceptionKioskAuthenticationHandler>(
                 ReceptionKioskAuthenticationDefaults.AuthenticationScheme,
+                _ => { })
+            .AddScheme<AuthenticationSchemeOptions, HardwareAgentAuthenticationHandler>(
+                HardwareAgentAuthenticationDefaults.AuthenticationScheme,
                 _ => { });
 
         var requireAuthPolicy = new AuthorizationPolicyBuilder(TenantBearerAuthenticationDefaults.AuthenticationScheme)
@@ -29,6 +32,12 @@ public static class AuthenticationServiceCollectionExtensions
                 policy.AuthenticationSchemes.Add(ReceptionKioskAuthenticationDefaults.AuthenticationScheme);
                 policy.RequireAuthenticatedUser();
                 policy.RequireRole(ReceptionKioskAuthenticationDefaults.Role);
+            })
+            .AddPolicy(HardwareAgentAuthenticationDefaults.Policy, policy =>
+            {
+                policy.AuthenticationSchemes.Add(HardwareAgentAuthenticationDefaults.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole(HardwareAgentAuthenticationDefaults.Role);
             });
 
         return services;

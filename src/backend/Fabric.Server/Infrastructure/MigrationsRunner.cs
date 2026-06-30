@@ -1,4 +1,5 @@
 using Fabric.Server.AccessPolicies.Persistence;
+using Fabric.Server.Hardware.Persistence;
 using Fabric.Server.Infrastructure.Tenancy;
 using Fabric.Server.Locations.Persistence;
 using Fabric.Server.Reception.Persistence;
@@ -28,6 +29,7 @@ public class MigrationsRunner(IServiceScopeFactory scopeFactory) : IHostedServic
         await new MigrationRunner<AccessPoliciesDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<VisitorsDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<SagasDbContext>(scope).RunMigrationsAsync(cancellationToken);
+        await new MigrationRunner<HardwareDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<LocationsDbContext>(scope).RunMigrationsAsync(cancellationToken);
         await new MigrationRunner<ReceptionDbContext>(scope).RunMigrationsAsync(cancellationToken);
     }

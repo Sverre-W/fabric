@@ -25,6 +25,7 @@ export const appModules = [
     navigation: [
       { label: 'Locations', to: '/facility/locations' },
       { label: 'Access Control', to: '/facility/access-control' },
+      { label: 'Hardware', to: '/facility/hardware' },
     ],
   },
   {

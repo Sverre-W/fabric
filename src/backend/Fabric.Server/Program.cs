@@ -1,5 +1,7 @@
 using Fabric.Server.AccessPolicies;
 using Fabric.Server.AccessPolicies.Endpoints;
+using Fabric.Server.Hardware;
+using Fabric.Server.Hardware.Endpoints;
 using Fabric.Server.Infrastructure;
 using Fabric.Server.Infrastructure.Authentication;
 using Fabric.Server.Infrastructure.Tenancy;
@@ -47,6 +49,7 @@ builder.Services
     .SetupAccessPolicies(builder.Configuration)
     .SetupVisitors(builder.Configuration)
     .SetupSagas(builder.Configuration)
+    .SetupHardware(builder.Configuration)
     .SetupLocations(builder.Configuration)
     .SetupReception(builder.Configuration)
     .SetupNotifications(builder.Configuration);
@@ -73,6 +76,9 @@ app.MapLocationEndpoints();
 app.MapReceptionEndpoints();
 app.MapReceptionKioskEndpoints();
 app.MapReceptionAccessRuleAssignmentEndpoints();
+app.MapHardwareManagementEndpoints();
+app.MapHardwareOperationEndpoints();
+app.MapHardwareAgentEndpoints();
 app.MapVisitorEndpoints();
 app.MapOrganizerEndpoints();
 app.MapVisitorPreOnboardingSagaEndpoints();

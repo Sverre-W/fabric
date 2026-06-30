@@ -2626,6 +2626,810 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/hardware/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List hardware agents
+         * @description List hardware agents
+         */
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfHardwareAgentResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create hardware agent
+         * @description Create hardware agent
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateHardwareAgentRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareAgentKeyResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware/agents/{agentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get hardware agent
+         * @description Get hardware agent
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareAgentResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /**
+         * Update hardware agent
+         * @description Update hardware agent
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateHardwareAgentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareAgentResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete hardware agent
+         * @description Delete hardware agent
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware/agents/{agentId}/rotate-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate hardware agent key
+         * @description Rotate hardware agent key
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareAgentKeyResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware/agents/{agentId}/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List hardware devices
+         * @description List hardware devices for agent
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareDeviceResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware/agents/{agentId}/devices/{deviceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get hardware device
+         * @description Get hardware device
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                    deviceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareDeviceResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware/agents/{agentId}/devices/{deviceId}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get hardware device health
+         * @description Get hardware device health
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                    deviceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareDeviceHealthResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware/agents/{agentId}/devices/{deviceId}/qr/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scan QR
+         * @description Scan QR using a hardware device
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                    deviceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QrScanResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware/agents/{agentId}/devices/{deviceId}/labels/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Print label
+         * @description Print label using a hardware device
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    agentId: string;
+                    deviceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PrintLabelRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LabelPrintResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware-agent/commands/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stream hardware commands
+         * @description Open hardware agent command notification stream
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware-agent/commands/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get next hardware command
+         * @description Get next pending command for hardware agent
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareCommandEnvelope"];
+                    };
+                };
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware-agent/commands/{commandId}/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Claim hardware command
+         * @description Claim a pending hardware command
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    commandId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareCommandClaimResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware-agent/commands/{commandId}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post hardware command result
+         * @description Post hardware command result
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    commandId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PostHardwareCommandResultRequest"];
+                };
+            };
+            responses: {
+                /** @description Accepted */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware-agent/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report hardware inventory
+         * @description Report hardware agent inventory
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PostHardwareInventoryRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware-agent/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post hardware event
+         * @description Post hardware event
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PostHardwareEventRequest"];
+                };
+            };
+            responses: {
+                /** @description Accepted */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hardware-agent/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post hardware heartbeat
+         * @description Post hardware agent heartbeat
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PostHardwareAgentHeartbeatRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/visitors/visits/{id}": {
         parameters: {
             query?: never;
@@ -3973,6 +4777,12 @@ export interface components {
             /** Format: date-time */
             provisionFrom: null | string;
         };
+        CreateHardwareAgentRequest: {
+            id: string;
+            name: string;
+            /** Format: uuid */
+            locationId: null | string;
+        };
         CreateReceptionKioskRequest: {
             name: string;
             /** Format: uuid */
@@ -4009,6 +4819,77 @@ export interface components {
             saveSentItems: boolean;
             hasSecret: boolean;
         };
+        HardwareAgentKeyResponse: {
+            agent: components["schemas"]["HardwareAgentResponse"];
+            apiKey: string;
+        };
+        HardwareAgentResponse: {
+            id: string;
+            name: string;
+            /** Format: uuid */
+            locationId: null | string;
+            enabled: boolean;
+            /** Format: date-time */
+            lastSeenAt: null | string;
+            /** Format: date-time */
+            lastInventoryAt: null | string;
+        };
+        HardwareCommandClaimResponse: {
+            command: components["schemas"]["HardwareCommandEnvelope"];
+            /** Format: date-time */
+            leaseExpiresAt: string;
+        };
+        HardwareCommandEnvelope: {
+            /** Format: uuid */
+            commandId: string;
+            deviceId: string;
+            capability: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            payload: null | components["schemas"]["JsonObject"];
+        };
+        HardwareDeviceDiagnostics: {
+            connection: null | string;
+            configured: boolean;
+            detected: boolean;
+            platform: null | string;
+        };
+        HardwareDeviceHealthResponse: {
+            agentId: string;
+            deviceId: string;
+            state: string;
+            enabled: boolean;
+            /** Format: date-time */
+            lastSeenAt: string;
+            diagnosticsJson: string;
+        };
+        HardwareDeviceInventoryItem: {
+            deviceId: string;
+            kind: string;
+            driver: string;
+            capabilities: string[];
+            state: string;
+            diagnostics: components["schemas"]["HardwareDeviceDiagnostics"];
+        };
+        HardwareDeviceResponse: {
+            agentId: string;
+            deviceId: string;
+            kind: string;
+            driver: string;
+            capabilities: string[];
+            state: string;
+            enabled: boolean;
+            /** Format: date-time */
+            lastSeenAt: string;
+        };
+        HardwareErrorResponse: {
+            code: string;
+            message: string;
+        };
+        /** @enum {unknown} */
+        HardwareOperationStatus: "Succeeded" | "Timeout" | "Cancelled" | "DeviceUnavailable" | "Busy" | "Failed";
         IdentityMappingResponse: {
             /** Format: uuid */
             subjectId: string;
@@ -4046,6 +4927,11 @@ export interface components {
             subjectId: string;
             /** Format: uuid */
             systemId: string;
+        };
+        JsonObject: Record<string, never>;
+        LabelPrintResponse: {
+            status: components["schemas"]["HardwareOperationStatus"];
+            error: null | components["schemas"]["HardwareErrorResponse"];
         };
         LenelAccessLevelTypeResponse: {
             /** Format: uuid */
@@ -4152,6 +5038,18 @@ export interface components {
             items?: components["schemas"]["ArrivalResponse"][];
             isLastPage?: boolean;
         };
+        PageOfHardwareAgentResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["HardwareAgentResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfIdentityMappingResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -4239,6 +5137,37 @@ export interface components {
             /** Format: int32 */
             badgeNumber: null | number | string;
         };
+        PostHardwareAgentHeartbeatRequest: {
+            /** Format: date-time */
+            reportedAt: string;
+        };
+        PostHardwareCommandResultRequest: {
+            status: components["schemas"]["HardwareOperationStatus"];
+            result: null | components["schemas"]["JsonObject"];
+            error: null | components["schemas"]["HardwareErrorResponse"];
+            /** Format: date-time */
+            completedAt: string;
+        };
+        PostHardwareEventRequest: {
+            /** Format: uuid */
+            eventId: string;
+            /** Format: date-time */
+            occurredAt: string;
+            deviceId: string;
+            type: string;
+            payload: null | components["schemas"]["JsonObject"];
+        };
+        PostHardwareInventoryRequest: {
+            /** Format: date-time */
+            reportedAt: string;
+            devices: components["schemas"]["HardwareDeviceInventoryItem"][];
+        };
+        PrintLabelRequest: {
+            template: string;
+            /** Format: int32 */
+            copies: number | string;
+            data: components["schemas"]["JsonObject"];
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -4246,6 +5175,11 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+        };
+        QrScanResponse: {
+            status: components["schemas"]["HardwareOperationStatus"];
+            value: null | string;
+            error: null | components["schemas"]["HardwareErrorResponse"];
         };
         /** @enum {unknown} */
         ReceptionAccessPolicyTrigger: "ExpectedVisitorAdded" | "VisitorConfirmed" | "VisitorOnboarded" | "ContractorExpectedAdded" | "ContractorOnboarded";
@@ -4446,6 +5380,12 @@ export interface components {
             applicationId: string;
             secret: null | string;
             saveSentItems: boolean;
+        };
+        UpdateHardwareAgentRequest: {
+            name: string;
+            /** Format: uuid */
+            locationId: null | string;
+            enabled: boolean;
         };
         UpdateLenelConfigRequest: {
             endpoint: string;

@@ -11,7 +11,9 @@ const AuthCallbackPage = lazy(() => import('@/features/auth/auth-callback-page')
 const CredentialsPage = lazy(() => import('@/features/credentials/credentials-page'));
 const FacilityAccessControlEditPage = lazy(() => import('@/features/facility/access-control-edit-page'));
 const FacilityAccessControlPage = lazy(() => import('@/features/facility/access-control-page'));
+const FacilityHardwareAgentDetailPage = lazy(() => import('@/features/facility/hardware-agent-detail-page'));
 const FacilityBuildingEditPage = lazy(() => import('@/features/facility/building-edit-page'));
+const FacilityHardwarePage = lazy(() => import('@/features/facility/hardware-page'));
 const FacilityRoomEditPage = lazy(() => import('@/features/facility/room-edit-page'));
 const FacilitySiteCreatePage = lazy(() => import('@/features/facility/site-create-page'));
 const FacilitySiteEditPage = lazy(() => import('@/features/facility/site-edit-page'));
@@ -146,6 +148,18 @@ const facilityAccessControlRoute = createRoute({
   getParentRoute: () => facilityRoute,
   path: '/access-control',
   component: () => <LazyRoute component={<FacilityAccessControlPage />} />,
+});
+
+const facilityHardwareRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/hardware',
+  component: () => <LazyRoute component={<FacilityHardwarePage />} />,
+});
+
+const facilityHardwareAgentDetailRoute = createRoute({
+  getParentRoute: () => facilityRoute,
+  path: '/hardware/$agentId',
+  component: () => <LazyRoute component={<FacilityHardwareAgentDetailPage />} />,
 });
 
 const facilityAccessControlEditRoute = createRoute({
@@ -313,6 +327,8 @@ const routeTree = rootRoute.addChildren([
       facilityIndexRoute,
       facilityLocationsRoute,
       facilityAccessControlRoute,
+      facilityHardwareRoute,
+      facilityHardwareAgentDetailRoute,
       facilityAccessControlEditRoute,
       facilitySiteCreateRoute,
       facilitySiteEditRoute,
