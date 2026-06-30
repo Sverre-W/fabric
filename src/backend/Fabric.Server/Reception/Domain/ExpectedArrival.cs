@@ -13,7 +13,9 @@ public sealed class ExpectedArrival
     public string? ArrivalCode { get; private set; }
     public OnboardingStatus Status { get; private set; }
     public DateTimeOffset? OnboardedAt { get; private set; }
+    public ReceptionActor? OnboardedBy { get; private set; }
     public DateTimeOffset? OffboardedAt { get; private set; }
+    public ReceptionActor? OffboardedBy { get; private set; }
     public bool CheckedIn { get; private set; }
     public Guid? LocationId { get; private set; }
 
@@ -87,7 +89,24 @@ public sealed class ExpectedArrival
     public Result<ReceptionErrors> Onboard(
         DateTimeOffset timestamp,
         List<CheckInDocumentRequirement> requiredDocs,
-        List<CheckInDocument> providedDocs)
+        List<CheckInDocument> providedDocs,
+        string operatorEmail,
+        string? operatorDisplayName = null) =>
+        Onboard(timestamp, requiredDocs, providedDocs, ReceptionActor.Operator(operatorEmail, operatorDisplayName));
+
+    public Result<ReceptionErrors> Onboard(
+        DateTimeOffset timestamp,
+        List<CheckInDocumentRequirement> requiredDocs,
+        List<CheckInDocument> providedDocs,
+        Guid kioskId,
+        string kioskName) =>
+        Onboard(timestamp, requiredDocs, providedDocs, ReceptionActor.Kiosk(kioskId, kioskName));
+
+    private Result<ReceptionErrors> Onboard(
+        DateTimeOffset timestamp,
+        List<CheckInDocumentRequirement> requiredDocs,
+        List<CheckInDocument> providedDocs,
+        ReceptionActor actor)
     {
         Result<ReceptionErrors> validation = ValidateRequiredDocs(requiredDocs, providedDocs);
         if (validation.IsFailure(out _)) return validation;
@@ -96,8 +115,9 @@ public sealed class ExpectedArrival
 
         Status = OnboardingStatus.Onboarded;
         OnboardedAt = timestamp;
+        OnboardedBy = actor;
         Documents = providedDocs;
-        CheckIn(timestamp);
+        CheckIn(timestamp, actor);
         return Result<ReceptionErrors>.Success();
     }
 
@@ -133,32 +153,51 @@ public sealed class ExpectedArrival
         return Result.Success<ReceptionErrors>();
     }
 
-    public Result<ReceptionErrors> Offboard(DateTimeOffset timestamp)
+    public Result<ReceptionErrors> Offboard(DateTimeOffset timestamp, string operatorEmail, string? operatorDisplayName = null) =>
+        Offboard(timestamp, ReceptionActor.Operator(operatorEmail, operatorDisplayName));
+
+    public Result<ReceptionErrors> Offboard(DateTimeOffset timestamp, Guid kioskId, string kioskName) =>
+        Offboard(timestamp, ReceptionActor.Kiosk(kioskId, kioskName));
+
+    private Result<ReceptionErrors> Offboard(DateTimeOffset timestamp, ReceptionActor actor)
     {
-        Result<ReceptionErrors> checkoutResult = CheckOut(timestamp);
+        Result<ReceptionErrors> checkoutResult = CheckOut(timestamp, actor);
         if (checkoutResult.IsFailure(out _)) return checkoutResult;
 
         Status = OnboardingStatus.Offboarded;
         OffboardedAt = timestamp;
+        OffboardedBy = actor;
         return Result.Success<ReceptionErrors>();
     }
 
-    public Result<ReceptionErrors> CheckIn(DateTimeOffset timestamp)
+    public Result<ReceptionErrors> CheckIn(DateTimeOffset timestamp, string operatorEmail, string? operatorDisplayName = null) =>
+        CheckIn(timestamp, ReceptionActor.Operator(operatorEmail, operatorDisplayName));
+
+    public Result<ReceptionErrors> CheckIn(DateTimeOffset timestamp, Guid kioskId, string kioskName) =>
+        CheckIn(timestamp, ReceptionActor.Kiosk(kioskId, kioskName));
+
+    private Result<ReceptionErrors> CheckIn(DateTimeOffset timestamp, ReceptionActor actor)
     {
         ReceptionErrors? guard = GuardOnboarded();
         if (guard.HasValue) return Result<ReceptionErrors>.Failure(guard.Value);
 
-        Entries.Add(ArrivalEntry.CheckedIn(timestamp));
+        Entries.Add(ArrivalEntry.CheckedIn(timestamp, actor));
         CheckedIn = true;
         return Result.Success<ReceptionErrors>();
     }
 
-    public Result<ReceptionErrors> CheckOut(DateTimeOffset timestamp)
+    public Result<ReceptionErrors> CheckOut(DateTimeOffset timestamp, string operatorEmail, string? operatorDisplayName = null) =>
+        CheckOut(timestamp, ReceptionActor.Operator(operatorEmail, operatorDisplayName));
+
+    public Result<ReceptionErrors> CheckOut(DateTimeOffset timestamp, Guid kioskId, string kioskName) =>
+        CheckOut(timestamp, ReceptionActor.Kiosk(kioskId, kioskName));
+
+    private Result<ReceptionErrors> CheckOut(DateTimeOffset timestamp, ReceptionActor actor)
     {
         ReceptionErrors? guard = GuardOnboarded();
         if (guard.HasValue) return Result<ReceptionErrors>.Failure(guard.Value);
 
-        Entries.Add(ArrivalEntry.CheckedOut(timestamp));
+        Entries.Add(ArrivalEntry.CheckedOut(timestamp, actor));
         CheckedIn = false;
         return Result.Success<ReceptionErrors>();
     }

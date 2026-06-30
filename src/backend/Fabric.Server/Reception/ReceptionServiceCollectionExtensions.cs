@@ -19,6 +19,7 @@ public static class ReceptionServiceCollectionExtensions
 
         collection.AddScoped<ReceptionService>();
         collection.AddScoped<ReceptionAccessPolicyService>();
+        collection.AddScoped<ReceptionKioskKeyHasher>();
         return collection;
     }
 }

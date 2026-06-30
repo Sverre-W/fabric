@@ -35,6 +35,9 @@ public sealed class ExpectedArrivalConfiguration : IEntityTypeConfiguration<Expe
         builder.Property(a => a.LastName).HasColumnName("last_name").IsRequired().HasMaxLength(200);
         builder.Property(a => a.Company).HasColumnName("company").HasMaxLength(200);
 
+        ConfigureActor(builder.OwnsOne(a => a.OnboardedBy), "onboarded_by");
+        ConfigureActor(builder.OwnsOne(a => a.OffboardedBy), "offboarded_by");
+
         builder.HasMany(a => a.Entries).WithOne().HasForeignKey("expected_arrival_id").HasConstraintName("fk_arrival_entries_expected_arrivals_expected_arrival_id").OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(a => a.Documents).WithOne().HasForeignKey("expected_arrival_id").HasConstraintName("fk_check_in_documents_expected_arrivals_expected_arrival_id").OnDelete(DeleteBehavior.Cascade);
 
@@ -45,5 +48,12 @@ public sealed class ExpectedArrivalConfiguration : IEntityTypeConfiguration<Expe
         builder.HasIndex(a => a.VisitorId).HasDatabaseName("ix_expected_arrivals_visitor_id");
         builder.HasIndex(a => a.ContractorId).HasDatabaseName("ix_expected_arrivals_contractor_id");
         builder.HasIndex(a => a.LocationId).HasDatabaseName("ix_expected_arrivals_location_id");
+    }
+
+    private static void ConfigureActor(OwnedNavigationBuilder<ExpectedArrival, ReceptionActor> builder, string prefix)
+    {
+        builder.Property(actor => actor.Type).HasColumnName($"{prefix}_type").HasConversion<string>().HasMaxLength(20);
+        builder.Property(actor => actor.Identifier).HasColumnName($"{prefix}_identifier").HasMaxLength(320);
+        builder.Property(actor => actor.DisplayName).HasColumnName($"{prefix}_display_name").HasMaxLength(200);
     }
 }

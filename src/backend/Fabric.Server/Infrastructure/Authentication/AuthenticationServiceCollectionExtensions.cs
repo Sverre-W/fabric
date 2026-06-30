@@ -12,6 +12,9 @@ public static class AuthenticationServiceCollectionExtensions
         services.AddAuthentication(TenantBearerAuthenticationDefaults.AuthenticationScheme)
             .AddScheme<AuthenticationSchemeOptions, TenantBearerAuthenticationHandler>(
                 TenantBearerAuthenticationDefaults.AuthenticationScheme,
+                _ => { })
+            .AddScheme<AuthenticationSchemeOptions, ReceptionKioskAuthenticationHandler>(
+                ReceptionKioskAuthenticationDefaults.AuthenticationScheme,
                 _ => { });
 
         var requireAuthPolicy = new AuthorizationPolicyBuilder(TenantBearerAuthenticationDefaults.AuthenticationScheme)
@@ -20,7 +23,13 @@ public static class AuthenticationServiceCollectionExtensions
 
         services.AddAuthorizationBuilder()
             .SetDefaultPolicy(requireAuthPolicy)
-            .SetFallbackPolicy(requireAuthPolicy);
+            .SetFallbackPolicy(requireAuthPolicy)
+            .AddPolicy(ReceptionKioskAuthenticationDefaults.Policy, policy =>
+            {
+                policy.AuthenticationSchemes.Add(ReceptionKioskAuthenticationDefaults.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole(ReceptionKioskAuthenticationDefaults.Role);
+            });
 
         return services;
     }

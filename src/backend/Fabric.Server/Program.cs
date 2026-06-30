@@ -71,6 +71,7 @@ app.MapAccessPolicyEndpoints();
 app.MapAccessControlSystemEndpoints();
 app.MapLocationEndpoints();
 app.MapReceptionEndpoints();
+app.MapReceptionKioskEndpoints();
 app.MapReceptionAccessRuleAssignmentEndpoints();
 app.MapVisitorEndpoints();
 app.MapOrganizerEndpoints();

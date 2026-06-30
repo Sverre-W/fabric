@@ -1,9 +1,13 @@
+using System.Security.Claims;
 using Fabric.Server.Core;
+using Fabric.Server.Infrastructure.Authentication;
 using Fabric.Server.Reception.Application;
 using Fabric.Server.Reception.Contracts;
 using Fabric.Server.Reception.Domain;
 using Fabric.Server.Reception.Persistence;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
+using Fabric.Server.Visitors.Domain;
+using Fabric.Server.Visitors.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +50,34 @@ public static class ArrivalEndpoints
         arrivals.MapPost("/{id:guid}/check-out", CheckOutArrival)
             .WithDescription("Check out an arrival")
             .WithSummary("Check out arrival")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        RouteGroupBuilder kioskArrivals = app.MapGroup("/api/reception/kiosk/arrivals")
+            .RequireAuthorization(ReceptionKioskAuthenticationDefaults.Policy);
+
+        kioskArrivals.MapGet("/lookup", LookupArrivalFromKiosk)
+            .WithDescription("Look up an expected arrival from a reception kiosk QR code")
+            .WithSummary("Kiosk lookup arrival")
+            .Produces<ReceptionKioskExpectedArrivalResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+        kioskArrivals.MapPost("/{id:guid}/onboard", OnboardArrivalFromKiosk)
+            .WithDescription("Onboard an arrival from a reception kiosk")
+            .WithSummary("Kiosk onboard arrival")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        kioskArrivals.MapPost("/{id:guid}/check-in", CheckInArrivalFromKiosk)
+            .WithDescription("Check in an arrival from a reception kiosk")
+            .WithSummary("Kiosk check in arrival")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+        kioskArrivals.MapPost("/{id:guid}/check-out", CheckOutArrivalFromKiosk)
+            .WithDescription("Check out an arrival from a reception kiosk")
+            .WithSummary("Kiosk check out arrival")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -120,8 +152,13 @@ public static class ArrivalEndpoints
         ReceptionService receptionService,
         ReceptionDbContext db,
         VisitorPreOnboardingSagaService onboardingSagaService,
+        HttpContext httpContext,
         CancellationToken cancellationToken = default)
     {
+        ReceptionOperatorActor? actor = GetOperatorActor(httpContext.User);
+        if (actor is null)
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Authenticated operator email claim is required.");
+
         List<CheckInDocumentRequirement> requiredDocs = request.RequiredDocuments
             .ConvertAll(d => new CheckInDocumentRequirement
             {
@@ -135,7 +172,7 @@ public static class ArrivalEndpoints
             .ConvertAll(d => CheckInDocument.Create(d.Name, d.DocumentType, d.Content))
 ;
 
-        Result<ReceptionErrors> result = await receptionService.Onboard(id, requiredDocs, providedDocs, cancellationToken);
+        Result<ReceptionErrors> result = await receptionService.Onboard(id, requiredDocs, providedDocs, actor.Identifier, actor.DisplayName, cancellationToken);
         if (result.IsSuccess(out _))
         {
             ExpectedArrival? arrival = await db.Arrivals.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -146,31 +183,184 @@ public static class ArrivalEndpoints
         return result.AsResponse(MapError);
     }
 
+    private static async Task<IResult> LookupArrivalFromKiosk(
+        [FromQuery] string code,
+        ReceptionDbContext db,
+        VisitorsDbContext visitorsDb,
+        HttpContext httpContext,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return Results.NotFound();
+
+        Guid kioskLocationId = Guid.Parse(httpContext.User.FindFirstValue(ReceptionKioskAuthenticationDefaults.KioskLocationIdClaim)!);
+
+        ExpectedArrival? arrival = await db.Arrivals
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.ArrivalCode == code && (x.LocationId == null || x.LocationId == kioskLocationId), cancellationToken);
+
+        if (arrival is null)
+            return Results.NotFound();
+
+        ReceptionKioskVisitorDetailsResponse? visitor = arrival.Type == ArrivalType.Visitor && arrival.InvitationId.HasValue
+            ? await GetVisitorDetails(arrival, visitorsDb, cancellationToken)
+            : null;
+
+        return Results.Ok(arrival.ToKioskResponse(visitor));
+    }
+
     private static async Task<IResult> OffboardArrival(
         Guid id,
         ReceptionService receptionService,
+        HttpContext httpContext,
         CancellationToken cancellationToken = default)
     {
-        Result<ReceptionErrors> result = await receptionService.Offboard(id, cancellationToken);
+        ReceptionOperatorActor? actor = GetOperatorActor(httpContext.User);
+        if (actor is null)
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Authenticated operator email claim is required.");
+
+        Result<ReceptionErrors> result = await receptionService.Offboard(id, actor.Identifier, actor.DisplayName, cancellationToken);
         return result.AsResponse(MapError);
     }
 
     private static async Task<IResult> CheckInArrival(
         Guid id,
         ReceptionService receptionService,
+        HttpContext httpContext,
         CancellationToken cancellationToken = default)
     {
-        Result<ReceptionErrors> result = await receptionService.CheckIn(id, cancellationToken);
+        ReceptionOperatorActor? actor = GetOperatorActor(httpContext.User);
+        if (actor is null)
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Authenticated operator email claim is required.");
+
+        Result<ReceptionErrors> result = await receptionService.CheckIn(id, actor.Identifier, actor.DisplayName, cancellationToken);
         return result.AsResponse(MapError);
     }
 
     private static async Task<IResult> CheckOutArrival(
         Guid id,
         ReceptionService receptionService,
+        HttpContext httpContext,
         CancellationToken cancellationToken = default)
     {
-        Result<ReceptionErrors> result = await receptionService.CheckOut(id, cancellationToken);
+        ReceptionOperatorActor? actor = GetOperatorActor(httpContext.User);
+        if (actor is null)
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Authenticated operator email claim is required.");
+
+        Result<ReceptionErrors> result = await receptionService.CheckOut(id, actor.Identifier, actor.DisplayName, cancellationToken);
         return result.AsResponse(MapError);
+    }
+
+    private static async Task<IResult> OnboardArrivalFromKiosk(
+        Guid id,
+        [FromBody] OnboardArrivalRequest request,
+        ReceptionService receptionService,
+        VisitorPreOnboardingSagaService onboardingSagaService,
+        HttpContext httpContext,
+        ReceptionDbContext db,
+        CancellationToken cancellationToken = default)
+    {
+        ReceptionKioskActor actor = GetKioskActor(httpContext.User);
+        List<CheckInDocumentRequirement> requiredDocs = request.RequiredDocuments
+            .ConvertAll(d => new CheckInDocumentRequirement
+            {
+                Name = d.Name,
+                Required = d.Required,
+                DocumentType = d.DocumentType
+            });
+
+        List<CheckInDocument> providedDocs = request.ProvidedDocuments
+            .ConvertAll(d => CheckInDocument.Create(d.Name, d.DocumentType, d.Content));
+
+        Result<ReceptionErrors> result = await receptionService.OnboardFromKiosk(id, requiredDocs, providedDocs, actor.Id, actor.Name, cancellationToken);
+        if (result.IsSuccess(out _))
+        {
+            ExpectedArrival? arrival = await db.Arrivals.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (arrival?.Type == ArrivalType.Visitor)
+                await onboardingSagaService.EnqueueVisitorArrivedAsync(id, cancellationToken);
+        }
+
+        return result.AsResponse(MapError);
+    }
+
+    private static async Task<IResult> CheckInArrivalFromKiosk(
+        Guid id,
+        ReceptionService receptionService,
+        HttpContext httpContext,
+        CancellationToken cancellationToken = default)
+    {
+        ReceptionKioskActor actor = GetKioskActor(httpContext.User);
+        Result<ReceptionErrors> result = await receptionService.CheckInFromKiosk(id, actor.Id, actor.Name, cancellationToken);
+        return result.AsResponse(MapError);
+    }
+
+    private static async Task<IResult> CheckOutArrivalFromKiosk(
+        Guid id,
+        ReceptionService receptionService,
+        HttpContext httpContext,
+        CancellationToken cancellationToken = default)
+    {
+        ReceptionKioskActor actor = GetKioskActor(httpContext.User);
+        Result<ReceptionErrors> result = await receptionService.CheckOutFromKiosk(id, actor.Id, actor.Name, cancellationToken);
+        return result.AsResponse(MapError);
+    }
+
+    private static ReceptionOperatorActor? GetOperatorActor(ClaimsPrincipal user)
+    {
+        string? identifier = user.FindFirstValue(ClaimTypes.Email)
+            ?? user.FindFirstValue("email")
+            ?? user.FindFirstValue("preferred_username");
+
+        if (string.IsNullOrWhiteSpace(identifier))
+            return null;
+
+        string? displayName = user.FindFirstValue(ClaimTypes.Name) ?? user.FindFirstValue("name");
+        return new ReceptionOperatorActor(identifier, displayName);
+    }
+
+    private static ReceptionKioskActor GetKioskActor(ClaimsPrincipal user)
+    {
+        Guid id = Guid.Parse(user.FindFirstValue(ReceptionKioskAuthenticationDefaults.KioskIdClaim)!);
+        string name = user.FindFirstValue(ReceptionKioskAuthenticationDefaults.KioskNameClaim)!;
+        return new ReceptionKioskActor(id, name);
+    }
+
+    private static async Task<ReceptionKioskVisitorDetailsResponse?> GetVisitorDetails(
+        ExpectedArrival arrival,
+        VisitorsDbContext visitorsDb,
+        CancellationToken cancellationToken)
+    {
+        Visit? visit = await visitorsDb.Visits
+            .AsNoTracking()
+            .Include(x => x.Invitations)
+            .SingleOrDefaultAsync(x => x.Invitations.Any(invitation => invitation.Id == arrival.InvitationId), cancellationToken);
+
+        VisitInvitation? invitation = visit?.Invitations.SingleOrDefault(x => x.Id == arrival.InvitationId);
+        if (visit is null || invitation is null)
+            return null;
+
+        Organizer organizer = await visitorsDb.Organizers
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == visit.OrganizerId, cancellationToken);
+
+        var visitDetails = new ReceptionKioskVisitDetailsResponse(
+            visit.Id,
+            visit.Summary,
+            visit.Status,
+            visit.Start,
+            visit.Stop,
+            visit.LocationId,
+            $"{organizer.FirstName} {organizer.LastName}",
+            organizer.Email);
+
+        return new ReceptionKioskVisitorDetailsResponse(
+            invitation.VisitorId,
+            invitation.Id,
+            invitation.Email,
+            invitation.ConfirmationStatus,
+            invitation.Transport,
+            invitation.LicensePlate,
+            visitDetails);
     }
 
     private static (int statusCode, ProblemDetails problemDetails) MapError(ReceptionErrors errors)
@@ -190,4 +380,7 @@ public static class ArrivalEndpoints
     }
 
     private static (int statusCode, ProblemDetails problemDetails) Problem(int statusCode, string detail) => (statusCode, new ProblemDetails { Status = statusCode, Detail = detail });
+
+    private sealed record ReceptionOperatorActor(string Identifier, string? DisplayName);
+    private sealed record ReceptionKioskActor(Guid Id, string Name);
 }

@@ -14,7 +14,9 @@ public record ArrivalResponse(
     string? ArrivalCode,
     OnboardingStatus Status,
     DateTimeOffset? OnboardedAt,
+    ReceptionActorResponse? OnboardedBy,
     DateTimeOffset? OffboardedAt,
+    ReceptionActorResponse? OffboardedBy,
     bool CheckedIn,
     Guid? LocationId,
     bool? Confirmed,
@@ -29,7 +31,14 @@ public record ArrivalResponse(
 public record ArrivalEntryResponse(
     Guid Id,
     ArrivalEntryType Type,
-    DateTimeOffset Timestamp
+    DateTimeOffset Timestamp,
+    ReceptionActorResponse? Actor
+);
+
+public record ReceptionActorResponse(
+    ReceptionActorType Type,
+    string Identifier,
+    string? DisplayName
 );
 
 public record CheckInDocumentResponse(
@@ -45,4 +54,7 @@ public static partial class ArrivalMapper
     public static partial ArrivalEntryResponse ToResponse(this ArrivalEntry entry);
     [MapperIgnoreSource(nameof(CheckInDocument.Content))]
     public static partial CheckInDocumentResponse ToResponse(this CheckInDocument document);
+
+    private static ReceptionActorResponse? MapActor(ReceptionActor? actor) =>
+        actor is null ? null : new ReceptionActorResponse(actor.Type, actor.Identifier, actor.DisplayName);
 }
