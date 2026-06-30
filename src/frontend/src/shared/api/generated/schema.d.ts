@@ -1960,6 +1960,469 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reception/kiosk/arrivals/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kiosk lookup arrival
+         * @description Look up an expected arrival from a reception kiosk QR code
+         */
+        get: {
+            parameters: {
+                query: {
+                    code: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceptionKioskExpectedArrivalResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/kiosk/arrivals/{id}/onboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kiosk onboard arrival
+         * @description Onboard an arrival from a reception kiosk
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OnboardArrivalRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/kiosk/arrivals/{id}/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kiosk check in arrival
+         * @description Check in an arrival from a reception kiosk
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/kiosk/arrivals/{id}/check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kiosk check out arrival
+         * @description Check out an arrival from a reception kiosk
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/kiosks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List reception kiosks
+         * @description List reception kiosks
+         */
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfReceptionKioskResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create reception kiosk
+         * @description Create a reception kiosk
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateReceptionKioskRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceptionKioskKeyResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/kiosks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve reception kiosk
+         * @description Retrieve a reception kiosk
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceptionKioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /**
+         * Update reception kiosk
+         * @description Update a reception kiosk
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateReceptionKioskRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceptionKioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Disable reception kiosk
+         * @description Disable a reception kiosk
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reception/kiosks/{id}/rotate-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate reception kiosk key
+         * @description Rotate a reception kiosk API key
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceptionKioskKeyResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/reception/access-rule-assignments": {
         parameters: {
             query?: never;
@@ -3355,6 +3818,7 @@ export interface components {
             type: components["schemas"]["ArrivalEntryType"];
             /** Format: date-time */
             timestamp: string;
+            actor: null | components["schemas"]["ReceptionActorResponse"];
         };
         /** @enum {unknown} */
         ArrivalEntryType: "CheckedIn" | "CheckedOut";
@@ -3373,8 +3837,10 @@ export interface components {
             status: components["schemas"]["OnboardingStatus"];
             /** Format: date-time */
             onboardedAt: null | string;
+            onboardedBy: null | components["schemas"]["ReceptionActorResponse"];
             /** Format: date-time */
             offboardedAt: null | string;
+            offboardedBy: null | components["schemas"]["ReceptionActorResponse"];
             checkedIn: boolean;
             /** Format: uuid */
             locationId: null | string;
@@ -3506,6 +3972,11 @@ export interface components {
             effectiveUntil: string;
             /** Format: date-time */
             provisionFrom: null | string;
+        };
+        CreateReceptionKioskRequest: {
+            name: string;
+            /** Format: uuid */
+            locationId: string;
         };
         CreateSiteRequest: {
             /** Format: uuid */
@@ -3705,6 +4176,18 @@ export interface components {
             items?: components["schemas"]["OrganizerResponse"][];
             isLastPage?: boolean;
         };
+        PageOfReceptionKioskResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["ReceptionKioskResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfSiteResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -3766,6 +4249,69 @@ export interface components {
         };
         /** @enum {unknown} */
         ReceptionAccessPolicyTrigger: "ExpectedVisitorAdded" | "VisitorConfirmed" | "VisitorOnboarded" | "ContractorExpectedAdded" | "ContractorOnboarded";
+        ReceptionActorResponse: {
+            type: components["schemas"]["ReceptionActorType"];
+            identifier: string;
+            displayName: null | string;
+        };
+        /** @enum {unknown} */
+        ReceptionActorType: "Operator" | "Kiosk";
+        ReceptionKioskContractorDetailsResponse: Record<string, never>;
+        ReceptionKioskExpectedArrivalResponse: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ArrivalType"];
+            /** Format: date-time */
+            expectedArrivalTime: string;
+            /** Format: date-time */
+            expectedOffboardTime: string;
+            firstName: string;
+            lastName: string;
+            company: null | string;
+            status: components["schemas"]["OnboardingStatus"];
+            checkedIn: boolean;
+            /** Format: uuid */
+            locationId: null | string;
+            visitor: null | components["schemas"]["ReceptionKioskVisitorDetailsResponse"];
+            contractor: null | components["schemas"]["ReceptionKioskContractorDetailsResponse"];
+        };
+        ReceptionKioskKeyResponse: {
+            kiosk: components["schemas"]["ReceptionKioskResponse"];
+            apiKey: string;
+        };
+        ReceptionKioskResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            locationId: string;
+            enabled: boolean;
+        };
+        ReceptionKioskVisitDetailsResponse: {
+            /** Format: uuid */
+            id: string;
+            summary: string;
+            status: components["schemas"]["VisitStatus"];
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            stop: string;
+            /** Format: uuid */
+            locationId: null | string;
+            organizerName: string;
+            organizerEmail: string;
+        };
+        ReceptionKioskVisitorDetailsResponse: {
+            /** Format: uuid */
+            visitorId: string;
+            /** Format: uuid */
+            invitationId: string;
+            email: string;
+            confirmationStatus: components["schemas"]["ParticipantConfirmationStatus"];
+            transport: null | components["schemas"]["ModeOfTransport"];
+            licensePlate: null | string;
+            visit: null | components["schemas"]["ReceptionKioskVisitDetailsResponse"];
+        };
         /** @enum {unknown} */
         ReconciliationStatus: "PendingReconciliation" | "Reconciled" | "ReconciliationFailed";
         RelocateVisitRequest: {
@@ -3915,6 +4461,12 @@ export interface components {
             firstName: string;
             lastName: string;
             email: string;
+        };
+        UpdateReceptionKioskRequest: {
+            name: string;
+            /** Format: uuid */
+            locationId: string;
+            enabled: boolean;
         };
         UpdateRoomRequest: {
             name: string;

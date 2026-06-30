@@ -14,6 +14,7 @@ import { OnboardingJourney } from '../visitors-management/onboarding-journey';
 
 type Arrival = components['schemas']['ArrivalResponse'];
 type ArrivalEntry = components['schemas']['ArrivalEntryResponse'];
+type ReceptionActor = components['schemas']['ReceptionActorResponse'];
 type Location = components['schemas']['LocationResponse'];
 type Visit = components['schemas']['VisitResponse'];
 type VisitInvitation = components['schemas']['VisitInvitationResponse'];
@@ -568,6 +569,7 @@ function ArrivalCard({
           <Clock className="size-3.5" aria-hidden="true" />
           {getArrivalCardTimeText(arrival, mode)}
         </span>
+        {mode !== 'expected' && arrival.onboardedBy ? <span>Onboarded by {formatReceptionActor(arrival.onboardedBy)}</span> : null}
         <span>Type: {arrival.type}</span>
       </div>
       {mode === 'onboarded' ? (
@@ -619,6 +621,7 @@ function ArrivalTableRow({
     >
       <td className="px-4 py-4">
         <span className="font-medium text-foreground">{getArrivalName(arrival)}</span>
+        {mode !== 'expected' && arrival.onboardedBy ? <span className="mt-1 block text-[12px] text-muted-foreground">Onboarded by {formatReceptionActor(arrival.onboardedBy)}</span> : null}
       </td>
       <td className="px-4 py-4 text-muted-foreground">{arrival.company || 'No company'}</td>
       <td className="px-4 py-4 text-muted-foreground">{getArrivalPrimaryTimeValue(arrival, mode)}</td>
@@ -699,7 +702,9 @@ function HistoryArrivalDetails({ arrivalId, onClose }: { readonly arrivalId: str
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <DetailField label="Onboarded" value={formatNullableDateTime(arrival.onboardedAt)} />
+              <DetailField label="Onboarded by" value={formatReceptionActor(arrival.onboardedBy)} />
               <DetailField label="Offboarded" value={formatNullableDateTime(arrival.offboardedAt)} />
+              <DetailField label="Offboarded by" value={formatReceptionActor(arrival.offboardedBy)} />
               <DetailField label="Expected arrival" value={formatDateTime(arrival.expectedArrivalTime)} />
               <DetailField label="Expected leave" value={formatDateTime(arrival.expectedOffboardTime)} />
             </div>
@@ -714,7 +719,10 @@ function HistoryArrivalDetails({ arrivalId, onClose }: { readonly arrivalId: str
               <ol className="grid gap-2">
                 {entries.map((entry) => (
                   <li key={entry.id} className="flex flex-col gap-1 rounded-interactive border border-border bg-hover-gray px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-[14px] font-medium text-foreground">{formatArrivalEntryType(entry.type)}</span>
+                    <span>
+                      <span className="block text-[14px] font-medium text-foreground">{formatArrivalEntryType(entry.type)}</span>
+                      <span className="block text-[13px] text-muted-foreground">By {formatReceptionActor(entry.actor)}</span>
+                    </span>
                     <span className="text-[13px] text-muted-foreground">{formatDateTime(entry.timestamp)}</span>
                   </li>
                 ))}
@@ -1181,6 +1189,15 @@ function formatNullableDateTime(value: string | null) {
 
 function formatArrivalEntryType(value: ArrivalEntry['type']) {
   return value === 'CheckedIn' ? 'Checked in' : 'Checked out';
+}
+
+function formatReceptionActor(actor: ReceptionActor | null) {
+  if (!actor) {
+    return 'Not recorded';
+  }
+
+  const label = actor.displayName || actor.identifier;
+  return actor.type === 'Kiosk' ? `${label} kiosk` : label;
 }
 
 function formatStatus(value: string) {

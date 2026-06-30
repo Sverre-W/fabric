@@ -17,7 +17,7 @@ const locationsQueryKey = ['facility', 'locations'] as const;
 const emptyBuilding: BuildingFormValues = { name: '', address: '' };
 
 export default function BuildingEditPage() {
-  const { siteId, buildingId } = useParams({ from: '/facility/locations/$siteId/buildings/$buildingId/edit' });
+  const { siteId, buildingId } = useParams({ from: '/main/facility/locations/$siteId/buildings/$buildingId/edit' });
   const queryClient = useQueryClient();
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [roomName, setRoomName] = useState('');

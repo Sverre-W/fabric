@@ -4,11 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './app';
 import { createAppRouter } from './router';
+import { getReceptionKioskSettings, saveReceptionKioskSettings } from '@/features/reception-kiosk/reception-kiosk-settings';
 
 const apiGetMock = vi.hoisted(() => vi.fn());
 const apiPostMock = vi.hoisted(() => vi.fn());
 const apiPutMock = vi.hoisted(() => vi.fn());
 const apiDeleteMock = vi.hoisted(() => vi.fn());
+const decodeFromVideoDeviceMock = vi.hoisted(() => vi.fn());
 const signinRedirectMock = vi.hoisted(() => vi.fn());
 const signoutRedirectMock = vi.hoisted(() => vi.fn());
 const removeUserMock = vi.hoisted(() => vi.fn());
@@ -29,6 +31,12 @@ vi.mock('@/shared/api/client', () => ({
     PUT: apiPutMock,
     DELETE: apiDeleteMock,
   },
+}));
+
+vi.mock('@zxing/browser', () => ({
+  BrowserQRCodeReader: vi.fn().mockImplementation(() => ({
+    decodeFromVideoDevice: decodeFromVideoDeviceMock,
+  })),
 }));
 
 vi.mock('react-oidc-context', () => ({
@@ -126,6 +134,8 @@ describe('App', () => {
     apiPostMock.mockReset();
     apiPutMock.mockReset();
     apiDeleteMock.mockReset();
+    decodeFromVideoDeviceMock.mockReset();
+    decodeFromVideoDeviceMock.mockResolvedValue({ stop: vi.fn() });
     signinRedirectMock.mockReset();
     signoutRedirectMock.mockReset();
     removeUserMock.mockReset();
@@ -169,6 +179,7 @@ describe('App', () => {
     authState.activeNavigator = undefined;
     authState.error = undefined;
     authState.user = { access_token: 'access-token' };
+    window.localStorage.clear();
     window.sessionStorage.clear();
     window.history.pushState({}, '', '/');
   });
@@ -191,6 +202,164 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /fabric modules/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /facility/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /visitors management/i })).toBeInTheDocument();
+  });
+
+  it('shows reception kiosk setup when kiosk settings are missing', async () => {
+    window.history.pushState({}, '', '/reception-kiosk/');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /configure reception kiosk/i })).toBeInTheDocument();
+    expect(screen.getByLabelText('Kiosk ID')).toHaveValue('');
+    expect(screen.getByLabelText('Kiosk API key')).toHaveValue('');
+  });
+
+  it('shows reception kiosk home when kiosk settings exist', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.history.pushState({}, '', '/reception-kiosk/');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /welcome/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /i have a qr/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /i don't have a qr/i })).toBeDisabled();
+    expect(screen.queryByRole('link', { name: /setup/i })).not.toBeInTheDocument();
+  });
+
+  it('opens reception kiosk QR scanner from home', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.history.pushState({}, '', '/reception-kiosk/');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    fireEvent.click(await screen.findByRole('link', { name: /i have a qr/i }));
+
+    expect(await screen.findByRole('heading', { name: /scan qr code/i })).toBeInTheDocument();
+  });
+
+  it('shows reception kiosk arrival details from scanned lookup result', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.sessionStorage.setItem('fabric.reception-kiosk.arrival', JSON.stringify({
+      id: 'arrival-1',
+      type: 'Visitor',
+      expectedArrivalTime: '2026-06-24T09:00:00Z',
+      expectedOffboardTime: '2026-06-24T17:00:00Z',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      company: 'Analytical Engines',
+      status: 'NotYetOnboarded',
+      checkedIn: false,
+      locationId: 'location-1',
+      contractor: null,
+      visitor: {
+        visitorId: 'visitor-1',
+        invitationId: 'invitation-1',
+        email: 'ada@example.com',
+        confirmationStatus: 'Confirmed',
+        transport: 'Car',
+        licensePlate: 'ADA-1',
+        visit: {
+          id: 'visit-1',
+          summary: 'Engine demo',
+          status: 'Scheduled',
+          start: '2026-06-24T09:00:00Z',
+          stop: '2026-06-24T17:00:00Z',
+          locationId: 'location-1',
+          organizerName: 'Charles Babbage',
+          organizerEmail: 'charles@example.com',
+        },
+      },
+    }));
+    window.history.pushState({}, '', '/reception-kiosk/arrival');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /ada lovelace/i })).toBeInTheDocument();
+    expect(screen.getByText(/analytical engines/i)).toBeInTheDocument();
+    expect(screen.getByText(/engine demo/i)).toBeInTheDocument();
+    expect(screen.getByText(/charles babbage/i)).toBeInTheDocument();
+  });
+
+  it('shows no registration screen with retry and home actions', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.sessionStorage.setItem('fabric.reception-kiosk.missed-code', 'missing-code');
+    window.history.pushState({}, '', '/reception-kiosk/no-registration');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /we could not find your registration/i })).toBeInTheDocument();
+    expect(screen.getByText('missing-code')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /retry scan/i })).toHaveAttribute('href', '/reception-kiosk/scan-qr');
+    expect(screen.getByRole('link', { name: /home/i })).toHaveAttribute('href', '/reception-kiosk');
+  });
+
+  it('routes scanner 404 lookup to no registration screen', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/reception/kiosk/arrivals/lookup') {
+        return Promise.resolve({ data: undefined, error: undefined, response: { status: 404 } });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+    decodeFromVideoDeviceMock.mockImplementation((_deviceId: string | undefined, _videoElement: HTMLVideoElement, callback: (result: { getText: () => string }, error: null, controls: { stop: () => void }) => void) => {
+      setTimeout(() => callback({ getText: () => 'missing-code' }, null, { stop: vi.fn() }), 0);
+      return Promise.resolve({ stop: vi.fn() });
+    });
+    window.history.pushState({}, '', '/reception-kiosk/scan-qr');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /we could not find your registration/i })).toBeInTheDocument();
+    expect(screen.getByText('missing-code')).toBeInTheDocument();
+  });
+
+  it('opens reception kiosk setup directly without showing the stored API key', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.history.pushState({}, '', '/reception-kiosk/setup');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /configure reception kiosk/i })).toBeInTheDocument();
+    expect(screen.getByLabelText('Kiosk ID')).toHaveValue('kiosk-1');
+    expect(screen.getByLabelText('Kiosk API key')).toHaveValue('');
+    expect(screen.queryByDisplayValue('secret-key')).not.toBeInTheDocument();
+  });
+
+  it('keeps stored reception kiosk API key when setup key field is blank', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.history.pushState({}, '', '/reception-kiosk/setup');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /configure reception kiosk/i })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Kiosk ID'), { target: { value: 'kiosk-2' } });
+    fireEvent.click(screen.getByRole('button', { name: /save kiosk setup/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /welcome/i })).toBeInTheDocument();
+    });
+    expect(getReceptionKioskSettings()).toEqual({ kioskId: 'kiosk-2', kioskApiKey: 'secret-key' });
+  });
+
+  it('replaces stored reception kiosk API key when setup key field has a new value', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.history.pushState({}, '', '/reception-kiosk/setup');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /configure reception kiosk/i })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Kiosk API key'), { target: { value: 'rotated-key' } });
+    fireEvent.click(screen.getByRole('button', { name: /save kiosk setup/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /welcome/i })).toBeInTheDocument();
+    });
+    expect(getReceptionKioskSettings()).toEqual({ kioskId: 'kiosk-1', kioskApiKey: 'rotated-key' });
   });
 
   it('renders Locations for Facility module root', async () => {

@@ -17,7 +17,7 @@ const locationsQueryKey = ['facility', 'locations'] as const;
 const emptySite: SiteFormValues = { name: '', address: '' };
 
 export default function SiteEditPage() {
-  const { siteId } = useParams({ from: '/facility/locations/$siteId/edit' });
+  const { siteId } = useParams({ from: '/main/facility/locations/$siteId/edit' });
   const queryClient = useQueryClient();
   const [isAddingBuilding, setIsAddingBuilding] = useState(false);
   const [buildingName, setBuildingName] = useState('');

@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 
 import { AppLayout } from '@/shared/layout/app-layout';
 import { ProtectedRoute } from '@/shared/auth/protected-route';
+import { ReceptionKioskLayout } from '@/features/reception-kiosk/layout/reception-kiosk-layout';
 
 const AccessPage = lazy(() => import('@/features/access/access-page'));
 const AuditPage = lazy(() => import('@/features/audit/audit-page'));
@@ -21,6 +22,11 @@ const OrganizationsPage = lazy(() => import('@/features/organizations/organizati
 const ReceptionDeskPage = lazy(() => import('@/features/reception-desk/reception-desk-page'));
 const SettingsLayout = lazy(() => import('@/features/settings/settings-layout'));
 const ReceptionDeskSettingsPage = lazy(() => import('@/features/settings/reception-desk-settings-page'));
+const ReceptionKioskArrivalPage = lazy(() => import('@/features/reception-kiosk/reception-kiosk-arrival-page'));
+const ReceptionKioskNoRegistrationPage = lazy(() => import('@/features/reception-kiosk/reception-kiosk-no-registration-page'));
+const ReceptionKioskPage = lazy(() => import('@/features/reception-kiosk/reception-kiosk-page'));
+const ReceptionKioskScanQrPage = lazy(() => import('@/features/reception-kiosk/reception-kiosk-scan-qr-page'));
+const ReceptionKioskSetupPage = lazy(() => import('@/features/reception-kiosk/reception-kiosk-setup-page'));
 const TenantSettingsPage = lazy(() => import('@/features/settings/tenant-settings-page'));
 const VisitorsSettingsPage = lazy(() => import('@/features/settings/visitors-settings-page'));
 const VisitorsManagementLayout = lazy(() => import('@/features/visitors-management/visitors-management-layout'));
@@ -36,68 +42,86 @@ const VisitsPage = lazy(() => import('@/features/visitors-management/visits-page
 
 const rootRoute = createRootRoute({
   component: () => (
+    <Outlet />
+  ),
+});
+
+const mainLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'main',
+  component: () => (
     <AppLayout>
       <Outlet />
     </AppLayout>
   ),
 });
 
-const indexRoute = createRoute({
+const receptionKioskLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
+  path: '/reception-kiosk',
+  component: () => (
+    <ReceptionKioskLayout>
+      <Outlet />
+    </ReceptionKioskLayout>
+  ),
+});
+
+const indexRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
   path: '/',
   component: () => <LazyRoute component={<HomePage />} />,
 });
 
 const authCallbackRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/auth/callback',
   component: () => <LazyRoute component={<AuthCallbackPage />} />,
 });
 
 const identitiesRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/identities',
   component: () => <ProtectedLazyRoute component={<IdentitiesPage />} />,
 });
 
 const accessRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/access',
   component: () => <ProtectedLazyRoute component={<AccessPage />} />,
 });
 
 const credentialsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/credentials',
   component: () => <ProtectedLazyRoute component={<CredentialsPage />} />,
 });
 
 const organizationsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/organizations',
   component: () => <ProtectedLazyRoute component={<OrganizationsPage />} />,
 });
 
 const auditRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/audit',
   component: () => <ProtectedLazyRoute component={<AuditPage />} />,
 });
 
 const receptionDeskRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/reception-desk',
   component: () => <ProtectedLazyRoute component={<ReceptionDeskPage />} />,
 });
 
 const visitorConfirmationRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/visitor-confirmation/$visitId/$invitationId',
   component: () => <LazyRoute component={<VisitorConfirmationPage />} />,
 });
 
 const facilityRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/facility',
   component: () => (
     <ProtectedRoute>
@@ -155,7 +179,7 @@ const facilityRoomEditRoute = createRoute({
 });
 
 const settingsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/settings',
   component: () => <ProtectedLazyRoute component={<SettingsLayout />} />,
 });
@@ -185,7 +209,7 @@ const tenantSettingsRoute = createRoute({
 });
 
 const visitorsManagementRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/visitors-management',
   component: () => <ProtectedLazyRoute component={<VisitorsManagementLayout />} />,
 });
@@ -244,28 +268,61 @@ const visitorReportingRoute = createRoute({
   component: () => <LazyRoute component={<VisitorReportingPage />} />,
 });
 
+const receptionKioskIndexRoute = createRoute({
+  getParentRoute: () => receptionKioskLayoutRoute,
+  path: '/',
+  component: () => <LazyRoute component={<ReceptionKioskPage />} />,
+});
+
+const receptionKioskSetupRoute = createRoute({
+  getParentRoute: () => receptionKioskLayoutRoute,
+  path: '/setup',
+  component: () => <LazyRoute component={<ReceptionKioskSetupPage />} />,
+});
+
+const receptionKioskScanQrRoute = createRoute({
+  getParentRoute: () => receptionKioskLayoutRoute,
+  path: '/scan-qr',
+  component: () => <LazyRoute component={<ReceptionKioskScanQrPage />} />,
+});
+
+const receptionKioskArrivalRoute = createRoute({
+  getParentRoute: () => receptionKioskLayoutRoute,
+  path: '/arrival',
+  component: () => <LazyRoute component={<ReceptionKioskArrivalPage />} />,
+});
+
+const receptionKioskNoRegistrationRoute = createRoute({
+  getParentRoute: () => receptionKioskLayoutRoute,
+  path: '/no-registration',
+  component: () => <LazyRoute component={<ReceptionKioskNoRegistrationPage />} />,
+});
+
 const routeTree = rootRoute.addChildren([
-  indexRoute,
-  authCallbackRoute,
-  identitiesRoute,
-  accessRoute,
-  credentialsRoute,
-  organizationsRoute,
-  auditRoute,
-  receptionDeskRoute,
-  visitorConfirmationRoute,
-  facilityRoute.addChildren([
-    facilityIndexRoute,
-    facilityLocationsRoute,
-    facilityAccessControlRoute,
-    facilityAccessControlEditRoute,
-    facilitySiteCreateRoute,
-    facilitySiteEditRoute,
-    facilityBuildingEditRoute,
-    facilityRoomEditRoute,
+  mainLayoutRoute.addChildren([
+    indexRoute,
+    authCallbackRoute,
+    identitiesRoute,
+    accessRoute,
+    credentialsRoute,
+    organizationsRoute,
+    auditRoute,
+    receptionDeskRoute,
+    visitorConfirmationRoute,
+    facilityRoute.addChildren([
+      facilityIndexRoute,
+      facilityLocationsRoute,
+      facilityAccessControlRoute,
+      facilityAccessControlEditRoute,
+      facilitySiteCreateRoute,
+      facilitySiteEditRoute,
+      facilityBuildingEditRoute,
+      facilityRoomEditRoute,
+    ]),
+    settingsRoute.addChildren([settingsIndexRoute, visitorsSettingsRoute, receptionDeskSettingsRoute, tenantSettingsRoute]),
+    visitorsManagementRoute.addChildren([visitsIndexRoute, visitsRoute, visitCreateRoute, visitEditRoute, visitorsRoute, organizersRoute, organizerCreateRoute, organizerEditRoute, visitorReportingRoute]),
   ]),
-  settingsRoute.addChildren([settingsIndexRoute, visitorsSettingsRoute, receptionDeskSettingsRoute, tenantSettingsRoute]),
-  visitorsManagementRoute.addChildren([visitsIndexRoute, visitsRoute, visitCreateRoute, visitEditRoute, visitorsRoute, organizersRoute, organizerCreateRoute, organizerEditRoute, visitorReportingRoute]),
+  receptionKioskLayoutRoute.addChildren([receptionKioskIndexRoute, receptionKioskSetupRoute, receptionKioskScanQrRoute, receptionKioskArrivalRoute, receptionKioskNoRegistrationRoute]),
 ]);
 
 export function createAppRouter() {

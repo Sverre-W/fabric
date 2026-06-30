@@ -1,6 +1,6 @@
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Plus, ShieldCheck, Trash2 } from 'lucide-react';
+import { Copy, KeyRound, Pencil, Plus, RotateCw, ShieldCheck, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { api } from '@/shared/api/client';
@@ -14,7 +14,11 @@ type AccessControlSystem = components['schemas']['AccessControlSystemResponse'];
 type AccessLevelType = components['schemas']['AccessLevelTypeResponse'];
 type AccessRuleAssignment = components['schemas']['AccessRuleAssignmentResponse'];
 type AccessRuleAssignmentRequest = components['schemas']['CreateAccessRuleAssignmentRequest'];
+type CreateReceptionKioskRequest = components['schemas']['CreateReceptionKioskRequest'];
+type ReceptionKiosk = components['schemas']['ReceptionKioskResponse'];
+type ReceptionKioskKeyResponse = components['schemas']['ReceptionKioskKeyResponse'];
 type ReceptionAccessPolicyTrigger = components['schemas']['ReceptionAccessPolicyTrigger'];
+type UpdateReceptionKioskRequest = components['schemas']['UpdateReceptionKioskRequest'];
 
 type FormValues = {
   readonly locationId: string | null;
@@ -24,7 +28,14 @@ type FormValues = {
   readonly gracePeriodMinutes: string;
 };
 
+type KioskFormValues = {
+  readonly name: string;
+  readonly locationId: string | null;
+  readonly enabled: boolean;
+};
+
 const assignmentsQueryKey = ['settings', 'reception-desk', 'access-rule-assignments'] as const;
+const kiosksQueryKey = ['settings', 'reception-desk', 'kiosks'] as const;
 const systemsQueryKey = ['settings', 'reception-desk', 'access-control-systems'] as const;
 const pageSize = 100;
 
@@ -39,8 +50,27 @@ const triggerOptions: { readonly label: string; readonly value: ReceptionAccessP
 export default function ReceptionDeskSettingsPage() {
   const queryClient = useQueryClient();
   const [editingAssignmentId, setEditingAssignmentId] = useState<string | null>(null);
+  const [editingKioskId, setEditingKioskId] = useState<string | null>(null);
+  const [isKioskFormOpen, setIsKioskFormOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [kioskValues, setKioskValues] = useState<KioskFormValues>(getDefaultKioskFormValues);
+  const [lastKioskKey, setLastKioskKey] = useState<ReceptionKioskKeyResponse | null>(null);
   const [values, setValues] = useState<FormValues>(getDefaultFormValues);
+
+  const kiosksQuery = useQuery({
+    queryKey: kiosksQueryKey,
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/reception/kiosks', {
+        params: { query: { Page: 0, PageSize: pageSize } },
+      });
+
+      if (error) {
+        throw new Error('Could not load reception kiosks.');
+      }
+
+      return data;
+    },
+  });
 
   const assignmentsQuery = useQuery({
     queryKey: assignmentsQueryKey,
@@ -73,11 +103,14 @@ export default function ReceptionDeskSettingsPage() {
   });
 
   const assignments = assignmentsQuery.data?.items ?? [];
+  const kiosks = kiosksQuery.data?.items ?? [];
   const systems = systemsQuery.data?.items ?? [];
   const selectedSystem = systems.find((system) => system.id === values.systemId) ?? null;
   const accessLevels = selectedSystem?.accessLevels ?? [];
   const isLoading = assignmentsQuery.isLoading || systemsQuery.isLoading;
   const isError = assignmentsQuery.isError || systemsQuery.isError;
+  const areKiosksLoading = kiosksQuery.isLoading;
+  const areKiosksError = kiosksQuery.isError;
 
   useEffect(() => {
     setValues((current) => {
@@ -108,6 +141,92 @@ export default function ReceptionDeskSettingsPage() {
     },
     onError: () => {
       toast.error('Could not create access level assignment.');
+    },
+  });
+
+  const createKiosk = useMutation({
+    mutationFn: async (request: CreateReceptionKioskRequest) => {
+      const { data, error } = await api.POST('/api/reception/kiosks', { body: request });
+
+      if (error || !data) {
+        throw new Error('Could not create reception kiosk.');
+      }
+
+      return data;
+    },
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: kiosksQueryKey });
+      resetKioskForm();
+      setLastKioskKey(response);
+      toast.success('Reception kiosk created. Copy the API key now.');
+    },
+    onError: () => {
+      toast.error('Could not create reception kiosk.');
+    },
+  });
+
+  const updateKiosk = useMutation({
+    mutationFn: async ({ id, request }: { readonly id: string; readonly request: UpdateReceptionKioskRequest }) => {
+      const { error } = await api.PUT('/api/reception/kiosks/{id}', {
+        params: { path: { id } },
+        body: request,
+      });
+
+      if (error) {
+        throw new Error('Could not update reception kiosk.');
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: kiosksQueryKey });
+      resetKioskForm();
+      toast.success('Reception kiosk saved.');
+    },
+    onError: () => {
+      toast.error('Could not save reception kiosk.');
+    },
+  });
+
+  const rotateKioskKey = useMutation({
+    mutationFn: async (kiosk: ReceptionKiosk) => {
+      const { data, error } = await api.POST('/api/reception/kiosks/{id}/rotate-key', {
+        params: { path: { id: kiosk.id } },
+      });
+
+      if (error || !data) {
+        throw new Error('Could not rotate reception kiosk key.');
+      }
+
+      return data;
+    },
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: kiosksQueryKey });
+      setLastKioskKey(response);
+      toast.success('Reception kiosk key rotated. Copy the API key now.');
+    },
+    onError: () => {
+      toast.error('Could not rotate reception kiosk key.');
+    },
+  });
+
+  const disableKiosk = useMutation({
+    mutationFn: async (kiosk: ReceptionKiosk) => {
+      const { error } = await api.DELETE('/api/reception/kiosks/{id}', {
+        params: { path: { id: kiosk.id } },
+      });
+
+      if (error) {
+        throw new Error('Could not disable reception kiosk.');
+      }
+    },
+    onSuccess: async (_data, kiosk) => {
+      await queryClient.invalidateQueries({ queryKey: kiosksQueryKey });
+      if (editingKioskId === kiosk.id) {
+        resetKioskForm();
+      }
+      toast.success('Reception kiosk disabled.');
+    },
+    onError: () => {
+      toast.error('Could not disable reception kiosk.');
     },
   });
 
@@ -167,6 +286,12 @@ export default function ReceptionDeskSettingsPage() {
     });
   }
 
+  function resetKioskForm() {
+    setEditingKioskId(null);
+    setIsKioskFormOpen(false);
+    setKioskValues(getDefaultKioskFormValues());
+  }
+
   function openCreateForm() {
     const system = systems[0];
     setEditingAssignmentId(null);
@@ -180,6 +305,12 @@ export default function ReceptionDeskSettingsPage() {
     });
   }
 
+  function openCreateKioskForm() {
+    setEditingKioskId(null);
+    setIsKioskFormOpen(true);
+    setKioskValues(getDefaultKioskFormValues());
+  }
+
   function handleSystemChange(systemId: string) {
     const system = systems.find((item) => item.id === systemId);
     setValues((current) => ({ ...current, systemId, accessLevelTypeId: system?.accessLevels[0]?.id ?? '' }));
@@ -187,7 +318,7 @@ export default function ReceptionDeskSettingsPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const request = toRequest(values);
+    const request = toAssignmentRequest(values);
 
     if (!request) {
       toast.error('Complete access level assignment before saving.');
@@ -202,6 +333,31 @@ export default function ReceptionDeskSettingsPage() {
     createAssignment.mutate(request);
   }
 
+  function handleKioskSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (editingKioskId) {
+      const request = toUpdateKioskRequest(kioskValues);
+
+      if (!request) {
+        toast.error('Complete reception kiosk before saving.');
+        return;
+      }
+
+      updateKiosk.mutate({ id: editingKioskId, request });
+      return;
+    }
+
+    const request = toCreateKioskRequest(kioskValues);
+
+    if (!request) {
+      toast.error('Complete reception kiosk before saving.');
+      return;
+    }
+
+    createKiosk.mutate(request);
+  }
+
   function editAssignment(assignment: AccessRuleAssignment) {
     setEditingAssignmentId(assignment.id);
     setIsFormOpen(true);
@@ -214,12 +370,57 @@ export default function ReceptionDeskSettingsPage() {
     });
   }
 
+  function editKiosk(kiosk: ReceptionKiosk) {
+    setEditingKioskId(kiosk.id);
+    setIsKioskFormOpen(true);
+    setKioskValues({ name: kiosk.name, locationId: kiosk.locationId, enabled: kiosk.enabled });
+  }
+
   function confirmDelete(assignment: AccessRuleAssignment) {
     const confirmed = window.confirm(`Delete assignment for ${assignment.locationId}?`);
 
     if (confirmed) {
       deleteAssignment.mutate(assignment);
     }
+  }
+
+  function confirmDisableKiosk(kiosk: ReceptionKiosk) {
+    const confirmed = window.confirm(`Disable kiosk ${kiosk.name}?`);
+
+    if (confirmed) {
+      disableKiosk.mutate(kiosk);
+    }
+  }
+
+  function confirmRotateKioskKey(kiosk: ReceptionKiosk) {
+    const confirmed = window.confirm(`Rotate API key for ${kiosk.name}? Existing kiosk clients will stop authenticating until updated.`);
+
+    if (confirmed) {
+      rotateKioskKey.mutate(kiosk);
+    }
+  }
+
+  async function copyKioskKey() {
+    if (!lastKioskKey) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(lastKioskKey.apiKey);
+    toast.success('API key copied.');
+  }
+
+  async function copyKioskId(kiosk: ReceptionKiosk) {
+    await navigator.clipboard.writeText(kiosk.id);
+    toast.success('Kiosk ID copied.');
+  }
+
+  async function copyKioskHeaders() {
+    if (!lastKioskKey) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(`reception-kiosk-id: ${lastKioskKey.kiosk.id}\nreception-kiosk-key: ${lastKioskKey.apiKey}`);
+    toast.success('Kiosk headers copied.');
   }
 
   return (
@@ -229,6 +430,114 @@ export default function ReceptionDeskSettingsPage() {
         <h1 className="mt-3 text-[32px] font-semibold tracking-tight">Reception Desk</h1>
         <p className="mt-3 max-w-2xl text-[14px] text-muted-foreground">Configure reception desk access automation and arrival policy defaults.</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-[20px]">
+                <span className="rounded-interactive bg-hover-blue p-2 text-primary">
+                  <KeyRound className="size-5" aria-hidden="true" />
+                </span>
+                Reception Kiosks
+              </CardTitle>
+              <CardDescription className="mt-2 max-w-3xl">
+                Manage self onboarding kiosks and their API keys. New and rotated keys are only shown once.
+              </CardDescription>
+            </div>
+            <Button type="button" className="w-full sm:w-auto" disabled={areKiosksLoading || areKiosksError} onClick={openCreateKioskForm}>
+              <Plus className="size-4" aria-hidden="true" />
+              Create Kiosk
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          {areKiosksLoading ? <p className="text-[14px] text-muted-foreground">Loading reception kiosks...</p> : null}
+          {areKiosksError ? <p className="rounded-interactive border border-error bg-error-background px-4 py-3 text-[14px] text-error">Could not load reception kiosks.</p> : null}
+
+          {lastKioskKey ? (
+            <div className="grid gap-3 rounded-structural border border-primary/30 bg-hover-blue p-4">
+              <div>
+                <h2 className="text-[16px] font-semibold">Kiosk credentials for {lastKioskKey.kiosk.name}</h2>
+                <p className="mt-1 text-[13px] text-muted-foreground">Copy these headers now. The API key will not be shown again.</p>
+              </div>
+              <div className="grid gap-3">
+                <CredentialLine label="reception-kiosk-id" value={lastKioskKey.kiosk.id} />
+                <CredentialLine label="reception-kiosk-key" value={lastKioskKey.apiKey} />
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Button type="button" variant="outline" onClick={() => copyKioskId(lastKioskKey.kiosk)}>
+                  <Copy className="size-4" aria-hidden="true" />
+                  Copy ID
+                </Button>
+                <Button type="button" variant="outline" onClick={copyKioskKey}>
+                  <Copy className="size-4" aria-hidden="true" />
+                  Copy key
+                </Button>
+                <Button type="button" variant="outline" onClick={copyKioskHeaders}>
+                  <Copy className="size-4" aria-hidden="true" />
+                  Copy headers
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setLastKioskKey(null)}>Dismiss</Button>
+              </div>
+            </div>
+          ) : null}
+
+          {!areKiosksLoading && !areKiosksError ? (
+            <>
+              {isKioskFormOpen ? (
+                <form className="grid gap-5 rounded-structural border border-border bg-background p-4" onSubmit={handleKioskSubmit}>
+                  <div>
+                    <h2 className="text-[16px] font-semibold">{editingKioskId ? 'Edit kiosk' : 'New kiosk'}</h2>
+                    <p className="mt-1 text-[13px] text-muted-foreground">Set kiosk name and physical location.</p>
+                  </div>
+
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Field label="Kiosk name">
+                      <Input value={kioskValues.name} onChange={(event) => setKioskValues((current) => ({ ...current, name: event.target.value }))} required />
+                    </Field>
+                    <div className="lg:col-span-2">
+                      <LocationSelector
+                        value={kioskValues.locationId}
+                        onChange={(locationId) => setKioskValues((current) => ({ ...current, locationId }))}
+                        maxDepth="Room"
+                        requiredDepth="None"
+                      />
+                    </div>
+                    {editingKioskId ? (
+                      <label className="inline-flex items-center gap-2 text-[14px] font-medium">
+                        <input
+                          type="checkbox"
+                          checked={kioskValues.enabled}
+                          onChange={(event) => setKioskValues((current) => ({ ...current, enabled: event.target.checked }))}
+                        />
+                        Enabled
+                      </label>
+                    ) : null}
+                  </div>
+
+                  <div className="flex flex-col gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
+                    {editingKioskId ? <Button type="button" variant="outline" onClick={resetKioskForm}>Cancel edit</Button> : null}
+                    <Button type="submit" disabled={createKiosk.isPending || updateKiosk.isPending || !kioskValues.name.trim() || !kioskValues.locationId}>
+                      {createKiosk.isPending || updateKiosk.isPending ? 'Saving...' : 'Save kiosk'}
+                    </Button>
+                  </div>
+                </form>
+              ) : null}
+
+              <ReceptionKiosksTable
+                kiosks={kiosks}
+                disableKioskId={disableKiosk.isPending ? disableKiosk.variables?.id : null}
+                editingKioskId={editingKioskId}
+                rotateKioskId={rotateKioskKey.isPending ? rotateKioskKey.variables?.id : null}
+                onDisable={confirmDisableKiosk}
+                onEdit={editKiosk}
+                onRotateKey={confirmRotateKioskKey}
+              />
+            </>
+          ) : null}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -332,6 +641,74 @@ export default function ReceptionDeskSettingsPage() {
   );
 }
 
+function ReceptionKiosksTable({
+  kiosks,
+  disableKioskId,
+  editingKioskId,
+  rotateKioskId,
+  onDisable,
+  onEdit,
+  onRotateKey,
+}: {
+  readonly kiosks: readonly ReceptionKiosk[];
+  readonly disableKioskId: string | null;
+  readonly editingKioskId: string | null;
+  readonly rotateKioskId: string | null;
+  readonly onDisable: (kiosk: ReceptionKiosk) => void;
+  readonly onEdit: (kiosk: ReceptionKiosk) => void;
+  readonly onRotateKey: (kiosk: ReceptionKiosk) => void;
+}) {
+  if (kiosks.length === 0) {
+    return <p className="rounded-structural border border-border bg-background p-4 text-[14px] text-muted-foreground">No reception kiosks configured.</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-structural border border-border">
+      <table className="w-full min-w-[48rem] border-collapse text-left text-[14px]">
+        <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Name</th>
+            <th className="px-4 py-3 font-semibold">Location</th>
+            <th className="px-4 py-3 font-semibold">Status</th>
+            <th className="px-4 py-3 text-right font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {kiosks.map((kiosk) => (
+            <tr key={kiosk.id} className={editingKioskId === kiosk.id ? 'bg-hover-blue/60' : undefined}>
+              <td className="px-4 py-4 font-medium text-foreground">{kiosk.name}</td>
+              <td className="px-4 py-4 text-muted-foreground"><AssignmentLocationLabel locationId={kiosk.locationId} /></td>
+              <td className="px-4 py-4 text-muted-foreground">{kiosk.enabled ? 'Enabled' : 'Disabled'}</td>
+              <td className="px-4 py-4">
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" size="icon-sm" aria-label={`Edit ${kiosk.name}`} onClick={() => onEdit(kiosk)}>
+                    <Pencil className="size-4" aria-hidden="true" />
+                  </Button>
+                  <Button type="button" variant="outline" size="icon-sm" aria-label={`Rotate key for ${kiosk.name}`} disabled={rotateKioskId === kiosk.id} onClick={() => onRotateKey(kiosk)}>
+                    <RotateCw className="size-4" aria-hidden="true" />
+                  </Button>
+                  <Button type="button" variant="outline" size="icon-sm" aria-label={`Disable ${kiosk.name}`} disabled={!kiosk.enabled || disableKioskId === kiosk.id} onClick={() => onDisable(kiosk)}>
+                    <Trash2 className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CredentialLine({ label, value }: { readonly label: string; readonly value: string }) {
+  return (
+    <div>
+      <p className="mb-1 text-[12px] font-semibold uppercase text-muted-foreground">{label}</p>
+      <code className="block min-w-0 overflow-x-auto rounded-interactive border border-border bg-content px-3 py-2 text-[13px]">{value}</code>
+    </div>
+  );
+}
+
 function AccessAssignmentsTable({
   assignments,
   deleteAssignmentId,
@@ -430,7 +807,15 @@ function getDefaultFormValues(): FormValues {
   };
 }
 
-function toRequest(values: FormValues): AccessRuleAssignmentRequest | null {
+function getDefaultKioskFormValues(): KioskFormValues {
+  return {
+    name: '',
+    locationId: null,
+    enabled: true,
+  };
+}
+
+function toAssignmentRequest(values: FormValues): AccessRuleAssignmentRequest | null {
   const gracePeriodMinutes = Number.parseInt(values.gracePeriodMinutes, 10);
 
   if (!values.locationId || !values.systemId || !values.accessLevelTypeId || Number.isNaN(gracePeriodMinutes) || gracePeriodMinutes < 0) {
@@ -444,6 +829,22 @@ function toRequest(values: FormValues): AccessRuleAssignmentRequest | null {
     trigger: values.trigger,
     gracePeriodMinutes,
   };
+}
+
+function toCreateKioskRequest(values: KioskFormValues): CreateReceptionKioskRequest | null {
+  const name = values.name.trim();
+
+  if (!name || !values.locationId) {
+    return null;
+  }
+
+  return { name, locationId: values.locationId };
+}
+
+function toUpdateKioskRequest(values: KioskFormValues): UpdateReceptionKioskRequest | null {
+  const request = toCreateKioskRequest(values);
+
+  return request ? { ...request, enabled: values.enabled } : null;
 }
 
 function getSystemName(systems: readonly AccessControlSystem[], systemId: string) {

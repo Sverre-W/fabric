@@ -35,7 +35,7 @@ function getVisitorName(visit: VisitConfirmationResponse) {
 }
 
 export default function VisitorConfirmationPage() {
-  const { visitId, invitationId } = useParams({ from: '/visitor-confirmation/$visitId/$invitationId' });
+  const { visitId, invitationId } = useParams({ from: '/main/visitor-confirmation/$visitId/$invitationId' });
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');

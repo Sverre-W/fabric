@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "latest",
     "@tanstack/react-query": "latest",
     "@tanstack/react-router": "latest",
+    "@zxing/browser": "^0.2.0",
     "class-variance-authority": "latest",
     "clsx": "latest",
     "date-fns": "^4.4.0",

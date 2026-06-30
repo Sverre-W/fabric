@@ -11,7 +11,7 @@ const organizersQueryKey = ['visitors-management', 'organizers'] as const;
 const emptyOrganizer: OrganizerFormValues = { firstName: '', lastName: '', email: '' };
 
 export default function OrganizerEditPage() {
-  const { organizerId } = useParams({ from: '/visitors-management/organizers/$organizerId/edit' });
+  const { organizerId } = useParams({ from: '/main/visitors-management/organizers/$organizerId/edit' });
   const queryClient = useQueryClient();
 
   const organizerQuery = useQuery({
