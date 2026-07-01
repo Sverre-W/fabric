@@ -1,6 +1,18 @@
 <Solution>
+  <Folder Name="/Hardware/">
+    <Project Path="hardware\Fabric.Hardware.Agent\Fabric.Hardware.Agent.csproj" />
+    <Project Path="hardware\Fabric.Hardware.Collector\Fabric.Hardware.Collector.csproj" />
+    <Project Path="hardware\Fabric.Hardware.Contracts\Fabric.Hardware.Contracts.csproj" />
+    <Project Path="hardware\Fabric.Hardware.Dispenser\Fabric.Hardware.Dispenser.csproj" />
+    <Project Path="hardware\Fabric.Hardware.QrReader\Fabric.Hardware.QrReader.csproj" />
+    <Project Path="hardware\Fabric.Hardware.RfidEas\Fabric.Hardware.RfidEas.csproj" />
+  </Folder>
+  <Folder Name="/Properties/">
+    <File Path="Directory.Packages.props" />
+  </Folder>
   <Project Path="Fabric.Server\Fabric.Server.csproj" />
-  <Project Path="access-control\unipass\AccessControl.Unipass\AccessControl.Unipass.csproj" />
-  <Project Path="access-control\unipass\AccessControl.Unipass.Tests\AccessControl.Unipass.Tests.csproj" />
-  <Project Path="hardware\Fabric.Hardware.Contracts\Fabric.Hardware.Contracts.csproj" />
+  <Folder Name="/AccessControl/">
+    <Project Path="access-control\unipass\AccessControl.Unipass.Tests\AccessControl.Unipass.Tests.csproj" />
+    <Project Path="access-control\unipass\AccessControl.Unipass\AccessControl.Unipass.csproj" />
+  </Folder>
 </Solution>

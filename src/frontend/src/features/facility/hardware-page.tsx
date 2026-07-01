@@ -18,11 +18,10 @@ type HardwareAgentKeyResponse = components['schemas']['HardwareAgentKeyResponse'
 type FormValues = {
   readonly id: string;
   readonly name: string;
-  readonly locationId: string;
 };
 
 const agentsQueryKey = ['facility', 'hardware-agents'] as const;
-const emptyFormValues: FormValues = { id: '', name: '', locationId: '' };
+const emptyFormValues: FormValues = { id: '', name: '' };
 
 export default function HardwarePage() {
   const queryClient = useQueryClient();
@@ -113,7 +112,6 @@ export default function HardwarePage() {
     createAgent.mutate({
       id: values.id,
       name: values.name,
-      locationId: values.locationId.trim() || null,
     });
   }
 
@@ -154,10 +152,6 @@ export default function HardwarePage() {
                 <Input value={values.name} onChange={(event) => updateValue('name', event.target.value)} placeholder="Reception station 01" required />
               </label>
 
-              <label className="grid gap-2 text-[14px] font-medium md:col-span-2">
-                Location id
-                <Input value={values.locationId} onChange={(event) => updateValue('locationId', event.target.value)} placeholder="Optional location UUID" />
-              </label>
             </div>
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -193,7 +187,6 @@ export default function HardwarePage() {
                 <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Agent</th>
-                    <th className="px-4 py-3 font-semibold">Location</th>
                     <th className="px-4 py-3 font-semibold">Last seen</th>
                     <th className="px-4 py-3 font-semibold">Inventory</th>
                     <th className="px-4 py-3 font-semibold">Status</th>
@@ -203,7 +196,7 @@ export default function HardwarePage() {
                 <tbody className="divide-y divide-border">
                   {agentsQuery.isLoading ? (
                     <tr>
-                      <td className="px-4 py-5 text-muted-foreground" colSpan={6}>
+                      <td className="px-4 py-5 text-muted-foreground" colSpan={5}>
                         Loading hardware agents...
                       </td>
                     </tr>
@@ -211,7 +204,7 @@ export default function HardwarePage() {
 
                   {agentsQuery.isError ? (
                     <tr>
-                      <td className="px-4 py-5 text-error" colSpan={6}>
+                      <td className="px-4 py-5 text-error" colSpan={5}>
                         Could not load hardware agents.
                       </td>
                     </tr>
@@ -272,7 +265,6 @@ function AgentCard({ agent, onRotate, onDelete, busy }: AgentActionsProps) {
           </div>
           <p className="mt-1 text-[13px] text-muted-foreground">{agent.id}</p>
           <dl className="mt-4 grid gap-2 text-[13px]">
-            <InfoRow label="Location" value={agent.locationId || 'Unassigned'} />
             <InfoRow label="Last seen" value={formatDate(agent.lastSeenAt)} />
             <InfoRow label="Inventory" value={formatDate(agent.lastInventoryAt)} />
           </dl>
@@ -290,7 +282,6 @@ function AgentRow({ agent, onRotate, onDelete, busy }: AgentActionsProps) {
         <div className="font-medium text-foreground">{agent.name}</div>
         <div className="mt-1 text-[13px] text-muted-foreground">{agent.id}</div>
       </td>
-      <td className="px-4 py-4 text-muted-foreground">{agent.locationId || 'Unassigned'}</td>
       <td className="px-4 py-4 text-muted-foreground">{formatDate(agent.lastSeenAt)}</td>
       <td className="px-4 py-4 text-muted-foreground">{formatDate(agent.lastInventoryAt)}</td>
       <td className="px-4 py-4"><StatusBadge enabled={agent.enabled} /></td>

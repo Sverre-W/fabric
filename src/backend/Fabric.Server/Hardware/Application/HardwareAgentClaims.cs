@@ -6,7 +6,6 @@ public static class HardwareAgentClaims
 {
     public const string AgentIdClaim = "hardware-agent-id";
     public const string AgentNameClaim = "hardware-agent-name";
-    public const string AgentLocationIdClaim = "hardware-agent-location-id";
 
     public static string GetAgentId(this ClaimsPrincipal user)
     {

@@ -21,7 +21,6 @@ namespace Fabric.Server.Hardware.Persistence.Migrations
                 {
                     Id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    LocationId = table.Column<Guid>(type: "uuid", nullable: true),
                     Enabled = table.Column<bool>(type: "boolean", nullable: false),
                     ApiKeyHash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     ApiKeySalt = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),

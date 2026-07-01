@@ -33,6 +33,7 @@ namespace Fabric.Server.Hardware;
 [JsonSerializable(typeof(UpdateHardwareAgentRequest))]
 [JsonSerializable(typeof(HardwareAgentKeyResponse))]
 [JsonSerializable(typeof(HardwareDeviceResponse))]
+[JsonSerializable(typeof(HardwareDeviceResponse[]))]
 [JsonSerializable(typeof(HardwareDeviceHealthResponse))]
 [JsonSerializable(typeof(IReadOnlyList<HardwareDeviceResponse>))]
 [JsonSerializable(typeof(Page<HardwareAgentResponse>))]

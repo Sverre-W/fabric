@@ -114,8 +114,7 @@ function AgentHeader({ agent, deviceCount }: { readonly agent: HardwareAgent; re
         <p className="mt-2 text-[14px] text-muted-foreground">{agent.id}</p>
       </div>
 
-      <dl className="grid gap-3 rounded-structural border border-border bg-background p-4 text-[13px] sm:grid-cols-2 lg:min-w-[32rem]">
-        <InfoItem label="Location" value={agent.locationId || 'Unassigned'} />
+      <dl className="grid gap-3 rounded-structural border border-border bg-background p-4 text-[13px] sm:grid-cols-2 lg:min-w-[24rem]">
         <InfoItem label="Devices" value={String(deviceCount)} />
         <InfoItem label="Last seen" value={formatDate(agent.lastSeenAt)} />
         <InfoItem label="Inventory" value={formatDate(agent.lastInventoryAt)} />

@@ -64,12 +64,35 @@ public static class HardwareAgentEndpoints
         context.Response.Headers.ContentType = "text/event-stream";
 
         ChannelReader<Guid> reader = connectionManager.Connect(agentId);
+
         try
         {
-            await foreach (Guid commandId in reader.ReadAllAsync(cancellationToken))
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await context.Response.WriteAsync($"event: command-available\ndata: {{ \"commandId\": \"{commandId}\" }}\n\n", cancellationToken);
-                await context.Response.Body.FlushAsync(cancellationToken);
+                using var commandCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using var heartbeatCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                Task<bool> commandAvailable = reader.WaitToReadAsync(commandCancellation.Token).AsTask();
+                Task heartbeatDelay = Task.Delay(TimeSpan.FromSeconds(15), heartbeatCancellation.Token);
+                Task completed = await Task.WhenAny(commandAvailable, heartbeatDelay);
+
+                if (completed == heartbeatDelay)
+                {
+                    await commandCancellation.CancelAsync();
+                    await context.Response.WriteAsync(": heartbeat\n\n", cancellationToken);
+                    await context.Response.Body.FlushAsync(cancellationToken);
+                    continue;
+                }
+
+                await heartbeatCancellation.CancelAsync();
+
+                if (!await commandAvailable)
+                    break;
+
+                while (reader.TryRead(out Guid commandId))
+                {
+                    await context.Response.WriteAsync($"event: command-available\ndata: {{ \"commandId\": \"{commandId}\" }}\n\n", cancellationToken);
+                    await context.Response.Body.FlushAsync(cancellationToken);
+                }
             }
         }
         finally
@@ -127,6 +150,9 @@ public static class HardwareAgentEndpoints
         List<HardwareDevice> existingDevices = await db.Devices
             .Where(device => device.AgentId == agentId)
             .ToListAsync(cancellationToken);
+        HashSet<string> reportedDeviceIds = request.Devices
+            .Select(device => HardwareDevice.NormalizeDeviceId(device.DeviceId))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (HardwareDeviceInventoryItem item in request.Devices)
         {
@@ -158,6 +184,9 @@ public static class HardwareAgentEndpoints
                 diagnosticsJson,
                 request.ReportedAt);
         }
+
+        foreach (HardwareDevice staleDevice in existingDevices.Where(device => !reportedDeviceIds.Contains(device.DeviceId)))
+            db.Devices.Remove(staleDevice);
 
         await db.SaveChangesAsync(cancellationToken);
         return Results.NoContent();

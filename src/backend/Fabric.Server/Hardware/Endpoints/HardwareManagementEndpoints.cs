@@ -99,7 +99,7 @@ public static class HardwareManagementEndpoints
             return Results.Problem("Hardware agent already exists.", statusCode: StatusCodes.Status409Conflict);
 
         HardwareAgentKey key = keyHasher.CreateKey();
-        HardwareAgent agent = HardwareAgent.Create(agentId, request.Name, request.LocationId, key.Hash, key.Salt);
+        HardwareAgent agent = HardwareAgent.Create(agentId, request.Name, key.Hash, key.Salt);
 
         db.Agents.Add(agent);
         await db.SaveChangesAsync(cancellationToken);
@@ -118,7 +118,7 @@ public static class HardwareManagementEndpoints
         if (agent is null)
             return Results.NotFound();
 
-        agent.Update(request.Name, request.LocationId, request.Enabled);
+        agent.Update(request.Name, request.Enabled);
         await db.SaveChangesAsync(cancellationToken);
 
         return Results.Ok(agent.ToResponse());

@@ -4780,8 +4780,6 @@ export interface components {
         CreateHardwareAgentRequest: {
             id: string;
             name: string;
-            /** Format: uuid */
-            locationId: null | string;
         };
         CreateReceptionKioskRequest: {
             name: string;
@@ -4826,8 +4824,6 @@ export interface components {
         HardwareAgentResponse: {
             id: string;
             name: string;
-            /** Format: uuid */
-            locationId: null | string;
             enabled: boolean;
             /** Format: date-time */
             lastSeenAt: null | string;
@@ -5383,8 +5379,6 @@ export interface components {
         };
         UpdateHardwareAgentRequest: {
             name: string;
-            /** Format: uuid */
-            locationId: null | string;
             enabled: boolean;
         };
         UpdateLenelConfigRequest: {

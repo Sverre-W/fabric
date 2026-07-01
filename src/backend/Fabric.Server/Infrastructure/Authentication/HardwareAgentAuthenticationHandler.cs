@@ -45,15 +45,12 @@ public sealed class HardwareAgentAuthenticationHandler(
         if (!keyHasher.Verify(agentKey, agent.ApiKeyHash, agent.ApiKeySalt))
             return AuthenticateResult.Fail("Hardware agent credentials are invalid.");
 
-        List<Claim> claims =
+        Claim[] claims =
         [
             new(ClaimTypes.Role, HardwareAgentAuthenticationDefaults.Role),
             new(HardwareAgentClaims.AgentIdClaim, agent.Id),
             new(HardwareAgentClaims.AgentNameClaim, agent.Name)
         ];
-
-        if (agent.LocationId is not null)
-            claims.Add(new Claim(HardwareAgentClaims.AgentLocationIdClaim, agent.LocationId.Value.ToString()));
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name);

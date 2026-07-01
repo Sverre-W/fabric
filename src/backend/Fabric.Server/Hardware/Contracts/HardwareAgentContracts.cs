@@ -6,19 +6,16 @@ namespace Fabric.Server.Hardware.Contracts;
 public sealed record HardwareAgentResponse(
     string Id,
     string Name,
-    Guid? LocationId,
     bool Enabled,
     DateTimeOffset? LastSeenAt,
     DateTimeOffset? LastInventoryAt);
 
 public sealed record CreateHardwareAgentRequest(
     string Id,
-    string Name,
-    Guid? LocationId);
+    string Name);
 
 public sealed record UpdateHardwareAgentRequest(
     string Name,
-    Guid? LocationId,
     bool Enabled);
 
 public sealed record HardwareAgentKeyResponse(
