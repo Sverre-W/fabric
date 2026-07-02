@@ -7,6 +7,17 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Elsa" />
+    <PackageReference Include="Elsa.Expressions.CSharp" />
+    <PackageReference Include="Elsa.Expressions.JavaScript" />
+    <PackageReference Include="Elsa.Expressions.Liquid" />
+    <PackageReference Include="Elsa.Http" />
+    <PackageReference Include="Elsa.JavaScript" />
+    <PackageReference Include="Elsa.Persistence.EFCore" />
+    <PackageReference Include="Elsa.Persistence.EFCore.PostgreSql" />
+    <PackageReference Include="Elsa.Scheduling" />
+    <PackageReference Include="Elsa.Tenants" />
+    <PackageReference Include="Elsa.Workflows.Api" />
     <PackageReference Include="Fluid.Core" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />

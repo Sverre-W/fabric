@@ -7,7 +7,7 @@ namespace Fabric.Server.Infrastructure.Tenancy;
 
 public sealed class TenantStore(TenantsDbContext dbContext, IMemoryCache cache) : ITenantStore
 {
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
     public async Task<TenantInfo?> GetTenantAsync(string tenantId, CancellationToken cancellationToken)
     {
@@ -25,9 +25,19 @@ public sealed class TenantStore(TenantsDbContext dbContext, IMemoryCache cache) 
             return null;
 
         var tenantInfo = new TenantInfo(tenant.Id, tenant.Configuration);
-        cache.Set(cacheKey, tenantInfo, CacheDuration);
+        cache.Set(cacheKey, tenantInfo, _cacheDuration);
 
         return tenantInfo;
+    }
+
+
+    public async Task<List<TenantInfo>> GetAllTenantsAsync(CancellationToken cancellationToken)
+    {
+        List<Tenant> tenants = await dbContext.Tenants
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return tenants.ConvertAll(t => new TenantInfo(t.Id, t.Configuration));
     }
 
     public void InvalidateTenant(string tenantId)

@@ -2,6 +2,7 @@ namespace Fabric.Server.Infrastructure.Tenancy;
 
 public interface ITenantStore
 {
-    Task<TenantInfo?> GetTenantAsync(string tenantId, CancellationToken cancellationToken);
-    void InvalidateTenant(string tenantId);
+    public Task<TenantInfo?> GetTenantAsync(string tenantId, CancellationToken cancellationToken);
+    public Task<List<TenantInfo>> GetAllTenantsAsync(CancellationToken cancellationToken);
+    public void InvalidateTenant(string tenantId);
 }

@@ -5,6 +5,17 @@
   <ItemGroup>
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="Elsa" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Expressions.CSharp" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Expressions.JavaScript" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Expressions.Liquid" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Http" Version="3.7.1" />
+    <PackageVersion Include="Elsa.JavaScript" Version="3.5.3" />
+    <PackageVersion Include="Elsa.Persistence.EFCore" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Persistence.EFCore.PostgreSql" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Scheduling" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Tenants" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Workflows.Api" Version="3.7.1" />
     <PackageVersion Include="Fluid.Core" Version="2.31.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
@@ -20,7 +31,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.9" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-      <!-- Override Microsoft.AspNetCore.OpenApi transitive version to 2.9 to avoid vunerability, can be removed after bumping to net AspNetCore.OpenApi -->
+    <!-- Override Microsoft.AspNetCore.OpenApi transitive version to 2.9 to avoid vunerability, can be removed after bumping to net AspNetCore.OpenApi -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />

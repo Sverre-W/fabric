@@ -1,5 +1,6 @@
 using Fabric.Server.AccessPolicies;
 using Fabric.Server.AccessPolicies.Endpoints;
+using Fabric.Server.Automation;
 using Fabric.Server.Hardware;
 using Fabric.Server.Hardware.Endpoints;
 using Fabric.Server.Infrastructure;
@@ -19,8 +20,12 @@ using Fabric.Server.Visitors.Endpoints;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-var section = builder.Configuration.GetSection("EnableOpenApi");
-bool enableOpenApi = section.Exists() && section.Get<bool>();
+IConfigurationSection openApiSection = builder.Configuration.GetSection("EnableOpenApi");
+bool enableOpenApi = openApiSection.Exists() && openApiSection.Get<bool>();
+
+IConfigurationSection automationSection = builder.Configuration.GetSection("EnableAutomation");
+bool enableAutomation = automationSection.Exists() && automationSection.Get<bool>();
+
 
 if (enableOpenApi)
 {
@@ -40,7 +45,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(origins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+                .WithExposedHeaders("x-elsa-workflow-instance-id");
     });
 });
 
@@ -53,6 +59,12 @@ builder.Services
     .SetupLocations(builder.Configuration)
     .SetupReception(builder.Configuration)
     .SetupNotifications(builder.Configuration);
+
+
+if (enableAutomation)
+{
+    builder.Services.SetupAutomation(builder.Configuration);
+}
 
 builder.Services.AddHostedService<MigrationsRunner>();
 
@@ -82,5 +94,12 @@ app.MapHardwareAgentEndpoints();
 app.MapVisitorEndpoints();
 app.MapOrganizerEndpoints();
 app.MapVisitorPreOnboardingSagaEndpoints();
+
+
+if (enableAutomation)
+{
+    app.UseAutomation();
+}
+
 
 app.Run();
