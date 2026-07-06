@@ -3,15 +3,10 @@ namespace Fabric.Server.Infrastructure;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
-public sealed class NamespaceFallbackJsonTypeInfoResolver : IJsonTypeInfoResolver
+public sealed class NamespaceFallbackJsonTypeInfoResolver(string namespacePrefix) : IJsonTypeInfoResolver
 {
     private readonly DefaultJsonTypeInfoResolver _fallback = new();
-    private readonly string _namespacePrefix;
-
-    public NamespaceFallbackJsonTypeInfoResolver(string namespacePrefix)
-    {
-        _namespacePrefix = namespacePrefix;
-    }
+    private readonly string _namespacePrefix = namespacePrefix;
 
     public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
     {

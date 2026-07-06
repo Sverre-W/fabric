@@ -1,4 +1,4 @@
-import { Building2, ConciergeBell, Settings, UsersRound } from 'lucide-react';
+import { Building2, ConciergeBell, Settings, UsersRound, Workflow } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 export type ModuleNavigationItem = {
@@ -39,6 +39,17 @@ export const appModules = [
       { label: 'Visitors', to: '/visitors-management/visitors' },
       { label: 'Organizers', to: '/visitors-management/organizers' },
       { label: 'Reporting', to: '/visitors-management/reporting' },
+    ],
+  },
+  {
+    id: 'automation',
+    name: 'Automation',
+    description: 'Design workflow definitions, inspect workflow instances, and manage process automation.',
+    logo: Workflow,
+    to: '/automation',
+    navigation: [
+      { label: 'Workflow Definitions', to: '/automation/workflow-definitions' },
+      { label: 'Workflow Instances', to: '/automation/workflow-instances' },
     ],
   },
   {

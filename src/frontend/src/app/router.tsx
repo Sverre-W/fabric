@@ -8,6 +8,10 @@ import { ReceptionKioskLayout } from '@/features/reception-kiosk/layout/receptio
 const AccessPage = lazy(() => import('@/features/access/access-page'));
 const AuditPage = lazy(() => import('@/features/audit/audit-page'));
 const AuthCallbackPage = lazy(() => import('@/features/auth/auth-callback-page'));
+const AutomationWorkflowDefinitionEditorPage = lazy(() => import('@/features/automation/workflow-definition-editor-page'));
+const AutomationWorkflowDefinitionsPage = lazy(() => import('@/features/automation/workflow-definitions-page'));
+const AutomationWorkflowInstanceViewerPage = lazy(() => import('@/features/automation/workflow-instance-viewer-page'));
+const AutomationWorkflowInstancesPage = lazy(() => import('@/features/automation/workflow-instances-page'));
 const CredentialsPage = lazy(() => import('@/features/credentials/credentials-page'));
 const FacilityAccessControlEditPage = lazy(() => import('@/features/facility/access-control-edit-page'));
 const FacilityAccessControlPage = lazy(() => import('@/features/facility/access-control-page'));
@@ -108,6 +112,46 @@ const auditRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
   path: '/audit',
   component: () => <ProtectedLazyRoute component={<AuditPage />} />,
+});
+
+const automationRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: '/automation',
+  component: () => (
+    <ProtectedRoute>
+      <Outlet />
+    </ProtectedRoute>
+  ),
+});
+
+const automationIndexRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/',
+  component: () => <LazyRoute component={<AutomationWorkflowDefinitionsPage />} />,
+});
+
+const automationWorkflowDefinitionsRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/workflow-definitions',
+  component: () => <LazyRoute component={<AutomationWorkflowDefinitionsPage />} />,
+});
+
+const automationWorkflowDefinitionEditorRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/workflow-definitions/$definitionId/edit',
+  component: () => <LazyRoute component={<AutomationWorkflowDefinitionEditorPage />} />,
+});
+
+const automationWorkflowInstancesRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/workflow-instances',
+  component: () => <LazyRoute component={<AutomationWorkflowInstancesPage />} />,
+});
+
+const automationWorkflowInstanceViewerRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/workflow-instances/$instanceId',
+  component: () => <LazyRoute component={<AutomationWorkflowInstanceViewerPage />} />,
 });
 
 const receptionDeskRoute = createRoute({
@@ -321,6 +365,13 @@ const routeTree = rootRoute.addChildren([
     credentialsRoute,
     organizationsRoute,
     auditRoute,
+    automationRoute.addChildren([
+      automationIndexRoute,
+      automationWorkflowDefinitionsRoute,
+      automationWorkflowDefinitionEditorRoute,
+      automationWorkflowInstancesRoute,
+      automationWorkflowInstanceViewerRoute,
+    ]),
     receptionDeskRoute,
     visitorConfirmationRoute,
     facilityRoute.addChildren([

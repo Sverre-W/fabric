@@ -83,9 +83,12 @@ public static class AutomationServiceCollectionExtensions
 
 
         //For now we cannot have source generation for Elsa endpoints, so we need to add a fallback resolver to the Elsa namespace that uses runtime reflection
-        services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolverChain.Add(
-            new NamespaceFallbackJsonTypeInfoResolver("Elsa.")));
+        services.ConfigureHttpJsonOptions(options =>
+        {
 
+            options.SerializerOptions.TypeInfoResolverChain.Add(ElsaJsonSerializerContext.Default);
+            options.SerializerOptions.TypeInfoResolverChain.Add(new NamespaceFallbackJsonTypeInfoResolver("Elsa."));
+        });
 
 
         return services;

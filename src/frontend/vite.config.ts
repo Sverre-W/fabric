@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:5245',
+      '/elsa': 'http://localhost:5245',
     },
   },
   resolve: {

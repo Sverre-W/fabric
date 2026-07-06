@@ -34,9 +34,11 @@ vi.mock('@/shared/api/client', () => ({
 }));
 
 vi.mock('@zxing/browser', () => ({
-  BrowserQRCodeReader: vi.fn().mockImplementation(() => ({
+  BrowserQRCodeReader: vi.fn().mockImplementation(function BrowserQRCodeReaderMock() {
+    return {
     decodeFromVideoDevice: decodeFromVideoDeviceMock,
-  })),
+    };
+  }),
 }));
 
 vi.mock('react-oidc-context', () => ({
@@ -202,6 +204,47 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /fabric modules/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /facility/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /visitors management/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /automation/i })).toBeInTheDocument();
+  });
+
+  it('renders Workflow Definitions for Automation module root', async () => {
+    window.history.pushState({}, '', '/automation');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('button', { name: /automation/i })).toBeInTheDocument();
+    expect(await screen.findByRole('navigation', { name: /automation menu/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /workflow definitions/i })).toBeInTheDocument();
+    expect(document.querySelector('elsa-workflow-definition-list')).toHaveAttribute('remote-endpoint', 'http://localhost:5245/elsa/api');
+  });
+
+  it('renders Workflow Instances for Automation module', async () => {
+    window.history.pushState({}, '', '/automation/workflow-instances');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /workflow instances/i })).toBeInTheDocument();
+    expect(document.querySelector('elsa-workflow-instance-list')).toBeInTheDocument();
+  });
+
+  it('renders Workflow Definition editor route', async () => {
+    window.history.pushState({}, '', '/automation/workflow-definitions/definition-1/edit');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /workflow definition editor/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /back to workflow definitions/i })).toHaveAttribute('href', '/automation/workflow-definitions');
+    expect(document.querySelector('elsa-workflow-definition-editor')).toHaveAttribute('definition-id', 'definition-1');
+  });
+
+  it('renders Workflow Instance viewer route', async () => {
+    window.history.pushState({}, '', '/automation/workflow-instances/instance-1');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /workflow instance viewer/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /back to workflow instances/i })).toHaveAttribute('href', '/automation/workflow-instances');
+    expect(document.querySelector('elsa-workflow-instance-viewer')).toHaveAttribute('instance-id', 'instance-1');
   });
 
   it('shows reception kiosk setup when kiosk settings are missing', async () => {
