@@ -1,11 +1,15 @@
 using Fabric.Server.AccessPolicies;
 using Fabric.Server.AccessPolicies.Endpoints;
 using Fabric.Server.Automation;
+using Fabric.Server.Desfire;
+using Fabric.Server.Desfire.Endpoints;
 using Fabric.Server.Hardware;
 using Fabric.Server.Hardware.Endpoints;
 using Fabric.Server.Infrastructure;
 using Fabric.Server.Infrastructure.Authentication;
 using Fabric.Server.Infrastructure.Tenancy;
+using Fabric.Server.Kiosk;
+using Fabric.Server.Kiosk.Endpoints;
 using Fabric.Server.Locations;
 using Fabric.Server.Locations.Endpoints;
 using Fabric.Server.Notifications;
@@ -55,7 +59,9 @@ builder.Services
     .SetupAccessPolicies(builder.Configuration)
     .SetupVisitors(builder.Configuration)
     .SetupSagas(builder.Configuration)
+    .SetupDesfire(builder.Configuration)
     .SetupHardware(builder.Configuration)
+    .SetupKiosk(builder.Configuration)
     .SetupLocations(builder.Configuration)
     .SetupReception(builder.Configuration)
     .SetupNotifications(builder.Configuration);
@@ -91,6 +97,16 @@ app.MapReceptionAccessRuleAssignmentEndpoints();
 app.MapHardwareManagementEndpoints();
 app.MapHardwareOperationEndpoints();
 app.MapHardwareAgentEndpoints();
+app.MapDesfireChipDesignEndpoints();
+app.MapDesfireTransformationEndpoints();
+app.MapDesfireSystemProviderEndpoints();
+app.MapDesfireEncoderEndpoints();
+app.MapDesfireKeyDiversificationStrategyEndpoints();
+app.MapDesfireKeyGroupEndpoints();
+app.MapDesfireEncodingEndpoints();
+app.MapKioskProfileEndpoints();
+app.MapKioskEndpoints();
+app.MapKioskRuntimeEndpoints();
 app.MapVisitorEndpoints();
 app.MapOrganizerEndpoints();
 app.MapVisitorPreOnboardingSagaEndpoints();

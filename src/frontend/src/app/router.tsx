@@ -1,4 +1,4 @@
-import { Outlet, createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
+import { Navigate, Outlet, createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
 import { AppLayout } from '@/shared/layout/app-layout';
@@ -9,9 +9,27 @@ const AccessPage = lazy(() => import('@/features/access/access-page'));
 const AuditPage = lazy(() => import('@/features/audit/audit-page'));
 const AuthCallbackPage = lazy(() => import('@/features/auth/auth-callback-page'));
 const AutomationWorkflowDefinitionEditorPage = lazy(() => import('@/features/automation/workflow-definition-editor-page'));
-const AutomationWorkflowDefinitionsPage = lazy(() => import('@/features/automation/workflow-definitions-page'));
 const AutomationWorkflowInstanceViewerPage = lazy(() => import('@/features/automation/workflow-instance-viewer-page'));
-const AutomationWorkflowInstancesPage = lazy(() => import('@/features/automation/workflow-instances-page'));
+const AutomationWorkflowPage = lazy(() => import('@/features/automation/workflow-page'));
+const AutomationKioskPage = lazy(() => import('@/features/automation/kiosk-admin-page'));
+const AutomationKioskEditPage = lazy(() => import('@/features/automation/kiosk-edit-page'));
+const AutomationKioskProfileEditPage = lazy(() => import('@/features/automation/kiosk-profile-edit-page'));
+const CardManagementChipDesignCreatePage = lazy(() => import('@/features/card-management/chip-design-create-page'));
+const CardManagementChipDesignEditPage = lazy(() => import('@/features/card-management/chip-design-form-page'));
+const CardManagementChipDesignerPage = lazy(() => import('@/features/card-management/chip-designer-page'));
+const CardManagementKeyGroupCreatePage = lazy(() => import('@/features/card-management/key-group-create-page'));
+const CardManagementKeyGroupEditPage = lazy(() => import('@/features/card-management/key-group-form-page'));
+const CardManagementKeyManagementPage = lazy(() => import('@/features/card-management/key-management-page'));
+const CardManagementPrintBatchCreatePage = lazy(() => import('@/features/card-management/print-batch-create-page'));
+const CardManagementPrintBatchDetailPage = lazy(() => import('@/features/card-management/print-batch-detail-page'));
+const CardManagementEncoderFormPage = lazy(() => import('@/features/card-management/encoder-form-page'));
+const CardManagementPrintRunDetailPage = lazy(() => import('@/features/card-management/print-run-detail-page'));
+const CardManagementPrintingPage = lazy(() => import('@/features/card-management/printing-page'));
+const CardManagementStrategyCreatePage = lazy(() => import('@/features/card-management/diversification-strategy-create-page'));
+const CardManagementStrategyEditPage = lazy(() => import('@/features/card-management/diversification-strategy-form-page'));
+const CardManagementSystemProviderCreatePage = lazy(() => import('@/features/card-management/system-provider-create-page'));
+const CardManagementTransformationCreatePage = lazy(() => import('@/features/card-management/transformation-create-page'));
+const CardManagementTransformationEditPage = lazy(() => import('@/features/card-management/transformation-form-page'));
 const CredentialsPage = lazy(() => import('@/features/credentials/credentials-page'));
 const FacilityAccessControlEditPage = lazy(() => import('@/features/facility/access-control-edit-page'));
 const FacilityAccessControlPage = lazy(() => import('@/features/facility/access-control-page'));
@@ -24,6 +42,8 @@ const FacilitySiteEditPage = lazy(() => import('@/features/facility/site-edit-pa
 const FacilityLocationsPage = lazy(() => import('@/features/facility/locations-page'));
 const HomePage = lazy(() => import('@/features/home/home-page'));
 const IdentitiesPage = lazy(() => import('@/features/identities/identities-page'));
+const KioskPage = lazy(() => import('@/features/kiosk/kiosk-page'));
+const KioskSetupPage = lazy(() => import('@/features/kiosk/kiosk-setup-page'));
 const OrganizationsPage = lazy(() => import('@/features/organizations/organizations-page'));
 const ReceptionDeskPage = lazy(() => import('@/features/reception-desk/reception-desk-page'));
 const SettingsLayout = lazy(() => import('@/features/settings/settings-layout'));
@@ -70,6 +90,12 @@ const receptionKioskLayoutRoute = createRoute({
       <Outlet />
     </ReceptionKioskLayout>
   ),
+});
+
+const kioskLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/kiosk',
+  component: () => <Outlet />,
 });
 
 const indexRoute = createRoute({
@@ -127,13 +153,19 @@ const automationRoute = createRoute({
 const automationIndexRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/',
-  component: () => <LazyRoute component={<AutomationWorkflowDefinitionsPage />} />,
+  component: () => <Navigate to="/automation/workflow" search={{ tab: 'definitions' } as never} />,
+});
+
+const automationWorkflowRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/workflow',
+  component: () => <LazyRoute component={<AutomationWorkflowPage />} />,
 });
 
 const automationWorkflowDefinitionsRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/workflow-definitions',
-  component: () => <LazyRoute component={<AutomationWorkflowDefinitionsPage />} />,
+  component: () => <Navigate to="/automation/workflow" search={{ tab: 'definitions' } as never} />,
 });
 
 const automationWorkflowDefinitionEditorRoute = createRoute({
@@ -145,13 +177,149 @@ const automationWorkflowDefinitionEditorRoute = createRoute({
 const automationWorkflowInstancesRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/workflow-instances',
-  component: () => <LazyRoute component={<AutomationWorkflowInstancesPage />} />,
+  component: () => <Navigate to="/automation/workflow" search={{ tab: 'history' } as never} />,
 });
 
 const automationWorkflowInstanceViewerRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/workflow-instances/$instanceId',
   component: () => <LazyRoute component={<AutomationWorkflowInstanceViewerPage />} />,
+});
+
+const automationKioskRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/kiosk',
+  component: () => <LazyRoute component={<AutomationKioskPage />} />,
+});
+
+const automationKioskEditRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/kiosk/$kioskId/edit',
+  component: () => <LazyRoute component={<AutomationKioskEditPage />} />,
+});
+
+const automationKioskProfileEditRoute = createRoute({
+  getParentRoute: () => automationRoute,
+  path: '/kiosk/profiles/$profileId/edit',
+  component: () => <LazyRoute component={<AutomationKioskProfileEditPage />} />,
+});
+
+const cardManagementRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: '/card-management',
+  component: () => (
+    <ProtectedRoute>
+      <Outlet />
+    </ProtectedRoute>
+  ),
+});
+
+const cardManagementIndexRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/',
+  component: () => <Navigate to="/card-management/key-management" />,
+});
+
+const cardManagementKeyManagementRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/key-management',
+  component: () => <LazyRoute component={<CardManagementKeyManagementPage />} />,
+});
+
+const cardManagementChipDesignerRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/chip-designer',
+  component: () => <LazyRoute component={<CardManagementChipDesignerPage />} />,
+});
+
+const cardManagementChipDesignCreateRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/chip-designs/new',
+  component: () => <LazyRoute component={<CardManagementChipDesignCreatePage />} />,
+});
+
+const cardManagementChipDesignEditRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/chip-designs/$chipDesignId/edit',
+  component: () => <LazyRoute component={<CardManagementChipDesignEditPage />} />,
+});
+
+const cardManagementKeyGroupCreateRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/key-groups/new',
+  component: () => <LazyRoute component={<CardManagementKeyGroupCreatePage />} />,
+});
+
+const cardManagementKeyGroupEditRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/key-groups/$keyGroupId/edit',
+  component: () => <LazyRoute component={<CardManagementKeyGroupEditPage />} />,
+});
+
+const cardManagementStrategyCreateRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/diversification-strategies/new',
+  component: () => <LazyRoute component={<CardManagementStrategyCreatePage />} />,
+});
+
+const cardManagementStrategyEditRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/diversification-strategies/$strategyId/edit',
+  component: () => <LazyRoute component={<CardManagementStrategyEditPage />} />,
+});
+
+const cardManagementTransformationCreateRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/transformations/new',
+  component: () => <LazyRoute component={<CardManagementTransformationCreatePage />} />,
+});
+
+const cardManagementTransformationEditRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/transformations/$transformationId/edit',
+  component: () => <LazyRoute component={<CardManagementTransformationEditPage />} />,
+});
+
+const cardManagementSystemProviderCreateRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/system-providers/new',
+  component: () => <LazyRoute component={<CardManagementSystemProviderCreatePage />} />,
+});
+
+const cardManagementPrintingRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/printing',
+  component: () => <LazyRoute component={<CardManagementPrintingPage />} />,
+});
+
+const cardManagementPrintBatchCreateRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/printing/new',
+  component: () => <LazyRoute component={<CardManagementPrintBatchCreatePage />} />,
+});
+
+const cardManagementPrintBatchDetailRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/printing/$batchId',
+  component: () => <LazyRoute component={<CardManagementPrintBatchDetailPage />} />,
+});
+
+const cardManagementEncoderCreateRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/printing/encoders/new',
+  component: () => <LazyRoute component={<CardManagementEncoderFormPage />} />,
+});
+
+const cardManagementEncoderEditRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/printing/encoders/$encoderId/edit',
+  component: () => <LazyRoute component={<CardManagementEncoderFormPage />} />,
+});
+
+const cardManagementPrintRunDetailRoute = createRoute({
+  getParentRoute: () => cardManagementRoute,
+  path: '/printing/runs/$runId',
+  component: () => <LazyRoute component={<CardManagementPrintRunDetailPage />} />,
 });
 
 const receptionDeskRoute = createRoute({
@@ -356,6 +524,18 @@ const receptionKioskNoRegistrationRoute = createRoute({
   component: () => <LazyRoute component={<ReceptionKioskNoRegistrationPage />} />,
 });
 
+const kioskIndexRoute = createRoute({
+  getParentRoute: () => kioskLayoutRoute,
+  path: '/',
+  component: () => <LazyRoute component={<KioskPage />} />,
+});
+
+const kioskSetupRoute = createRoute({
+  getParentRoute: () => kioskLayoutRoute,
+  path: '/setup',
+  component: () => <LazyRoute component={<KioskSetupPage />} />,
+});
+
 const routeTree = rootRoute.addChildren([
   mainLayoutRoute.addChildren([
     indexRoute,
@@ -367,10 +547,34 @@ const routeTree = rootRoute.addChildren([
     auditRoute,
     automationRoute.addChildren([
       automationIndexRoute,
+      automationWorkflowRoute,
       automationWorkflowDefinitionsRoute,
       automationWorkflowDefinitionEditorRoute,
       automationWorkflowInstancesRoute,
       automationWorkflowInstanceViewerRoute,
+      automationKioskRoute,
+      automationKioskEditRoute,
+      automationKioskProfileEditRoute,
+    ]),
+    cardManagementRoute.addChildren([
+      cardManagementIndexRoute,
+      cardManagementKeyManagementRoute,
+      cardManagementChipDesignerRoute,
+      cardManagementChipDesignCreateRoute,
+      cardManagementChipDesignEditRoute,
+      cardManagementKeyGroupCreateRoute,
+      cardManagementKeyGroupEditRoute,
+      cardManagementStrategyCreateRoute,
+      cardManagementStrategyEditRoute,
+      cardManagementTransformationCreateRoute,
+      cardManagementTransformationEditRoute,
+      cardManagementSystemProviderCreateRoute,
+      cardManagementPrintingRoute,
+      cardManagementPrintBatchCreateRoute,
+      cardManagementPrintBatchDetailRoute,
+      cardManagementEncoderCreateRoute,
+      cardManagementEncoderEditRoute,
+      cardManagementPrintRunDetailRoute,
     ]),
     receptionDeskRoute,
     visitorConfirmationRoute,
@@ -390,6 +594,7 @@ const routeTree = rootRoute.addChildren([
     visitorsManagementRoute.addChildren([visitsIndexRoute, visitsRoute, visitCreateRoute, visitEditRoute, visitorsRoute, organizersRoute, organizerCreateRoute, organizerEditRoute, visitorReportingRoute]),
   ]),
   receptionKioskLayoutRoute.addChildren([receptionKioskIndexRoute, receptionKioskSetupRoute, receptionKioskScanQrRoute, receptionKioskArrivalRoute, receptionKioskNoRegistrationRoute]),
+  kioskLayoutRoute.addChildren([kioskIndexRoute, kioskSetupRoute]),
 ]);
 
 export function createAppRouter() {

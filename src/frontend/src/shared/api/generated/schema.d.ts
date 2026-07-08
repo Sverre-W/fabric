@@ -265,6 +265,1174 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/elsa/api/workflow-instances/{id}/variables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesVariablesListList"];
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesVariablesPostList"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetElsaWorkflowsApiEndpointsWorkflowInstancesListList"];
+        put?: never;
+        post: operations["PostElsaWorkflowsApiEndpointsWorkflowInstancesListList"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-instances/{id}/journal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesJournalListGet"];
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesJournalFilteredListGet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-instances/{workflowInstanceId}/journal/{activityId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesJournalGetLastEntryGet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/import/workflow-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesImportImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-instances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesGetGet"];
+        put?: never;
+        post?: never;
+        delete: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesDeleteDelete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/export/workflow-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetElsaWorkflowsApiEndpointsWorkflowInstancesExportExport1"];
+        put?: never;
+        post: operations["PostElsaWorkflowsApiEndpointsWorkflowInstancesExportExport1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-instances/{id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetElsaWorkflowsApiEndpointsWorkflowInstancesExportExport2"];
+        put?: never;
+        post: operations["PostElsaWorkflowsApiEndpointsWorkflowInstancesExportExport2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-instances/{id}/execution-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesExecutionStateExecutionState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/cancel/workflow-instances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesCancelCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/delete/workflow-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesBulkDeleteBulkDelete1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/delete/workflow-instances/by-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesBulkDeleteBulkDelete2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/cancel/workflow-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowInstancesBulkCancelBulkCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/version/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsVersionDeleteVersion"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsVersionListVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/revert/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsVersionRevertVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/update-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsUpdateReferencesUpdateReferences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/retract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsRetractRetract"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/actions/workflow-definitions/reload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsReloadReload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/actions/workflow-definitions/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsRefreshRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsPublishPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsListList"];
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsPostPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/validation/is-name-unique": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsIsNameUniqueIsNameUnique"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/import-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsImportFilesImportFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PutElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport1"];
+        post: operations["PostElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PutElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport2"];
+        post: operations["PostElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/subgraph/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsGraphGraph"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/subgraph/segments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsGraphSegmentsNodes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/many-by-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsGetManyByIdGetManyById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/by-id/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetWorkflowDefinitionById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/by-definition-id/{definitionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsGetByDefinitionIdGetByDefinitionId1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsGetByDefinitionIdGetByDefinitionId2"];
+        put?: never;
+        post?: never;
+        delete: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsDeleteDelete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/export/workflow-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport1"];
+        put?: never;
+        post: operations["PostElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport2"];
+        put?: never;
+        post: operations["PostElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsExecuteGetEndpoint"];
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsExecutePostEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsDispatchEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definition-versions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsDeleteVersionDeleteVersion"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/query/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsCountCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/consumers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsConsumersConsumers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/retract/workflow-definitions/by-definition-ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkRetractBulkRetract"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/publish/workflow-definitions/by-definition-ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkPublishBulkPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/workflow-definitions/{definitionId}/bulk-dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkDispatchEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/delete/workflow-definitions/by-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkDeleteVersionsBulkDeleteVersions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bulk-actions/delete/workflow-definitions/by-definition-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkDeleteBulkDelete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/workflow-activation-strategies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsWorkflowActivationStrategiesListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/variables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsVariableTypesListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/tests/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsTestsActivitiesEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/tasks/{taskId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsTasksCompleteComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/storage-drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsStorageDriversListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/expression-descriptors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsScriptingExpressionDescriptorsListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/package/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsPackageVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/log-persistence-strategies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsLogPersistenceStrategiesListEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/incident-strategies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsIncidentStrategiesListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/features/installed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsFeaturesListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/features/installed/{fullName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsFeaturesGetGet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/events/trigger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsEventsTriggerPublicTrigger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/events/{eventName}/trigger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsEventsTriggerAuthenticatedTrigger"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/commit-strategies/workflows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsCommitStrategiesWorkflowsListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/commit-strategies/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsCommitStrategiesActivitiesListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/bookmarks/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetElsaWorkflowsApiEndpointsBookmarksResumeResume"];
+        put?: never;
+        post: operations["PostElsaWorkflowsApiEndpointsBookmarksResumeResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/activity-execution-summaries/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityExecutionSummariesListSummariesEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/activity-executions/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsActivityExecutionsReportReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/activity-executions/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityExecutionsListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/activity-executions/{id}/call-stack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityExecutionsGetCallStackEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/activity-executions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityExecutionsGetEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/activity-executions/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityExecutionsCountCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityDescriptorsListList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/activities/{typeName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityDescriptorsGetGet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/descriptors/activities/{activityTypeName}/options/{propertyName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaWorkflowsApiEndpointsActivityDescriptorOptionsGetGet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/scripting/javascript/type-definitions/{workflowDefinitionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ElsaExpressionsJavaScriptEndpointsTypeDefinitionsGet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/simulate-response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaResilienceEndpointsSimulateResponseSimulateResponseEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/resilience/retries/{activityInstanceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaResilienceEndpointsRetriesListEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/elsa/api/resilience/strategies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaResilienceEndpointsResilienceStrategiesListEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/access-policies/policies": {
         parameters: {
             query?: never;
@@ -3430,6 +4598,2837 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/desfire/chip-designs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfChipDesignResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateChipDesignRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChipDesignResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/chip-designs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChipDesignResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateChipDesignRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChipDesignResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/transformations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfTransformationResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateTransformationRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TransformationResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/transformations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TransformationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTransformationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TransformationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/transformations/{id}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TransformationPlanResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/system-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfSystemProviderResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateSystemProviderRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SystemProviderResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/system-providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SystemProviderResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/encoders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfEncoderResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateEncoderRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EncoderResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/encoders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EncoderResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateEncoderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EncoderResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/key-diversification-strategies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfKeyDiversificationStrategyResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateKeyDiversificationStrategyRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KeyDiversificationStrategyResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/key-diversification-strategies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KeyDiversificationStrategyResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateKeyDiversificationStrategyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KeyDiversificationStrategyResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/key-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfKeyGroupResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateKeyGroupRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KeyGroupResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/key-groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KeyGroupResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateKeyGroupRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KeyGroupResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/key-groups/{id}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KeyGroupResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/encoding-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfEncodingBatchResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateEncodingBatchRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EncodingBatchResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/encoding-batches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EncodingBatchResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/encoding-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                    transformationId?: string;
+                    batchId?: string;
+                    cardUid?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfEncodingRunResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/encoding-runs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EncodingRunResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/desfire/ad-hoc-encodings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAdHocEncodingRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EncodingRunResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfKioskProfileResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateKioskProfileRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskProfileResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskProfileResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateKioskProfileRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskProfileResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskProfileLanguageResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertKioskProfileLanguagesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskProfileLanguageResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/translations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskTranslationResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertKioskTranslationsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskTranslationResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/theme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskThemeTokenResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertKioskThemeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskThemeTokenResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/welcome": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskWelcomeSettingsResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertKioskWelcomeSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskWelcomeSettingsResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/hardware-bindings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskHardwareBindingResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertKioskHardwareBindingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskHardwareBindingResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskAssetResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": string & {
+                        kind: components["schemas"]["KioskAssetKind"];
+                    } & {
+                        file: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskAssetResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/assets/{assetId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    assetId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk-profiles/{id}/assets/{assetId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    assetId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfKioskResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateKioskRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskKeyResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateKioskRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}/rotate-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskKeyResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}/maintenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}/workflow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssignKioskWorkflowRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}/device-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskDeviceAssignmentResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertKioskDeviceAssignmentsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskDeviceAssignmentResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosks/{id}/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskDeviceResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertKioskDevicesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskDeviceResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    languageCode?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskConfigResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["KioskHeartbeatRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/language": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ChangeKioskLanguageRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskSessionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StartKioskSessionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskSessionResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/sessions/current/instruction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    sinceVersion?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskInstructionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/sessions/current/instructions/{instructionId}/response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    instructionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SubmitKioskInstructionResponseRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskSessionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/sessions/current/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskSessionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/assets/{assetName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    languageCode?: string;
+                };
+                header?: never;
+                path: {
+                    assetName: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/visitors/visits/{id}": {
         parameters: {
             query?: never;
@@ -4567,6 +8566,125 @@ export interface components {
             gracePeriodMinutes: number | string;
             trigger: components["schemas"]["ReceptionAccessPolicyTrigger"];
         };
+        ActivityDescriptor: {
+            tenantId?: null | string;
+            typeName?: string;
+            clrType?: components["schemas"]["Type"];
+            namespace?: string;
+            name?: string;
+            /** Format: int32 */
+            version?: number | string;
+            category?: string;
+            displayName?: null | string;
+            description?: null | string;
+            inputs?: components["schemas"]["InputDescriptor"][];
+            outputs?: components["schemas"]["OutputDescriptor"][];
+            kind?: components["schemas"]["ActivityKind"];
+            runAsynchronously?: boolean;
+            ports?: components["schemas"]["Port"][];
+            customProperties?: Record<string, never>;
+            constructionProperties?: Record<string, never>;
+            isContainer?: boolean;
+            isBrowsable?: boolean;
+            isStart?: boolean;
+            isTerminal?: boolean;
+        };
+        ActivityExecutionContextState: {
+            id?: string;
+            /** Format: int32 */
+            callStackDepth?: number | string;
+            parentContextId?: null | string;
+            scheduledActivityNodeId?: string;
+            ownerActivityNodeId?: null | string;
+            properties?: Record<string, never>;
+            metadata?: Record<string, never>;
+            activityState?: null | Record<string, never>;
+            dynamicVariables?: components["schemas"]["Variable"][];
+            status?: components["schemas"]["ActivityStatus"];
+            isExecuting?: boolean;
+            /** Format: int32 */
+            faultCount?: number | string;
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            completedAt?: null | string;
+            tag?: unknown;
+        };
+        ActivityExecutionRecord: {
+            workflowInstanceId?: string;
+            activityId?: string;
+            activityNodeId?: string;
+            activityType?: string;
+            /** Format: int32 */
+            activityTypeVersion?: number | string;
+            activityName?: null | string;
+            activityState?: null | Record<string, never>;
+            payload?: null | Record<string, never>;
+            outputs?: null | Record<string, never>;
+            properties?: null | Record<string, never>;
+            metadata?: null | Record<string, never>;
+            exception?: null | components["schemas"]["ExceptionState"];
+            /** Format: date-time */
+            startedAt?: string;
+            hasBookmarks?: boolean;
+            status?: components["schemas"]["ActivityStatus"];
+            /** Format: int32 */
+            aggregateFaultCount?: number | string;
+            /** Format: date-time */
+            completedAt?: null | string;
+            schedulingActivityExecutionId?: null | string;
+            schedulingActivityId?: null | string;
+            schedulingWorkflowInstanceId?: null | string;
+            /** Format: int32 */
+            callStackDepth?: null | number | string;
+            id?: string;
+            tenantId?: null | string;
+        };
+        ActivityExecutionRecordSummary: {
+            workflowInstanceId?: string;
+            activityId?: string;
+            activityNodeId?: string;
+            activityType?: string;
+            /** Format: int32 */
+            activityTypeVersion?: number | string;
+            activityName?: null | string;
+            /** Format: date-time */
+            startedAt?: string;
+            hasBookmarks?: boolean;
+            status?: components["schemas"]["ActivityStatus"];
+            metadata?: null | Record<string, never>;
+            /** Format: int32 */
+            aggregateFaultCount?: number | string;
+            /** Format: date-time */
+            completedAt?: null | string;
+            id?: string;
+            tenantId?: null | string;
+        };
+        ActivityHandle: {
+            activityId?: null | string;
+            activityNodeId?: null | string;
+            activityInstanceId?: null | string;
+            activityHash?: null | string;
+        };
+        ActivityIncident: {
+            activityId?: string;
+            activityNodeId?: string;
+            activityType?: string;
+            message?: string;
+            exception?: null | components["schemas"]["ExceptionState"];
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ActivityKind: number;
+        ActivityStatus: number;
+        ActivityWorkItemState: {
+            activityNodeId?: string;
+            ownerContextId?: null | string;
+            tag?: unknown;
+            variables?: null | components["schemas"]["Variable"][];
+            existingActivityExecutionContextId?: null | string;
+            input?: Record<string, never>;
+        };
         AddBuildingRequest: {
             name: string;
             address: null | string;
@@ -4610,11 +8728,35 @@ export interface components {
             /** Format: int32 */
             rangeStop: number | string;
         };
+        /**
+         * @default Sync
+         * @enum {unknown}
+         */
+        AdHocEncodingMode: "Sync" | "Queued";
         AdminTenantSettingsResponse: {
             oidc: components["schemas"]["OidcSettingsResponse"];
             theme: components["schemas"]["ThemeSettingsResponse"];
             logo: null | components["schemas"]["LogoSettingsResponse"];
             email: null | components["schemas"]["GraphEmailSettingsResponse"];
+        };
+        ApplicationKeySettingsSpecification: {
+            changeKey?: string;
+            changeable?: boolean;
+            masterKeyChangeable?: boolean;
+            freeDirectoryListing?: boolean;
+            allowCreateDelete?: boolean;
+        };
+        ApplicationSpecification: {
+            aid?: string;
+            isoDfName?: string;
+            keyGroupName?: string;
+            keyGroup?: string;
+            keySettings?: components["schemas"]["ApplicationKeySettingsSpecification"];
+            secureMessing?: components["schemas"]["SecureMessingConfiguration"];
+            use2BytesFileIdentifier?: boolean;
+            files?: {
+                [key: string]: components["schemas"]["FileSpecification"];
+            };
         };
         ArrivalEntryResponse: {
             /** Format: uuid */
@@ -4662,6 +8804,9 @@ export interface components {
         };
         /** @enum {unknown} */
         ArrivalType: "Visitor" | "Contractor";
+        AssignKioskWorkflowRequest: {
+            workflowDefinitionId: string;
+        };
         BadgeTypeResponse: components["schemas"]["BadgeTypeResponseUnipassBadgeTypeResponse"] | components["schemas"]["BadgeTypeResponseLenelBadgeTypeResponse"];
         BadgeTypeResponseLenelBadgeTypeResponse: {
             /** @enum {string} */
@@ -4687,11 +8832,31 @@ export interface components {
             systemId: string;
             name: string;
         };
+        Bookmark: {
+            id?: string;
+            name?: string;
+            hash?: string;
+            payload?: unknown;
+            activityId?: string;
+            activityNodeId?: string;
+            activityInstanceId?: null | string;
+            /** Format: date-time */
+            createdAt?: string;
+            autoBurn?: boolean;
+            callbackMethodName?: null | string;
+            autoComplete?: boolean;
+            metadata?: null | {
+                [key: string]: string;
+            };
+        };
         BuildingResponse: {
             /** Format: uuid */
             id: string;
             name: string;
             address: null | string;
+        };
+        ChangeKioskLanguageRequest: {
+            languageCode: string;
         };
         CheckInDocumentDto: {
             name: string;
@@ -4712,6 +8877,28 @@ export interface components {
         };
         /** @enum {unknown} */
         CheckInDocumentType: "FacePicture" | "IdentityCard" | "GenericPage";
+        ChipDesignResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            version: number | string;
+            description: null | string;
+            specification: components["schemas"]["TemplateSpecification"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CommitStrategyDescriptor: {
+            name: string;
+            displayName: string;
+            description: string;
+        };
+        CompletionCallbackState: {
+            ownerInstanceId?: string;
+            childNodeId?: string;
+            methodName?: null | string;
+            tag?: unknown;
+        };
         ConfirmInvitationRequest: {
             firstName: string;
             lastName: string;
@@ -4719,6 +8906,10 @@ export interface components {
             company: string;
             transport: components["schemas"]["ModeOfTransport"];
             licensePlate: null | string;
+        };
+        CountResponse: {
+            /** Format: int64 */
+            count: number | string;
         };
         CreateAccessControlSystemRequest: components["schemas"]["CreateAccessControlSystemRequestCreateUnipassAccessControlSystemRequest"] | components["schemas"]["CreateAccessControlSystemRequestCreateLenelAccessControlSystemRequest"];
         CreateAccessControlSystemRequestCreateLenelAccessControlSystemRequest: {
@@ -4762,6 +8953,26 @@ export interface components {
             gracePeriodMinutes: number | string;
             trigger: components["schemas"]["ReceptionAccessPolicyTrigger"];
         };
+        CreateAdHocEncodingRequest: {
+            /** Format: uuid */
+            transformationId: string;
+            agentId: null | string;
+            deviceId: null | string;
+            userVariables: components["schemas"]["JsonElement"];
+            mode?: components["schemas"]["AdHocEncodingMode"];
+            /**
+             * Format: int32
+             * @default 0
+             */
+            priority: number | string;
+        };
+        CreateChipDesignRequest: {
+            name: string;
+            /** Format: int32 */
+            version: null | number | string;
+            description: null | string;
+            specification: components["schemas"]["TemplateSpecification"];
+        };
         CreateCredentialPolicyRequest: {
             /** Format: uuid */
             systemId: string;
@@ -4777,9 +8988,54 @@ export interface components {
             /** Format: date-time */
             provisionFrom: null | string;
         };
+        CreateEncoderRequest: {
+            name: string;
+            agentId: string;
+            deviceId: string;
+            /** @default true */
+            enabled: boolean;
+        };
+        CreateEncodingBatchRequest: {
+            name: string;
+            /** Format: uuid */
+            encoderId: string;
+            /** Format: uuid */
+            transformationId: string;
+            originalInput: components["schemas"]["JsonElement"];
+            normalizedRows: components["schemas"]["JsonElement"];
+            requestedAgentId: null | string;
+            requestedDeviceId: null | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            priority: number | string;
+        };
         CreateHardwareAgentRequest: {
             id: string;
             name: string;
+        };
+        CreateKeyDiversificationStrategyRequest: {
+            name: string;
+            algorithm: components["schemas"]["KeyDiversificationAlgorithm"];
+            inputs: components["schemas"]["DiversificationInput"][];
+        };
+        CreateKeyGroupRequest: {
+            name: string;
+            keyType: components["schemas"]["KeyType"];
+            /** Format: int32 */
+            numberOfKeySets: number | string;
+            /** Format: int32 */
+            numberOfKeys: number | string;
+        };
+        CreateKioskProfileRequest: {
+            name: string;
+            defaultLanguageCode: string;
+        };
+        CreateKioskRequest: {
+            name: string;
+            /** Format: uuid */
+            profileId: string;
         };
         CreateReceptionKioskRequest: {
             name: string;
@@ -4791,6 +9047,20 @@ export interface components {
             id: null | string;
             name: string;
             address: null | string;
+        };
+        CreateSystemProviderRequest: {
+            name: string;
+            providerType: components["schemas"]["SystemVariableProviderKind"];
+            fixedValue: null | string;
+            /** Format: int64 */
+            initialValue: null | number | string;
+        };
+        CreateTransformationRequest: {
+            name: string;
+            fromChipDesignName: null | string;
+            fromBlank: boolean;
+            toChipDesignName: string;
+            variables: components["schemas"]["TransformationVariableConfigRequest"][];
         };
         CreateVisitRequest: {
             /** Format: uuid */
@@ -4808,6 +9078,148 @@ export interface components {
         CustomNotification: {
             subject: string;
             body: string;
+        };
+        /** @enum {unknown} */
+        DesfireVariableFormatKind: "Hex" | "Text" | "UInt" | "PaddedDecimal" | "PaddedHex" | "GenericWiegand";
+        DiversificationInput: {
+            option?: components["schemas"]["DiversificationInputOptions"];
+            data?: null | string;
+            /** Format: int32 */
+            lengthInBytes?: number | string;
+        };
+        /** @enum {unknown} */
+        DiversificationInputOptions: "Uid" | "Uid4Bytes" | "ApplicationId" | "ApplicationIdReversed" | "KeyNo" | "FixedHexValue";
+        EmptyRequest: Record<string, never>;
+        EncoderResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            agentId: string;
+            deviceId: string;
+            supportsEncoding: boolean;
+            supportsPrinting: boolean;
+            enabled: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        EncodingBatchResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            encoderId: null | string;
+            /** Format: uuid */
+            transformationId: string;
+            status: components["schemas"]["EncodingBatchStatus"];
+            originalInput: components["schemas"]["JsonElement"];
+            normalizedRows: components["schemas"]["JsonElement"];
+            /** Format: int32 */
+            totalRuns: number | string;
+            /** Format: int32 */
+            pendingRuns: number | string;
+            /** Format: int32 */
+            runningRuns: number | string;
+            /** Format: int32 */
+            succeededRuns: number | string;
+            /** Format: int32 */
+            failedRuns: number | string;
+            /** Format: int32 */
+            cancelledRuns: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @enum {unknown} */
+        EncodingBatchStatus: "Pending" | "Running" | "Completed" | "Failed" | "Cancelled";
+        /** @enum {unknown} */
+        EncodingRunKind: "AdHoc" | "BatchItem";
+        EncodingRunResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            transformationId: string;
+            /** Format: uuid */
+            batchId: null | string;
+            /** Format: uuid */
+            encoderId: null | string;
+            kind: components["schemas"]["EncodingRunKind"];
+            status: components["schemas"]["EncodingRunStatus"];
+            input: components["schemas"]["JsonElement"];
+            resolvedVariables: components["schemas"]["JsonElement"];
+            planSummary: components["schemas"]["JsonElement"];
+            commandAudit: components["schemas"]["JsonElement"];
+            cardUid: null | string;
+            hardwareAgentId: null | string;
+            deviceId: null | string;
+            errorMessage: null | string;
+            /** Format: date-time */
+            requestedAt: string;
+            /** Format: date-time */
+            startedAt: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+        };
+        /** @enum {unknown} */
+        EncodingRunStatus: "Pending" | "Claimed" | "Running" | "Succeeded" | "Failed" | "Cancelled" | "Timeout" | "DeviceUnavailable";
+        ExceptionState: {
+            type?: components["schemas"]["Type"];
+            message?: string;
+            stackTrace?: null | string;
+            innerException?: null | components["schemas"]["ExceptionState"];
+        };
+        ExpressionDescriptorModel: {
+            type: string;
+            displayName: string;
+            isSerializable: boolean;
+            isBrowsable: boolean;
+            properties: Record<string, never>;
+        };
+        FeatureDescriptor: {
+            name?: string;
+            namespace?: string;
+            fullName?: null | string;
+            displayName?: string;
+            description?: string;
+        };
+        /** @enum {unknown} */
+        FileMode: "Plain" | "Mac" | "Encrypted";
+        FileSpecification: {
+            /** Format: int32 */
+            id?: number | string;
+            mode?: components["schemas"]["FileMode"];
+            variable?: string;
+            /** Format: int32 */
+            size?: number | string;
+            /** Format: int32 */
+            dataOffsetBytes?: number | string;
+            /** Format: int32 */
+            dataLengthBytes?: number | string;
+            encoding?: string;
+            readKey?: string;
+            writeKey?: string;
+            readWriteKey?: string;
+            changeKey?: string;
+        };
+        GenericWiegandFormatRequest: {
+            /** Format: int32 */
+            bitLength: number | string;
+            fields: components["schemas"]["WiegandFieldRequest"][];
+            parity: components["schemas"]["WiegandParityRequest"][];
+            /** @default hex */
+            output: string;
+        };
+        GetRequest: {
+            definitionId?: string;
+            correlationId?: null | string;
+            name?: null | string;
+            triggerActivityId?: null | string;
+            activityHandle?: null | components["schemas"]["ActivityHandle"];
+            versionOptions?: null | components["schemas"]["VersionOptions"];
+            input?: null | string;
+            variables?: null | string;
         };
         GraphEmailSettingsResponse: {
             fromEmail: string;
@@ -4886,6 +9298,16 @@ export interface components {
         };
         /** @enum {unknown} */
         HardwareOperationStatus: "Succeeded" | "Timeout" | "Cancelled" | "DeviceUnavailable" | "Busy" | "Failed";
+        IActivity: {
+            id?: string;
+            nodeId?: string;
+            name?: null | string;
+            type?: string;
+            /** Format: int32 */
+            version?: number | string;
+            customProperties?: Record<string, never>;
+            metadata?: Record<string, never>;
+        };
         IdentityMappingResponse: {
             /** Format: uuid */
             subjectId: string;
@@ -4895,6 +9317,44 @@ export interface components {
             lastName: string;
             subjectType: components["schemas"]["SubjectType"];
             externalId: string;
+        };
+        /** Format: binary */
+        IFormFile: string;
+        IncidentStrategyDescriptor: {
+            displayName: string;
+            description: string;
+            typeName: string;
+        };
+        InputDefinition: {
+            uiHint?: string;
+            storageDriverType?: null | components["schemas"]["Type"];
+            type?: components["schemas"]["Type"];
+            name?: string;
+            displayName?: string;
+            description?: string;
+            category?: string;
+        };
+        InputDescriptor: {
+            isWrapped?: boolean;
+            uiHint?: string;
+            category?: null | string;
+            defaultValue?: unknown;
+            defaultSyntax?: null | string;
+            isReadOnly?: null | boolean;
+            isSensitive?: boolean;
+            storageDriverType?: null | components["schemas"]["Type"];
+            autoEvaluate?: boolean;
+            evaluatorType?: null | components["schemas"]["Type"];
+            uiSpecifications?: null | Record<string, never>;
+            name?: string;
+            typeName?: components["schemas"]["Type"];
+            displayName?: null | string;
+            description?: null | string;
+            /** Format: float */
+            order?: number | string;
+            isBrowsable?: null | boolean;
+            isSerializable?: null | boolean;
+            isSynthetic?: boolean;
         };
         InviteVisitRequest: {
             firstName: string;
@@ -4924,7 +9384,238 @@ export interface components {
             /** Format: uuid */
             systemId: string;
         };
+        JsonElement: unknown;
         JsonObject: Record<string, never>;
+        /** @enum {unknown} */
+        KeyDiversificationAlgorithm: "None" | "NxpAn10922";
+        KeyDiversificationStrategyResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            algorithm: components["schemas"]["KeyDiversificationAlgorithm"];
+            inputs: components["schemas"]["DiversificationInput"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        KeyGroupKeyRequest: {
+            /** Format: int32 */
+            keyId: number | string;
+            value: string;
+            isDiversified: boolean;
+        };
+        KeyGroupKeyResponse: {
+            /** Format: int32 */
+            keyId: number | string;
+            isDiversified: boolean;
+            value: null | string;
+        };
+        KeyGroupKeySetRequest: {
+            /** Format: int32 */
+            keySetId: number | string;
+            keys: components["schemas"]["KeyGroupKeyRequest"][];
+        };
+        KeyGroupKeySetResponse: {
+            /** Format: int32 */
+            keySetId: number | string;
+            keys: components["schemas"]["KeyGroupKeyResponse"][];
+        };
+        KeyGroupResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            keyType: components["schemas"]["KeyType"];
+            locked: boolean;
+            /** Format: uuid */
+            diversificationStrategyId: null | string;
+            keySets: components["schemas"]["KeyGroupKeySetResponse"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        KeySpecification: {
+            keyGroupName?: string;
+            keyGroup?: string;
+            /** Format: int32 */
+            keySet?: number | string;
+            /** Format: int32 */
+            key?: number | string;
+        };
+        /** @enum {unknown} */
+        KeyType: "None" | "TDes" | "Tdes2K" | "Tdes3K" | "Aes";
+        /** @enum {unknown} */
+        KioskAssetKind: "Image" | "Background" | "Logo" | "Video";
+        KioskAssetResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            profileId: string;
+            name: string;
+            languageCode: null | string;
+            kind: components["schemas"]["KioskAssetKind"];
+            fileName: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number | string;
+            altTextKey: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        KioskConfigResponse: {
+            kiosk: components["schemas"]["KioskResponse"];
+            profile: components["schemas"]["KioskProfileResponse"];
+            languages: components["schemas"]["KioskProfileLanguageResponse"][];
+            welcome: null | components["schemas"]["KioskWelcomeSettingsResponse"];
+            resolvedWelcome: null | components["schemas"]["ResolvedKioskWelcomeResponse"];
+            theme: {
+                [key: string]: string;
+            };
+        };
+        KioskDeviceAssignmentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            kioskId: string;
+            bindingKey: string;
+            agentId: string;
+            deviceId: string;
+            enabled: boolean;
+            /** Format: int32 */
+            priority: number | string;
+        };
+        KioskDeviceResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            kioskId: string;
+            name: string;
+            type: components["schemas"]["KioskDeviceType"];
+            /** Format: int32 */
+            slotNumber: number | string;
+            agentId: string;
+            deviceId: string;
+            enabled: boolean;
+            cleanupOnSessionEnd: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+        };
+        /** @enum {unknown} */
+        KioskDeviceType: "QrReader" | "RfidReader" | "Dispenser" | "Collector" | "EidReader" | "PassportReader" | "LabelPrinter";
+        KioskHardwareBindingResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            profileId: string;
+            bindingKey: string;
+            displayName: string;
+            requiredCapability: string;
+            required: boolean;
+            cleanupOnSessionEnd: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+        };
+        KioskHeartbeatRequest: {
+            /** Format: date-time */
+            reportedAt: string;
+        };
+        KioskInstructionResponse: {
+            /** Format: uuid */
+            sessionId: string;
+            status: components["schemas"]["KioskSessionStatus"];
+            /** Format: int32 */
+            version: number | string;
+            instructionId: null | string;
+            instructionJson: null | string;
+        };
+        KioskKeyResponse: {
+            kiosk: components["schemas"]["KioskResponse"];
+            apiKey: string;
+        };
+        /** @enum {unknown} */
+        KioskMode: "Active" | "Maintenance" | "Disabled";
+        KioskProfileLanguageResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            profileId: string;
+            languageCode: string;
+            displayName: string;
+            isDefault: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+        };
+        KioskProfileResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            defaultLanguageCode: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        KioskResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            profileId: string;
+            name: string;
+            mode: components["schemas"]["KioskMode"];
+            workflowDefinitionId: null | string;
+            /** Format: date-time */
+            lastSeenAt: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        KioskSessionResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            kioskId: string;
+            status: components["schemas"]["KioskSessionStatus"];
+            languageCode: string;
+            /** Format: int32 */
+            currentInstructionVersion: number | string;
+            currentInstructionId: null | string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            lastInteractionAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+        };
+        /** @enum {unknown} */
+        KioskSessionStatus: "Running" | "Completed" | "Cancelled" | "Failed" | "TimedOut";
+        KioskThemeTokenResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            profileId: string;
+            key: string;
+            value: string;
+        };
+        KioskTranslationResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            profileId: string;
+            languageCode: string;
+            key: string;
+            value: string;
+        };
+        KioskWelcomeSettingsResponse: {
+            /** Format: uuid */
+            profileId: string;
+            titleKey: string;
+            subtitleKey: null | string;
+            startButtonKey: string;
+            backgroundAssetName: null | string;
+            logoAssetName: null | string;
+        };
         LabelPrintResponse: {
             status: components["schemas"]["HardwareOperationStatus"];
             error: null | components["schemas"]["HardwareErrorResponse"];
@@ -4952,6 +9643,99 @@ export interface components {
             badgeTypes: components["schemas"]["SystemMetadataObject"][];
             accessLevels: components["schemas"]["SystemMetadataObject"][];
         };
+        Link: {
+            href: string;
+            rel: string;
+            method: string;
+        };
+        LinkedWorkflowDefinitionModel: {
+            links: null | components["schemas"]["Link"][];
+            id?: string;
+            definitionId?: string;
+            tenantId?: null | string;
+            name?: null | string;
+            description?: null | string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: int32 */
+            version?: number | string;
+            toolVersion?: null | string;
+            variables?: null | components["schemas"]["VariableDefinition"][];
+            inputs?: null | components["schemas"]["InputDefinition"][];
+            outputs?: null | components["schemas"]["OutputDefinition"][];
+            outcomes?: null | string[];
+            customProperties?: null | Record<string, never>;
+            isReadonly?: boolean;
+            isSystem?: boolean;
+            isLatest?: boolean;
+            isPublished?: boolean;
+            options?: null | components["schemas"]["WorkflowOptions"];
+            usableAsActivity?: null | boolean;
+            root?: null | components["schemas"]["IActivity"];
+        };
+        LinkedWorkflowDefinitionSummary: {
+            links?: null | components["schemas"]["Link"][];
+            isMaterializerAvailable?: boolean;
+            id?: string;
+            definitionId?: string;
+            name?: null | string;
+            description?: null | string;
+            /** Format: int32 */
+            version?: null | number | string;
+            toolVersion?: null | string;
+            isLatest?: boolean;
+            isPublished?: boolean;
+            providerName?: null | string;
+            materializerName?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            isReadonly?: boolean;
+        };
+        ListResponseOfActivityExecutionRecord: {
+            items?: components["schemas"]["ActivityExecutionRecord"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfActivityExecutionRecordSummary: {
+            items?: components["schemas"]["ActivityExecutionRecordSummary"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfCommitStrategyDescriptor: {
+            items?: components["schemas"]["CommitStrategyDescriptor"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfExpressionDescriptorModel: {
+            items?: components["schemas"]["ExpressionDescriptorModel"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfFeatureDescriptor: {
+            items?: components["schemas"]["FeatureDescriptor"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfIncidentStrategyDescriptor: {
+            items?: components["schemas"]["IncidentStrategyDescriptor"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfLogPersistenceStrategyDescriptor: {
+            items?: components["schemas"]["LogPersistenceStrategyDescriptor"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfResolvedVariableModel: {
+            items?: components["schemas"]["ResolvedVariableModel"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
+        ListResponseOfWorkflowActivationStrategyDescriptor: {
+            items?: components["schemas"]["WorkflowActivationStrategyDescriptor"][];
+            /** Format: int64 */
+            count?: number | string;
+        };
         LocationResponse: {
             /** Format: uuid */
             id: string;
@@ -4965,6 +9749,11 @@ export interface components {
         LogoSettingsResponse: {
             contentType: string;
             data: string;
+        };
+        LogPersistenceStrategyDescriptor: {
+            displayName: string;
+            description: string;
+            typeName: string;
         };
         /** @enum {unknown} */
         ModeOfTransport: "Car" | "PublicTransport" | "Bike" | "Walk" | null;
@@ -4985,6 +9774,30 @@ export interface components {
             firstName: string;
             lastName: string;
             email: string;
+        };
+        OutputDefinition: {
+            type?: components["schemas"]["Type"];
+            name?: string;
+            displayName?: string;
+            description?: string;
+            category?: string;
+        };
+        OutputDescriptor: {
+            name?: string;
+            typeName?: components["schemas"]["Type"];
+            displayName?: null | string;
+            description?: null | string;
+            /** Format: float */
+            order?: number | string;
+            isBrowsable?: null | boolean;
+            isSerializable?: null | boolean;
+            isSynthetic?: boolean;
+        };
+        PagedListResponseOfLinkedWorkflowDefinitionSummary: {
+            items?: components["schemas"]["LinkedWorkflowDefinitionSummary"][];
+            /** Format: int64 */
+            totalCount?: number | string;
+            links?: components["schemas"]["Link"][];
         };
         PageOfAccessControlSystemResponse: {
             /** Format: int32 */
@@ -5034,6 +9847,54 @@ export interface components {
             items?: components["schemas"]["ArrivalResponse"][];
             isLastPage?: boolean;
         };
+        PageOfChipDesignResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["ChipDesignResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfEncoderResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["EncoderResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfEncodingBatchResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["EncodingBatchResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfEncodingRunResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["EncodingRunResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfHardwareAgentResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -5056,6 +9917,54 @@ export interface components {
             /** Format: int32 */
             totalItems?: null | number | string;
             items?: components["schemas"]["IdentityMappingResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfKeyDiversificationStrategyResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["KeyDiversificationStrategyResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfKeyGroupResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["KeyGroupResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfKioskProfileResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["KioskProfileResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfKioskResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["KioskResponse"][];
             isLastPage?: boolean;
         };
         PageOfOrganizerResponse: {
@@ -5094,6 +10003,30 @@ export interface components {
             items?: components["schemas"]["SiteResponse"][];
             isLastPage?: boolean;
         };
+        PageOfSystemProviderResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["SystemProviderResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfTransformationResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["TransformationResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfVisitorResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -5120,6 +10053,30 @@ export interface components {
         };
         /** @enum {unknown} */
         ParticipantConfirmationStatus: "Tentative" | "Rejected" | "Confirmed";
+        PiccConfigurationSpecification: {
+            piccSettings?: components["schemas"]["PiccSettings"];
+            secureMessaging?: components["schemas"]["SecureMessingConfiguration"];
+        };
+        PiccKeySettingsSpecification: {
+            allowDamKeys?: boolean;
+            changeable?: boolean;
+            masterKeyChangeable?: boolean;
+            freeDirectoryListing?: boolean;
+            allowCreateDelete?: boolean;
+        };
+        PiccSettings: {
+            enableLegacyRandomId?: boolean;
+            isoVirtualCardMandatory?: boolean;
+            proximityCheckMandatory?: boolean;
+            randomIdEnabled?: boolean;
+            disableCardFormat?: boolean;
+        };
+        PiccSpecification: {
+            key?: null | components["schemas"]["KeySpecification"];
+            allowCreateDelete?: boolean;
+            keySettings?: components["schemas"]["PiccKeySettingsSpecification"];
+            config?: components["schemas"]["PiccConfigurationSpecification"];
+        };
         PolicyRequirementResponse: components["schemas"]["PolicyRequirementResponseCredentialRequirementResponse"] | components["schemas"]["PolicyRequirementResponseAccessRequirementResponse"];
         PolicyRequirementResponseAccessRequirementResponse: {
             /** @enum {string} */
@@ -5133,6 +10090,13 @@ export interface components {
             /** Format: int32 */
             badgeNumber: null | number | string;
         };
+        Port: {
+            name?: string;
+            displayName?: null | string;
+            type?: components["schemas"]["PortType"];
+            isBrowsable?: boolean;
+        };
+        PortType: number;
         PostHardwareAgentHeartbeatRequest: {
             /** Format: date-time */
             reportedAt: string;
@@ -5248,11 +10212,31 @@ export interface components {
             /** Format: uuid */
             locationId: null | string;
         };
+        Request: {
+            variables?: components["schemas"]["VariableUpdateValue"][];
+        };
         RescheduleVisitRequest: {
             /** Format: date-time */
             start: string;
             /** Format: date-time */
             stop: string;
+        };
+        ResolvedKioskWelcomeResponse: {
+            title: string;
+            subtitle: null | string;
+            startButton: string;
+            backgroundUrl: null | string;
+            logoUrl: null | string;
+        };
+        ResolvedVariableModel: {
+            id: string;
+            name: string;
+            value: unknown;
+        };
+        Response: {
+            items: components["schemas"]["WorkflowInstanceSummary"][];
+            /** Format: int64 */
+            totalCount: number | string;
         };
         RoomResponse: {
             /** Format: uuid */
@@ -5262,11 +10246,26 @@ export interface components {
             capacity: number | string;
             wheelchairAccessible: boolean;
         };
+        SaveWorkflowDefinitionRequest: {
+            model?: components["schemas"]["WorkflowDefinitionModel"];
+            publish?: null | boolean;
+        };
+        SecureMessingConfiguration: {
+            disableD40?: boolean;
+            disableEv1?: boolean;
+            disableEv2Chaining?: boolean;
+        };
+        SimulatedResponse: {
+            message: string;
+        };
         SiteResponse: {
             /** Format: uuid */
             id: string;
             name: string;
             address: null | string;
+        };
+        StartKioskSessionRequest: {
+            languageCode: null | string;
         };
         SubjectRequest: {
             /** Format: uuid */
@@ -5291,6 +10290,11 @@ export interface components {
         };
         /** @enum {unknown} */
         SubjectType: "Employee" | "Contractor" | "Visitor";
+        SubmitKioskInstructionResponseRequest: {
+            values: {
+                [key: string]: string;
+            };
+        };
         SystemMetadata: components["schemas"]["SystemMetadataUnipassMetadata"] | components["schemas"]["SystemMetadataLenelMetadata"];
         SystemMetadataLenelMetadata: {
             /** @enum {string} */
@@ -5307,6 +10311,27 @@ export interface components {
             type?: "unipass";
             sites: components["schemas"]["SystemMetadataObject"][];
             accessRules: components["schemas"]["SystemMetadataObject"][];
+        };
+        SystemProviderResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            providerType: components["schemas"]["SystemVariableProviderKind"];
+            fixedValue: null | string;
+            /** Format: int64 */
+            initialValue: null | number | string;
+            /** Format: int64 */
+            currentValue: null | number | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        SystemVariableProviderKind: "Fixed" | "Sequence" | null;
+        TemplateSpecification: {
+            picc?: components["schemas"]["PiccSpecification"];
+            applications?: {
+                [key: string]: components["schemas"]["ApplicationSpecification"];
+            };
         };
         TenantSettingsResponse: {
             oidc: components["schemas"]["OidcSettingsResponse"];
@@ -5329,6 +10354,52 @@ export interface components {
             successColor: string;
             successBackgroundColor: string;
         };
+        TransformationPlanOperationResponse: {
+            /** Format: int32 */
+            order: number | string;
+            type: string;
+            description: string;
+        };
+        TransformationPlanResponse: {
+            requiredVariables: string[];
+            requiredKeyGroups: string[];
+            errors: string[];
+            /** Format: int32 */
+            operationCount: number | string;
+            operations: components["schemas"]["TransformationPlanOperationResponse"][];
+        };
+        TransformationResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            fromChipDesignName: null | string;
+            fromBlank: boolean;
+            toChipDesignName: string;
+            alwaysReadUid: boolean;
+            requiredVariables: string[];
+            requiredKeyGroups: string[];
+            variables: components["schemas"]["TransformationVariableConfigRequest"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        TransformationVariableConfigRequest: {
+            name: string;
+            kind: components["schemas"]["TransformationVariableKind"];
+            format: components["schemas"]["VariableFormatRequest"];
+            field?: null | string;
+            systemProvider?: null | components["schemas"]["SystemVariableProviderKind"];
+            value?: null | string;
+            sequenceName?: null | string;
+            /** Format: int64 */
+            initialValue?: null | number | string;
+            /** Format: uuid */
+            systemProviderId?: null | string;
+        };
+        /** @enum {unknown} */
+        TransformationVariableKind: "UserProvided" | "SystemProvided";
+        Type: unknown;
         UnipassAccessLevelTypeResponse: {
             /** Format: int32 */
             siteId: number | string;
@@ -5369,6 +10440,20 @@ export interface components {
         UpdateBuildingRequest: {
             name: string;
         };
+        UpdateChipDesignRequest: {
+            name: string;
+            /** Format: int32 */
+            version: number | string;
+            description: null | string;
+            specification: components["schemas"]["TemplateSpecification"];
+        };
+        UpdateEncoderRequest: {
+            name: string;
+            agentId: string;
+            deviceId: string;
+            /** @default true */
+            enabled: boolean;
+        };
         UpdateGraphEmailSettingsRequest: {
             fromEmail: string;
             fromName: string;
@@ -5380,6 +10465,26 @@ export interface components {
         UpdateHardwareAgentRequest: {
             name: string;
             enabled: boolean;
+        };
+        UpdateKeyDiversificationStrategyRequest: {
+            name: string;
+            algorithm: components["schemas"]["KeyDiversificationAlgorithm"];
+            inputs: components["schemas"]["DiversificationInput"][];
+        };
+        UpdateKeyGroupRequest: {
+            name: string;
+            /** Format: uuid */
+            diversificationStrategyId: null | string;
+            keySets: components["schemas"]["KeyGroupKeySetRequest"][];
+        };
+        UpdateKioskProfileRequest: {
+            name: string;
+            defaultLanguageCode: string;
+        };
+        UpdateKioskRequest: {
+            name: string;
+            /** Format: uuid */
+            profileId: string;
         };
         UpdateLenelConfigRequest: {
             endpoint: string;
@@ -5432,6 +10537,13 @@ export interface components {
             successColor: string;
             successBackgroundColor: string;
         };
+        UpdateTransformationRequest: {
+            name: string;
+            fromChipDesignName: null | string;
+            fromBlank: boolean;
+            toChipDesignName: string;
+            variables: components["schemas"]["TransformationVariableConfigRequest"][];
+        };
         UpdateUnipassConfigRequest: {
             endpoint: string;
             sslValidation: boolean;
@@ -5441,6 +10553,102 @@ export interface components {
         UpdateVisitSummaryRequest: {
             summary: string;
         };
+        UpsertKioskDeviceAssignmentRequest: {
+            bindingKey: string;
+            agentId: string;
+            deviceId: string;
+            enabled: boolean;
+            /** Format: int32 */
+            priority: number | string;
+        };
+        UpsertKioskDeviceAssignmentsRequest: {
+            assignments: components["schemas"]["UpsertKioskDeviceAssignmentRequest"][];
+        };
+        UpsertKioskDeviceRequest: {
+            name: string;
+            type: components["schemas"]["KioskDeviceType"];
+            /** Format: int32 */
+            slotNumber: number | string;
+            agentId: string;
+            deviceId: string;
+            enabled: boolean;
+            cleanupOnSessionEnd: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+        };
+        UpsertKioskDevicesRequest: {
+            devices: components["schemas"]["UpsertKioskDeviceRequest"][];
+        };
+        UpsertKioskHardwareBindingRequest: {
+            bindingKey: string;
+            displayName: string;
+            requiredCapability: string;
+            required: boolean;
+            cleanupOnSessionEnd: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+        };
+        UpsertKioskHardwareBindingsRequest: {
+            bindings: components["schemas"]["UpsertKioskHardwareBindingRequest"][];
+        };
+        UpsertKioskProfileLanguageRequest: {
+            languageCode: string;
+            displayName: string;
+            isDefault: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+        };
+        UpsertKioskProfileLanguagesRequest: {
+            languages: components["schemas"]["UpsertKioskProfileLanguageRequest"][];
+        };
+        UpsertKioskThemeRequest: {
+            tokens: components["schemas"]["UpsertKioskThemeTokenRequest"][];
+        };
+        UpsertKioskThemeTokenRequest: {
+            key: string;
+            value: string;
+        };
+        UpsertKioskTranslationRequest: {
+            languageCode: string;
+            key: string;
+            value: string;
+        };
+        UpsertKioskTranslationsRequest: {
+            translations: components["schemas"]["UpsertKioskTranslationRequest"][];
+        };
+        UpsertKioskWelcomeSettingsRequest: {
+            titleKey: string;
+            subtitleKey: null | string;
+            startButtonKey: string;
+            backgroundAssetName: null | string;
+            logoAssetName: null | string;
+        };
+        Variable: {
+            name?: string;
+            value?: unknown;
+            storageDriverType?: null | components["schemas"]["Type"];
+            id?: string;
+        };
+        VariableDefinition: {
+            id: string;
+            name: string;
+            typeName: string;
+            isArray: boolean;
+            value: null | string;
+            storageDriverTypeName: null | string;
+        };
+        VariableFormatRequest: {
+            type: components["schemas"]["DesfireVariableFormatKind"];
+            /** Format: int32 */
+            length?: null | number | string;
+            encoding?: null | string;
+            wiegand?: null | components["schemas"]["GenericWiegandFormatRequest"];
+        };
+        VariableUpdateValue: {
+            id: string;
+            value: unknown;
+        };
+        VersionOptions: unknown;
         VisitConfirmationResponse: {
             /** Format: uuid */
             visitId: string;
@@ -5594,6 +10802,170 @@ export interface components {
         };
         /** @enum {unknown} */
         VisitStatus: "Scheduled" | "Cancelled" | "Completed";
+        WiegandFieldRequest: {
+            name: string;
+            /** Format: int32 */
+            offset: number | string;
+            /** Format: int32 */
+            length: number | string;
+            source: components["schemas"]["WiegandFieldSourceKind"];
+            field?: null | string;
+            value?: null | string;
+            sequenceName?: null | string;
+            /** Format: int64 */
+            initialValue?: null | number | string;
+        };
+        /** @enum {unknown} */
+        WiegandFieldSourceKind: "Provided" | "Fixed" | "Sequence";
+        /** @enum {unknown} */
+        WiegandParityKind: "Even" | "Odd";
+        WiegandParityRequest: {
+            /** Format: int32 */
+            offset: number | string;
+            kind: components["schemas"]["WiegandParityKind"];
+            /** Format: int32 */
+            coversOffset: number | string;
+            /** Format: int32 */
+            coversLength: number | string;
+        };
+        WorkflowActivationStrategyDescriptor: {
+            displayName: string;
+            description: string;
+            typeName: string;
+        };
+        WorkflowDefinitionModel: {
+            id?: string;
+            definitionId?: string;
+            tenantId?: null | string;
+            name?: null | string;
+            description?: null | string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: int32 */
+            version?: number | string;
+            toolVersion?: null | string;
+            variables?: null | components["schemas"]["VariableDefinition"][];
+            inputs?: null | components["schemas"]["InputDefinition"][];
+            outputs?: null | components["schemas"]["OutputDefinition"][];
+            outcomes?: null | string[];
+            customProperties?: null | Record<string, never>;
+            isReadonly?: boolean;
+            isSystem?: boolean;
+            isLatest?: boolean;
+            isPublished?: boolean;
+            options?: null | components["schemas"]["WorkflowOptions"];
+            usableAsActivity?: null | boolean;
+            root?: null | components["schemas"]["IActivity"];
+        };
+        WorkflowExecutionLogRecord: {
+            workflowDefinitionId?: string;
+            workflowDefinitionVersionId?: string;
+            workflowInstanceId?: string;
+            /** Format: int32 */
+            workflowVersion?: number | string;
+            activityInstanceId?: string;
+            parentActivityInstanceId?: null | string;
+            activityId?: string;
+            activityType?: string;
+            /** Format: int32 */
+            activityTypeVersion?: number | string;
+            activityName?: null | string;
+            activityNodeId?: string;
+            /** Format: date-time */
+            timestamp?: string;
+            /** Format: int64 */
+            sequence?: number | string;
+            eventName?: null | string;
+            message?: null | string;
+            source?: null | string;
+            activityState?: null | Record<string, never>;
+            payload?: unknown;
+            id?: string;
+            tenantId?: null | string;
+        };
+        WorkflowInstanceModel: {
+            id?: string;
+            definitionId?: string;
+            definitionVersionId?: string;
+            /** Format: int32 */
+            version?: number | string;
+            parentWorkflowInstanceId?: null | string;
+            workflowState?: components["schemas"]["WorkflowState"];
+            status?: components["schemas"]["WorkflowStatus"];
+            subStatus?: components["schemas"]["WorkflowSubStatus"];
+            isExecuting?: boolean;
+            correlationId?: null | string;
+            name?: null | string;
+            /** Format: int32 */
+            incidentCount?: number | string;
+            isSystem?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: date-time */
+            finishedAt?: null | string;
+        };
+        WorkflowInstanceSummary: {
+            id?: string;
+            tenantId?: null | string;
+            definitionId?: string;
+            definitionVersionId?: string;
+            /** Format: int32 */
+            version?: number | string;
+            status?: components["schemas"]["WorkflowStatus"];
+            subStatus?: components["schemas"]["WorkflowSubStatus"];
+            correlationId?: null | string;
+            name?: null | string;
+            /** Format: int32 */
+            incidentCount?: number | string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: null | string;
+            /** Format: date-time */
+            finishedAt?: null | string;
+        };
+        WorkflowOptions: {
+            activationStrategyType?: null | components["schemas"]["Type"];
+            usableAsActivity?: null | boolean;
+            autoUpdateConsumingWorkflows?: boolean;
+            activityCategory?: null | string;
+            incidentStrategyType?: null | components["schemas"]["Type"];
+            commitStrategyName?: null | string;
+        };
+        WorkflowState: {
+            id?: string;
+            definitionId?: string;
+            definitionVersionId?: string;
+            /** Format: int32 */
+            definitionVersion?: number | string;
+            parentWorkflowInstanceId?: null | string;
+            correlationId?: null | string;
+            name?: null | string;
+            status?: components["schemas"]["WorkflowStatus"];
+            subStatus?: components["schemas"]["WorkflowSubStatus"];
+            isExecuting?: boolean;
+            bookmarks?: components["schemas"]["Bookmark"][];
+            incidents?: components["schemas"]["ActivityIncident"][];
+            isSystem?: boolean;
+            completionCallbacks?: components["schemas"]["CompletionCallbackState"][];
+            activityExecutionContexts?: components["schemas"]["ActivityExecutionContextState"][];
+            scheduledActivities?: components["schemas"]["ActivityWorkItemState"][];
+            /** Format: int64 */
+            executionLogSequence?: number | string;
+            input?: Record<string, never>;
+            output?: Record<string, never>;
+            properties?: Record<string, never>;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: date-time */
+            finishedAt?: null | string;
+        };
+        WorkflowStatus: number;
+        WorkflowSubStatus: number;
     };
     responses: never;
     parameters: never;
@@ -5602,4 +10974,3089 @@ export interface components {
     pathItems: never;
 }
 export type $defs = Record<string, never>;
-export type operations = Record<string, never>;
+export interface operations {
+    ElsaWorkflowsApiEndpointsWorkflowInstancesVariablesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfResolvedVariableModel"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesVariablesPostList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfResolvedVariableModel"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetElsaWorkflowsApiEndpointsWorkflowInstancesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsWorkflowInstancesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesJournalListGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesJournalFilteredListGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesJournalGetLastEntryGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowExecutionLogRecord"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesImportImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["EmptyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesGetGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowInstanceModel"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesDeleteDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetElsaWorkflowsApiEndpointsWorkflowInstancesExportExport1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsWorkflowInstancesExportExport1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetElsaWorkflowsApiEndpointsWorkflowInstancesExportExport2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsWorkflowInstancesExportExport2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesExecutionStateExecutionState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesCancelCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesBulkDeleteBulkDelete1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesBulkDeleteBulkDelete2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowInstancesBulkCancelBulkCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsVersionDeleteVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsVersionListVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsVersionRevertVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsUpdateReferencesUpdateReferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsRetractRetract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedWorkflowDefinitionModel"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsReloadReload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsRefreshRefresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsPublishPublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedListResponseOfLinkedWorkflowDefinitionSummary"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsPostPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveWorkflowDefinitionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedWorkflowDefinitionModel"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsIsNameUniqueIsNameUnique: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsImportFilesImportFiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["WorkflowDefinitionModel"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PutElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkflowDefinitionModel"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkflowDefinitionModel"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PutElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkflowDefinitionModel"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsWorkflowDefinitionsImportImport2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkflowDefinitionModel"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsGraphGraph: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsGraphSegmentsNodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsGetManyByIdGetManyById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetWorkflowDefinitionById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsGetByDefinitionIdGetByDefinitionId1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsGetByDefinitionIdGetByDefinitionId2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsDeleteDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsWorkflowDefinitionsExportExport2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsExecuteGetEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["GetRequest"];
+                "application/json": components["schemas"]["GetRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsExecutePostEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsDispatchEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsDeleteVersionDeleteVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsCountCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsConsumersConsumers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkRetractBulkRetract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkPublishBulkPublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkDispatchEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkDeleteVersionsBulkDeleteVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowDefinitionsBulkDeleteBulkDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsWorkflowActivationStrategiesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfWorkflowActivationStrategyDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsVariableTypesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsTestsActivitiesEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsTasksCompleteComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsStorageDriversListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsScriptingExpressionDescriptorsListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfExpressionDescriptorModel"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsPackageVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsLogPersistenceStrategiesListEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfLogPersistenceStrategyDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsIncidentStrategiesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfIncidentStrategyDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsFeaturesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfFeatureDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsFeaturesGetGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsEventsTriggerPublicTrigger: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsEventsTriggerAuthenticatedTrigger: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsCommitStrategiesWorkflowsListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfCommitStrategyDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsCommitStrategiesActivitiesListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfCommitStrategyDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetElsaWorkflowsApiEndpointsBookmarksResumeResume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostElsaWorkflowsApiEndpointsBookmarksResumeResume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityExecutionSummariesListSummariesEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfActivityExecutionRecordSummary"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityExecutionsReportReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityExecutionsListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseOfActivityExecutionRecord"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityExecutionsGetCallStackEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityExecutionsGetEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityExecutionRecord"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityExecutionsCountCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityDescriptorsListList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityDescriptorsGetGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityDescriptor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityDescriptorOptionsGetGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaExpressionsJavaScriptEndpointsTypeDefinitionsGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaResilienceEndpointsSimulateResponseSimulateResponseEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimulatedResponse"];
+                };
+            };
+        };
+    };
+    ElsaResilienceEndpointsRetriesListEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaResilienceEndpointsResilienceStrategiesListEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+}

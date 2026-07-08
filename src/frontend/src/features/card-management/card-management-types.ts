@@ -1,0 +1,58 @@
+import type { components } from '@/shared/api/generated/schema';
+
+export type ChipDesign = components['schemas']['ChipDesignResponse'];
+export type ChipDesignRequest = components['schemas']['CreateChipDesignRequest'];
+export type TemplateSpecification = components['schemas']['TemplateSpecification'];
+export type PiccSpecification = components['schemas']['PiccSpecification'];
+export type ApplicationSpecification = components['schemas']['ApplicationSpecification'];
+export type FileSpecification = components['schemas']['FileSpecification'];
+export type FileMode = components['schemas']['FileMode'];
+export type Transformation = components['schemas']['TransformationResponse'];
+export type TransformationRequest = components['schemas']['CreateTransformationRequest'];
+export type TransformationPlan = components['schemas']['TransformationPlanResponse'];
+export type TransformationVariableConfig = components['schemas']['TransformationVariableConfigRequest'];
+export type TransformationVariableKind = components['schemas']['TransformationVariableKind'];
+export type SystemVariableProviderKind = NonNullable<components['schemas']['SystemVariableProviderKind']>;
+export type SystemProvider = components['schemas']['SystemProviderResponse'];
+export type CreateSystemProviderRequest = components['schemas']['CreateSystemProviderRequest'];
+export type VariableFormatRequest = components['schemas']['VariableFormatRequest'];
+export type DesfireVariableFormatKind = components['schemas']['DesfireVariableFormatKind'];
+export type KeyGroup = components['schemas']['KeyGroupResponse'];
+export type CreateKeyGroupRequest = components['schemas']['CreateKeyGroupRequest'];
+export type UpdateKeyGroupRequest = components['schemas']['UpdateKeyGroupRequest'];
+export type KeyGroupKeySetRequest = components['schemas']['KeyGroupKeySetRequest'];
+export type KeyDiversificationStrategy = components['schemas']['KeyDiversificationStrategyResponse'];
+export type KeyDiversificationStrategyRequest = components['schemas']['CreateKeyDiversificationStrategyRequest'];
+export type DiversificationInput = components['schemas']['DiversificationInput'];
+export type DiversificationInputOption = components['schemas']['DiversificationInputOptions'];
+export type KeyType = components['schemas']['KeyType'];
+export type KeyDiversificationAlgorithm = components['schemas']['KeyDiversificationAlgorithm'];
+export type EncodingBatch = components['schemas']['EncodingBatchResponse'];
+export type CreateEncodingBatchRequest = components['schemas']['CreateEncodingBatchRequest'];
+export type EncodingRun = components['schemas']['EncodingRunResponse'];
+export type EncodingRunStatus = components['schemas']['EncodingRunStatus'];
+export type EncodingBatchStatus = components['schemas']['EncodingBatchStatus'];
+export type Encoder = components['schemas']['EncoderResponse'];
+export type CreateEncoderRequest = components['schemas']['CreateEncoderRequest'];
+export type UpdateEncoderRequest = components['schemas']['UpdateEncoderRequest'];
+export type HardwareAgent = components['schemas']['HardwareAgentResponse'];
+export type HardwareDevice = components['schemas']['HardwareDeviceResponse'];
+
+export const chipDesignsQueryKey = ['card-management', 'chip-designs'] as const;
+export const transformationsQueryKey = ['card-management', 'transformations'] as const;
+export const systemProvidersQueryKey = ['card-management', 'system-providers'] as const;
+export const printingBatchesQueryKey = ['card-management', 'printing', 'batches'] as const;
+export const printingRunsQueryKey = ['card-management', 'printing', 'runs'] as const;
+export const encodersQueryKey = ['card-management', 'printing', 'encoders'] as const;
+export const keyGroupsQueryKey = ['card-management', 'key-groups'] as const;
+export const strategiesQueryKey = ['card-management', 'diversification-strategies'] as const;
+
+export const fileModes: FileMode[] = ['Plain', 'Mac', 'Encrypted'];
+export const variableFormatKinds: DesfireVariableFormatKind[] = ['Hex', 'Text', 'UInt', 'PaddedDecimal', 'PaddedHex'];
+export const keyTypes: KeyType[] = ['Aes', 'TDes', 'Tdes2K', 'Tdes3K'];
+export const diversificationAlgorithms: KeyDiversificationAlgorithm[] = ['NxpAn10922'];
+export const diversificationInputOptions: DiversificationInputOption[] = ['Uid', 'Uid4Bytes', 'ApplicationId', 'ApplicationIdReversed', 'KeyNo', 'FixedHexValue'];
+
+export function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}

@@ -3,6 +3,8 @@
     <Project Path="hardware\Fabric.Hardware.Agent\Fabric.Hardware.Agent.csproj" />
     <Project Path="hardware\Fabric.Hardware.Collector\Fabric.Hardware.Collector.csproj" />
     <Project Path="hardware\Fabric.Hardware.Contracts\Fabric.Hardware.Contracts.csproj" />
+    <Project Path="hardware\Fabric.Hardware.Desfire.Tests\Fabric.Hardware.Desfire.Tests.csproj" />
+    <Project Path="hardware\Fabric.Hardware.Desfire\Fabric.Hardware.Desfire.csproj" />
     <Project Path="hardware\Fabric.Hardware.Dispenser\Fabric.Hardware.Dispenser.csproj" />
     <Project Path="hardware\Fabric.Hardware.QrReader\Fabric.Hardware.QrReader.csproj" />
     <Project Path="hardware\Fabric.Hardware.RfidEas\Fabric.Hardware.RfidEas.csproj" />

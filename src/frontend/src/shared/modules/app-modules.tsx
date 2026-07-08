@@ -1,4 +1,4 @@
-import { Building2, ConciergeBell, Settings, UsersRound, Workflow } from 'lucide-react';
+import { Building2, ConciergeBell, CreditCard, Settings, UsersRound, Workflow } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 export type ModuleNavigationItem = {
@@ -48,8 +48,20 @@ export const appModules = [
     logo: Workflow,
     to: '/automation',
     navigation: [
-      { label: 'Workflow Definitions', to: '/automation/workflow-definitions' },
-      { label: 'Workflow Instances', to: '/automation/workflow-instances' },
+      { label: 'Workflow', to: '/automation/workflow' },
+      { label: 'Kiosk', to: '/automation/kiosk' },
+    ],
+  },
+  {
+    id: 'card-management',
+    name: 'Card Management',
+    description: 'Manage card keys, diversification, DESFire transformations, and encoding operations.',
+    logo: CreditCard,
+    to: '/card-management',
+    navigation: [
+      { label: 'Key Management', to: '/card-management/key-management' },
+      { label: 'Chip Designer', to: '/card-management/chip-designer' },
+      { label: 'Printing', to: '/card-management/printing' },
     ],
   },
   {

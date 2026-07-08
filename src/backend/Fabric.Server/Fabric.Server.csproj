@@ -44,5 +44,6 @@
   <ItemGroup>
     <ProjectReference Include="..\access-control\unipass\AccessControl.Unipass\AccessControl.Unipass.csproj" />
     <ProjectReference Include="..\hardware\Fabric.Hardware.Contracts\Fabric.Hardware.Contracts.csproj" />
+    <ProjectReference Include="..\hardware\Fabric.Hardware.Desfire\Fabric.Hardware.Desfire.csproj" />
   </ItemGroup>
 </Project>

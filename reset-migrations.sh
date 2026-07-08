@@ -14,6 +14,7 @@ migration_dirs=(
   "Sagas/Persistence/Migrations"
   "Locations/Persistence/Migrations"
   "Reception/Persistence/Migrations"
+  "Kiosk/Persistence/Migrations"
 )
 
 for dir in "${migration_dirs[@]}"; do
@@ -29,3 +30,4 @@ dotnet ef migrations add VisitorsInit --context VisitorsDbContext --output-dir V
 dotnet ef migrations add SagasInit --context SagasDbContext --output-dir Sagas/Persistence/Migrations --no-build
 dotnet ef migrations add LocationsInit --context LocationsDbContext --output-dir Locations/Persistence/Migrations --no-build
 dotnet ef migrations add ReceptionInit --context ReceptionDbContext --output-dir Reception/Persistence/Migrations --no-build
+dotnet ef migrations add KioskInit --context KioskDbContext --output-dir Kiosk/Persistence/Migrations --no-build
