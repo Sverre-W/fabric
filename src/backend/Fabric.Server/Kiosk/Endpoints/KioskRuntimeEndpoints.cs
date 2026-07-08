@@ -5,6 +5,7 @@ using Fabric.Server.Kiosk.Application;
 using Fabric.Server.Kiosk.Contracts;
 using Fabric.Server.Kiosk.Domain;
 using Fabric.Server.Kiosk.Persistence;
+using Fabric.Server.Sagas.Kiosk;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -83,7 +84,7 @@ public static class KioskRuntimeEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> StartKioskSession([FromBody] StartKioskSessionRequest request, HttpContext context, KioskDbContext db, KioskWorkflowStarter workflowStarter, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> StartKioskSession([FromBody] StartKioskSessionRequest request, HttpContext context, KioskDbContext db, KioskWorkflowStarter workflowStarter, KioskSagaService kioskSagaService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         Domain.Kiosk? kiosk = await GetAuthenticatedKioskAsync(context, db, cancellationToken);
         if (kiosk is null)
@@ -112,6 +113,10 @@ public static class KioskRuntimeEndpoints
         try
         {
             await workflowStarter.StartSessionWorkflowAsync(kiosk, session, cancellationToken);
+            if (string.IsNullOrWhiteSpace(session.WorkflowInstanceId))
+                throw new InvalidOperationException("Workflow instance was not assigned to kiosk session.");
+
+            await kioskSagaService.StartAsync(session.Id, session.WorkflowInstanceId, cancellationToken);
         }
         catch
         {
@@ -157,18 +162,15 @@ public static class KioskRuntimeEndpoints
         return Results.Ok(new KioskInstructionResponse(session.Id, session.Status, session.CurrentInstructionVersion, session.CurrentInstructionId, session.CurrentInstructionJson));
     }
 
-    private static async Task<IResult> SubmitInstructionResponse(string instructionId, [FromBody] SubmitKioskInstructionResponseRequest request, HttpContext context, KioskDbContext db, KioskWorkflowResumer workflowResumer, CancellationToken cancellationToken = default)
+    private static async Task<IResult> SubmitInstructionResponse(string instructionId, [FromBody] SubmitKioskInstructionResponseRequest request, HttpContext context, KioskDbContext db, KioskInstructionService instructionService, CancellationToken cancellationToken = default)
     {
         KioskSession? session = await GetCurrentSessionAsync(context.User.GetKioskId(), db, cancellationToken);
         if (session is null)
             return Results.NotFound();
 
-        if (!string.Equals(session.CurrentInstructionId, instructionId, StringComparison.Ordinal))
-            return Results.Problem("Instruction is stale.", statusCode: StatusCodes.Status409Conflict);
-
         try
         {
-            await workflowResumer.ResumeInstructionAsync(session.Id, instructionId, request.Values, cancellationToken);
+            await instructionService.SubmitInstructionAsync(session.Id, instructionId, request.Values, cancellationToken);
         }
         catch (InvalidOperationException exception)
         {
@@ -179,7 +181,7 @@ public static class KioskRuntimeEndpoints
         return Results.Ok(session.ToResponse());
     }
 
-    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskWorkflowResumer workflowResumer, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskInstructionService instructionService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         Guid kioskId = context.User.GetKioskId();
         KioskSession? session = await GetCurrentSessionAsync(kioskId, db, cancellationToken);
@@ -191,7 +193,7 @@ public static class KioskRuntimeEndpoints
 
         try
         {
-            await workflowResumer.CancelSessionAsync(session.Id, cancellationToken);
+            await instructionService.CancelInstructionAsync(session.Id, cancellationToken);
         }
         catch (InvalidOperationException)
         {

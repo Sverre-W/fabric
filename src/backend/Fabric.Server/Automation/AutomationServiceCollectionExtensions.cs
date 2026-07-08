@@ -21,7 +21,6 @@ public static class AutomationServiceCollectionExtensions
 
         services.AddTransient<IClaimsTransformation, ElsaClaimsTransformer>();
         services.AddScoped<KioskWorkflowAccessor>();
-        services.AddScoped<KioskInstructionWriter>();
         services.AddScoped<KioskWorkflowStarter>();
         services.AddScoped<KioskWorkflowResumer>();
 
@@ -110,4 +109,3 @@ public static class AutomationServiceCollectionExtensions
     }
 
 }
-

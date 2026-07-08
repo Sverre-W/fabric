@@ -150,7 +150,8 @@ function Welcome({ config, onStart, busy }: { readonly config: KioskConfig; read
 }
 
 function InstructionBackdrop({ instruction, config, backgroundUrl, children }: { readonly instruction?: KioskInstructionEnvelope; readonly config: KioskConfig; readonly backgroundUrl?: string | null; readonly children: React.ReactNode }) {
-  const resolvedBackground = backgroundUrl ?? instruction?.layout?.backgroundUrl ?? config.theme.defaultBackgroundUrl ?? null;
+  const instructionBackgroundUrl = resolveInstructionAssetUrl(instruction?.layout?.backgroundAssetName, instruction?.languageCode);
+  const resolvedBackground = backgroundUrl ?? instructionBackgroundUrl ?? config.theme.defaultBackgroundUrl ?? null;
   return <div className="flex min-h-[calc(100vh-161px)] w-full items-center justify-center rounded-[2rem] bg-cover bg-center p-0" style={resolvedBackground ? { backgroundImage: `linear-gradient(rgba(0,0,0,.08), rgba(0,0,0,.08)), url(${resolvedBackground})` } : undefined}>{children}</div>;
 }
 
@@ -170,4 +171,11 @@ function parseInstruction(instruction: KioskInstructionResponse | null): KioskIn
 
 function delay(milliseconds: number) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+function resolveInstructionAssetUrl(assetName: string | null | undefined, languageCode: string | undefined) {
+  if (!assetName) return null;
+  const encodedAssetName = encodeURIComponent(assetName);
+  const encodedLanguageCode = languageCode ? `?languageCode=${encodeURIComponent(languageCode)}` : '';
+  return `/api/kiosk/assets/${encodedAssetName}${encodedLanguageCode}`;
 }

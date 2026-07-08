@@ -12,27 +12,21 @@ export type KioskInstructionEnvelope = {
   readonly languageCode?: string;
   readonly layout?: {
     readonly mode?: string;
-    readonly backgroundUrl?: string | null;
-    readonly imageUrl?: string | null;
+    readonly backgroundAssetName?: string | null;
+    readonly imageAssetName?: string | null;
   };
   readonly content?: {
     readonly title?: string | null;
-    readonly titleKey?: string | null;
     readonly message?: string | null;
-    readonly messageKey?: string | null;
   };
-  readonly theme?: Record<string, string>;
   readonly choices?: readonly {
     readonly value: string;
-    readonly label?: string | null;
-    readonly labelKey?: string | null;
+    readonly label: string;
   }[];
   readonly fields?: readonly {
     readonly name: string;
-    readonly label?: string | null;
-    readonly labelKey?: string | null;
+    readonly label: string;
     readonly placeholder?: string | null;
-    readonly placeholderKey?: string | null;
     readonly isRequired?: boolean;
     readonly isMaskRequired?: boolean;
   }[];

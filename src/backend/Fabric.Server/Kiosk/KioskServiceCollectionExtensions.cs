@@ -22,6 +22,7 @@ public static class KioskServiceCollectionExtensions
         collection.AddScoped<IKioskAssetStorage, KioskAssetStorage>();
         collection.AddScoped<KioskHardwareBindingResolver>();
         collection.AddScoped<KioskDeviceResolver>();
+        collection.AddScoped<KioskInstructionService>();
         collection.AddScoped<KioskSessionCleanupService>();
         return collection;
     }

@@ -3,85 +3,50 @@ using Elsa.Workflows;
 using Elsa.Workflows.Activities.Flowchart.Attributes;
 using Elsa.Workflows.Attributes;
 using Elsa.Workflows.Models;
-using Fabric.Server.Kiosk.Contracts;
+using Fabric.Server.Kiosk.Application;
+using Fabric.Server.Kiosk.Domain;
 
 namespace Fabric.Server.Automation.Kiosk.Activities;
 
 [Activity("Fabric", "Kiosk", "Show a choice instruction and wait for kiosk input.", DisplayName = "Show Choice Instruction")]
 [FlowNode("Done", "Cancelled")]
-public sealed class ShowChoiceInstruction : Activity<string>
+public sealed class ShowChoiceInstruction : KioskInstructionActivity<string>
 {
-    [Input(Description = "Instruction type.")]
-    public Input<string> InstructionType { get; set; } = new("choice");
-
-    [Input(Description = "Layout mode.")]
+    [Input(DisplayName = "Layout mode", Description = "default, split-left-visual, or split-right-visual")]
     public Input<string> Mode { get; set; } = new("default");
 
-    [Input]
-    public Input<string?> BackgroundUrl { get; set; } = default!;
+    [Input(DisplayName = "Background asset")]
+    public Input<string?> BackgroundAssetName { get; set; } = default!;
 
-    [Input]
-    public Input<string?> ImageUrl { get; set; } = default!;
+    [Input(DisplayName = "Image asset")]
+    public Input<string?> ImageAssetName { get; set; } = default!;
 
-    [Input]
+    [Input(DisplayName = "Title")]
     public Input<string?> Title { get; set; } = default!;
 
-    [Input]
-    public Input<string?> TitleKey { get; set; } = default!;
-
-    [Input]
+    [Input(DisplayName = "Message")]
     public Input<string?> Message { get; set; } = default!;
 
-    [Input]
-    public Input<string?> MessageKey { get; set; } = default!;
+    [Input(DisplayName = "Choices", Description = "Array of { value, label }.")]
+    public Input<ICollection<string>> Choices { get; set; } = default!;
 
-    [Input]
-    public Input<IDictionary<string, string>?> Theme { get; set; } = default!;
-
-    [Input]
-    public Input<ICollection<KioskChoiceOption>?> Choices { get; set; } = default!;
-
-    protected override async ValueTask ExecuteAsync(ActivityExecutionContext context)
+    protected override KioskInstructionDefinition BuildInstruction(ActivityExecutionContext context)
     {
-        var accessor = context.GetRequiredService<KioskWorkflowAccessor>();
-        var writer = context.GetRequiredService<KioskInstructionWriter>();
-        var session = await accessor.GetRequiredSessionAsync(context, context.CancellationToken);
-        KioskInstructionBookmark bookmark = await writer.WriteInstructionAsync(
-            context,
-            session,
-            context.Get(InstructionType) ?? "choice",
-            context.Get(Mode) ?? "default",
-            context.Get(BackgroundUrl),
-            context.Get(ImageUrl),
-            context.Get(Title),
-            context.Get(TitleKey),
-            context.Get(Message),
-            context.Get(MessageKey),
-            context.Get(Theme) is { } theme ? new Dictionary<string, string>(theme) : null,
-            context.Get(Choices)?.ToArray(),
-            null,
-            context.CancellationToken);
-
-        context.CreateBookmark(bookmark, ResumeAsync, includeActivityInstanceId: false);
+        return new KioskInstructionDefinition(
+            KioskInstructionActivityKind.Choice,
+            "prompt-choice",
+            new KioskInstructionLayout(context.Get(Mode) ?? "default", context.Get(BackgroundAssetName), context.Get(ImageAssetName)),
+            new KioskInstructionContent(context.Get(Title), context.Get(Message)),
+            [.. context.Get(Choices) ?? []],
+            []);
     }
 
-    private async ValueTask ResumeAsync(ActivityExecutionContext context)
+    protected override ValueTask HandleSubmissionAsync(ActivityExecutionContext context, KioskInstructionResult response)
     {
-        var accessor = context.GetRequiredService<KioskWorkflowAccessor>();
-        var db = context.GetRequiredService<Fabric.Server.Kiosk.Persistence.KioskDbContext>();
-        var timeProvider = context.GetRequiredService<TimeProvider>();
-        var session = await accessor.GetRequiredSessionAsync(context, context.CancellationToken);
-        session.ClearInstruction(timeProvider.GetUtcNow());
-        await db.SaveChangesAsync(context.CancellationToken);
-
-        if (context.TryGetWorkflowInput<bool>(KioskWorkflowContext.CancelledInputName, out bool cancelled) && cancelled)
-        {
-            await context.CompleteActivityWithOutcomesAsync("Cancelled");
-            return;
-        }
-
-        KioskInstructionSubmission response = context.GetWorkflowInput<KioskInstructionSubmission>(KioskWorkflowContext.InstructionResponseInputName);
-        context.Set(Result, response.Values.GetValueOrDefault("value") ?? string.Empty);
-        await context.CompleteActivityWithOutcomesAsync("Done");
+        string value = response is KioskChoiceInstructionResult choiceResult
+            ? choiceResult.Value
+            : throw new InvalidOperationException($"Expected {nameof(KioskChoiceInstructionResult)} but received {response.GetType().Name}.");
+        context.Set(Result, value);
+        return ValueTask.CompletedTask;
     }
 }

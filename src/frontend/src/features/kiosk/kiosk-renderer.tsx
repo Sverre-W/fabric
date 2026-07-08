@@ -9,9 +9,9 @@ import type { KioskInstructionEnvelope } from './kiosk-types';
 export function KioskRenderer({ instruction, onSubmit }: { readonly instruction: KioskInstructionEnvelope; readonly onSubmit: (values: Record<string, string>) => void }) {
   const type = instruction.type ?? 'loading';
   const layout = instruction.layout?.mode ?? 'single-column';
-  const title = instruction.content?.title || instruction.content?.titleKey || 'Continue';
-  const message = instruction.content?.message || instruction.content?.messageKey || null;
-  const imageUrl = instruction.layout?.imageUrl ?? null;
+  const title = instruction.content?.title || 'Continue';
+  const message = instruction.content?.message ?? null;
+  const imageUrl = resolveAssetUrl(instruction.layout?.imageAssetName, instruction.languageCode);
 
   const content = type === 'prompt-choice' || type === 'prompt-dynamic-choice'
     ? <ChoiceContent instruction={instruction} onSubmit={onSubmit} />
@@ -39,17 +39,17 @@ function MessageContent({ title, message, imageUrl }: { readonly title: string; 
 }
 
 function ChoiceContent({ instruction, onSubmit }: { readonly instruction: KioskInstructionEnvelope; readonly onSubmit: (values: Record<string, string>) => void }) {
-  const title = instruction.content?.title || instruction.content?.titleKey || 'Choose an option';
-  const message = instruction.content?.message || instruction.content?.messageKey || null;
+  const title = instruction.content?.title || 'Choose an option';
+  const message = instruction.content?.message ?? null;
   const choices = instruction.choices ?? [];
 
-  return <div className="mx-auto grid max-w-3xl gap-8 text-center"><div><h2 className="text-[36px] font-semibold tracking-tight sm:text-[52px]">{title}</h2>{message ? <p className="mt-4 text-[18px] leading-8 text-muted-foreground sm:text-[22px] sm:leading-9">{message}</p> : null}</div><div className="grid gap-4 sm:grid-cols-2">{choices.map((choice) => <Button key={choice.value} type="button" size="lg" className="h-auto min-h-28 rounded-[1.5rem] p-6 text-[20px] sm:text-[24px]" onClick={() => onSubmit({ value: choice.value })}>{choice.label || choice.labelKey || choice.value}</Button>)}</div></div>;
+  return <div className="mx-auto grid max-w-3xl gap-8 text-center"><div><h2 className="text-[36px] font-semibold tracking-tight sm:text-[52px]">{title}</h2>{message ? <p className="mt-4 text-[18px] leading-8 text-muted-foreground sm:text-[22px] sm:leading-9">{message}</p> : null}</div><div className="grid gap-4 sm:grid-cols-2">{choices.map((choice) => <Button key={choice.value} type="button" size="lg" className="h-auto min-h-28 rounded-[1.5rem] p-6 text-[20px] sm:text-[24px]" onClick={() => onSubmit({ value: choice.value })}>{choice.label}</Button>)}</div></div>;
 }
 
 function FormContent({ instruction, onSubmit }: { readonly instruction: KioskInstructionEnvelope; readonly onSubmit: (values: Record<string, string>) => void }) {
   const [values, setValues] = useState<Record<string, string>>({});
-  const title = instruction.content?.title || instruction.content?.titleKey || 'Fill in details';
-  const message = instruction.content?.message || instruction.content?.messageKey || null;
+  const title = instruction.content?.title || 'Fill in details';
+  const message = instruction.content?.message ?? null;
   const fields = instruction.fields ?? [];
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -57,9 +57,16 @@ function FormContent({ instruction, onSubmit }: { readonly instruction: KioskIns
     onSubmit(values);
   }
 
-  return <form className="mx-auto grid max-w-3xl gap-7 text-left" onSubmit={handleSubmit}><div className="text-center"><h2 className="text-[34px] font-semibold tracking-tight sm:text-[48px]">{title}</h2>{message ? <p className="mt-4 text-[18px] leading-8 text-muted-foreground">{message}</p> : null}</div><div className="grid gap-5">{fields.map((field) => <label key={field.name} className="grid gap-2 text-[16px] font-medium"><span>{field.label || field.labelKey || field.name}</span><Input className="h-14 rounded-xl px-4 text-[18px] md:text-[18px]" type={field.isMaskRequired ? 'password' : 'text'} required={field.isRequired} placeholder={field.placeholder || field.placeholderKey || ''} value={values[field.name] ?? ''} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))} /></label>)}</div><Button type="submit" className="h-14 rounded-xl text-[18px] font-semibold">Continue</Button></form>;
+  return <form className="mx-auto grid max-w-3xl gap-7 text-left" onSubmit={handleSubmit}><div className="text-center"><h2 className="text-[34px] font-semibold tracking-tight sm:text-[48px]">{title}</h2>{message ? <p className="mt-4 text-[18px] leading-8 text-muted-foreground">{message}</p> : null}</div><div className="grid gap-5">{fields.map((field) => <label key={field.name} className="grid gap-2 text-[16px] font-medium"><span>{field.label}</span><Input className="h-14 rounded-xl px-4 text-[18px] md:text-[18px]" type={field.isMaskRequired ? 'password' : 'text'} required={field.isRequired} placeholder={field.placeholder || ''} value={values[field.name] ?? ''} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))} /></label>)}</div><Button type="submit" className="h-14 rounded-xl text-[18px] font-semibold">Continue</Button></form>;
 }
 
 function VisualPanel({ imageUrl }: { readonly imageUrl: string | null }) {
   return <div className="hidden min-h-[32rem] overflow-hidden rounded-[2rem] border border-border bg-hover-gray lg:block">{imageUrl ? <img src={imageUrl} alt="" className="size-full object-cover" /> : <div className="size-full bg-gradient-to-br from-primary/20 via-hover-blue to-background" />}</div>;
+}
+
+function resolveAssetUrl(assetName: string | null | undefined, languageCode: string | undefined) {
+  if (!assetName) return null;
+  const encodedAssetName = encodeURIComponent(assetName);
+  const encodedLanguageCode = languageCode ? `?languageCode=${encodeURIComponent(languageCode)}` : '';
+  return `/api/kiosk/assets/${encodedAssetName}${encodedLanguageCode}`;
 }

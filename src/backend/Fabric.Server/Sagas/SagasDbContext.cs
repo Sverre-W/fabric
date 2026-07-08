@@ -1,4 +1,5 @@
 using Fabric.Server.Infrastructure.Tenancy;
+using Fabric.Server.Sagas.Kiosk;
 using Fabric.Server.Sagas.Persistence.Configuration;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,8 @@ public class SagasDbContext : TenantDbContext
     public DbSet<VisitorPreOnboardingSaga> VisitorPreOnboardingSagas { get; set; } = null!;
     public DbSet<VisitorPreOnboardingSagaConfig> VisitorPreOnboardingSagaConfigs { get; set; } = null!;
     public DbSet<VisitorPreOnboardingSagaEvent> VisitorPreOnboardingSagaEvents { get; set; } = null!;
+    public DbSet<KioskSaga> KioskSagas { get; set; } = null!;
+    public DbSet<KioskSagaEvent> KioskSagaEvents { get; set; } = null!;
 
     public SagasDbContext(DbContextOptions<SagasDbContext> options, ITenantContext tenantContext)
         : base(options, tenantContext)
@@ -28,6 +31,8 @@ public class SagasDbContext : TenantDbContext
         modelBuilder.ApplyConfiguration(new VisitorPreOnboardingSagaConfiguration());
         modelBuilder.ApplyConfiguration(new VisitorPreOnboardingSagaConfigConfiguration());
         modelBuilder.ApplyConfiguration(new VisitorPreOnboardingSagaEventConfiguration());
+        modelBuilder.ApplyConfiguration(new KioskSagaConfiguration());
+        modelBuilder.ApplyConfiguration(new KioskSagaEventConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 }

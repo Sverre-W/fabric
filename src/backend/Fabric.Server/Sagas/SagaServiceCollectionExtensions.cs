@@ -1,3 +1,4 @@
+using Fabric.Server.Sagas.Kiosk;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,9 @@ public static class SagaServiceCollectionExtensions
         collection.AddSingleton<VisitorPreOnboardingSagaTrigger>();
         collection.AddScoped<VisitorPreOnboardingSagaService>();
         collection.AddHostedService<VisitorPreOnboardingWorker>();
+        collection.AddSingleton<KioskSagaTrigger>();
+        collection.AddScoped<KioskSagaService>();
+        collection.AddHostedService<KioskWorker>();
 
         return collection;
     }

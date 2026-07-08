@@ -18,11 +18,11 @@ export const kioskActivityDefinitions = [
   {
     type: 'Kiosk.DisplayMessage',
     displayName: 'Display Message',
-    description: 'Shows a localized title/message with optional visual assets.',
+    description: 'Shows translated title/message text with optional visual assets.',
     category: 'Kiosk',
     inputs: [
-      { name: 'titleKey', displayName: 'Title key', type: 'text', required: true },
-      { name: 'messageKey', displayName: 'Message key', type: 'textarea' },
+      { name: 'title', displayName: 'Title', type: 'text', required: true },
+      { name: 'message', displayName: 'Message', type: 'textarea' },
       { name: 'imageAssetName', displayName: 'Image asset', type: 'text' },
       { name: 'backgroundAssetName', displayName: 'Background asset', type: 'text' },
       { name: 'layoutMode', displayName: 'Layout mode', type: 'select', description: 'single-column, split-left-visual, or split-right-visual' },
@@ -34,9 +34,9 @@ export const kioskActivityDefinitions = [
     description: 'Shows fixed button choices; each value can be mapped to a workflow outcome.',
     category: 'Kiosk',
     inputs: [
-      { name: 'titleKey', displayName: 'Title key', type: 'text', required: true },
-      { name: 'messageKey', displayName: 'Message key', type: 'textarea' },
-      { name: 'choices', displayName: 'Choices', type: 'json', required: true, description: 'Array of { value, labelKey }.' },
+      { name: 'title', displayName: 'Title', type: 'text', required: true },
+      { name: 'message', displayName: 'Message', type: 'textarea' },
+      { name: 'choices', displayName: 'Choices', type: 'json', required: true, description: 'Array of { value, label }.' },
     ],
   },
   {
@@ -45,8 +45,8 @@ export const kioskActivityDefinitions = [
     description: 'Shows dynamic button choices and stores selected value for later branching.',
     category: 'Kiosk',
     inputs: [
-      { name: 'titleKey', displayName: 'Title key', type: 'text', required: true },
-      { name: 'messageKey', displayName: 'Message key', type: 'textarea' },
+      { name: 'title', displayName: 'Title', type: 'text', required: true },
+      { name: 'message', displayName: 'Message', type: 'textarea' },
       { name: 'choicesExpression', displayName: 'Choices expression', type: 'json', required: true },
       { name: 'resultVariable', displayName: 'Result variable', type: 'text', required: true },
     ],
@@ -57,9 +57,9 @@ export const kioskActivityDefinitions = [
     description: 'Shows simple text/password fields and returns Dictionary<string, string>.',
     category: 'Kiosk',
     inputs: [
-      { name: 'titleKey', displayName: 'Title key', type: 'text', required: true },
-      { name: 'messageKey', displayName: 'Message key', type: 'textarea' },
-      { name: 'fields', displayName: 'Fields', type: 'json', required: true, description: 'Array of { name, labelKey, placeholderKey, isRequired, isMaskRequired }.' },
+      { name: 'title', displayName: 'Title', type: 'text', required: true },
+      { name: 'message', displayName: 'Message', type: 'textarea' },
+      { name: 'fields', displayName: 'Fields', type: 'json', required: true, description: 'Array of { name, label, placeholder, isRequired, isMaskRequired }.' },
       { name: 'resultVariable', displayName: 'Result variable', type: 'text', required: true },
     ],
   },
