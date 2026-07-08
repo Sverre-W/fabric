@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Fabric.Server.Automation.Kiosk;
 using Fabric.Server.Infrastructure.Authentication;
 using Fabric.Server.Kiosk.Application;
 using Fabric.Server.Kiosk.Contracts;
@@ -82,7 +83,7 @@ public static class KioskRuntimeEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> StartKioskSession([FromBody] StartKioskSessionRequest request, HttpContext context, KioskDbContext db, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> StartKioskSession([FromBody] StartKioskSessionRequest request, HttpContext context, KioskDbContext db, KioskWorkflowStarter workflowStarter, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         Domain.Kiosk? kiosk = await GetAuthenticatedKioskAsync(context, db, cancellationToken);
         if (kiosk is null)
@@ -90,6 +91,9 @@ public static class KioskRuntimeEndpoints
 
         if (kiosk.Mode != KioskMode.Active)
             return Results.Problem("Kiosk is not active.", statusCode: StatusCodes.Status409Conflict);
+
+        if (string.IsNullOrWhiteSpace(kiosk.WorkflowDefinitionId))
+            return Results.Problem("Kiosk has no assigned workflow.", statusCode: StatusCodes.Status409Conflict);
 
         KioskSession? existing = await db.Sessions
             .Where(session => session.KioskId == kiosk.Id && session.Status == KioskSessionStatus.Running)
@@ -104,6 +108,18 @@ public static class KioskRuntimeEndpoints
         KioskSession session = KioskSession.Start(kiosk.Id, languageCode, timeProvider.GetUtcNow());
         db.Sessions.Add(session);
         await db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await workflowStarter.StartSessionWorkflowAsync(kiosk, session, cancellationToken);
+        }
+        catch
+        {
+            db.Sessions.Remove(session);
+            await db.SaveChangesAsync(cancellationToken);
+            throw;
+        }
+
         return Results.Ok(session.ToResponse());
     }
 
@@ -141,7 +157,7 @@ public static class KioskRuntimeEndpoints
         return Results.Ok(new KioskInstructionResponse(session.Id, session.Status, session.CurrentInstructionVersion, session.CurrentInstructionId, session.CurrentInstructionJson));
     }
 
-    private static async Task<IResult> SubmitInstructionResponse(string instructionId, [FromBody] SubmitKioskInstructionResponseRequest request, HttpContext context, KioskDbContext db, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> SubmitInstructionResponse(string instructionId, [FromBody] SubmitKioskInstructionResponseRequest request, HttpContext context, KioskDbContext db, KioskWorkflowResumer workflowResumer, CancellationToken cancellationToken = default)
     {
         KioskSession? session = await GetCurrentSessionAsync(context.User.GetKioskId(), db, cancellationToken);
         if (session is null)
@@ -150,12 +166,20 @@ public static class KioskRuntimeEndpoints
         if (!string.Equals(session.CurrentInstructionId, instructionId, StringComparison.Ordinal))
             return Results.Problem("Instruction is stale.", statusCode: StatusCodes.Status409Conflict);
 
-        session.SetInstruction(Guid.NewGuid().ToString("N"), "{}", timeProvider.GetUtcNow());
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await workflowResumer.ResumeInstructionAsync(session.Id, instructionId, request.Values, cancellationToken);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+
+        await db.Entry(session).ReloadAsync(cancellationToken);
         return Results.Ok(session.ToResponse());
     }
 
-    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskDbContext db, KioskSessionCleanupService cleanupService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskWorkflowResumer workflowResumer, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         Guid kioskId = context.User.GetKioskId();
         KioskSession? session = await GetCurrentSessionAsync(kioskId, db, cancellationToken);
@@ -164,6 +188,15 @@ public static class KioskRuntimeEndpoints
 
         session.Cancel(timeProvider.GetUtcNow());
         await db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await workflowResumer.CancelSessionAsync(session.Id, cancellationToken);
+        }
+        catch (InvalidOperationException)
+        {
+        }
+
         await cleanupService.CleanupAsync(kioskId, cancellationToken);
         return Results.Ok(session.ToResponse());
     }

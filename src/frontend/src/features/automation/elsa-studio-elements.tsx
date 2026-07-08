@@ -3,14 +3,17 @@ import { createElement, useEffect, useRef, type Ref } from 'react';
 type ElsaElementProps = {
   readonly remoteEndpoint: string;
   readonly accessToken?: string;
+  readonly className?: string;
 };
 
 type WorkflowDefinitionEditorProps = ElsaElementProps & {
   readonly definitionId: string;
+  readonly onWorkflowDefinitionExecuted?: (workflowInstanceId: string) => void;
 };
 
 type WorkflowInstanceViewerProps = ElsaElementProps & {
   readonly instanceId: string;
+  readonly onEditWorkflowDefinition?: (definitionId: string) => void;
 };
 
 type WorkflowDefinitionListProps = ElsaElementProps & {
@@ -24,6 +27,7 @@ type WorkflowInstanceListProps = ElsaElementProps & {
 type ElsaCustomElement = HTMLElement & {
   editWorkflowDefinition?: (definitionId: string) => void;
   viewWorkflowInstance?: (instanceId: string) => void;
+  workflowDefinitionExecuted?: (workflowInstanceId: string) => void;
 };
 
 export function WorkflowDefinitionList({ onEditWorkflowDefinition, ...props }: WorkflowDefinitionListProps) {
@@ -39,7 +43,14 @@ export function WorkflowDefinitionList({ onEditWorkflowDefinition, ...props }: W
 }
 
 export function WorkflowDefinitionEditor({ definitionId, ...props }: WorkflowDefinitionEditorProps) {
-  return createElsaElement('elsa-workflow-definition-editor', { ...props, definitionId });
+  const ref = useRef<ElsaCustomElement>(null);
+
+  useEffect(() => {
+    if (ref.current)
+      ref.current.workflowDefinitionExecuted = props.onWorkflowDefinitionExecuted;
+  }, [props.onWorkflowDefinitionExecuted]);
+
+  return createElsaElement('elsa-workflow-definition-editor', { ...props, definitionId }, ref);
 }
 
 export function WorkflowInstanceList({ onViewWorkflowInstance, ...props }: WorkflowInstanceListProps) {
@@ -55,7 +66,14 @@ export function WorkflowInstanceList({ onViewWorkflowInstance, ...props }: Workf
 }
 
 export function WorkflowInstanceViewer({ instanceId, ...props }: WorkflowInstanceViewerProps) {
-  return createElsaElement('elsa-workflow-instance-viewer', { ...props, instanceId });
+  const ref = useRef<ElsaCustomElement>(null);
+
+  useEffect(() => {
+    if (ref.current)
+      ref.current.editWorkflowDefinition = props.onEditWorkflowDefinition;
+  }, [props.onEditWorkflowDefinition]);
+
+  return createElsaElement('elsa-workflow-instance-viewer', { ...props, instanceId }, ref);
 }
 
 function createElsaElement(tagName: string, props: ElsaElementProps & { definitionId?: string; instanceId?: string }, ref?: Ref<ElsaCustomElement>) {
@@ -65,6 +83,6 @@ function createElsaElement(tagName: string, props: ElsaElementProps & { definiti
     'access-token': props.accessToken,
     'definition-id': props.definitionId,
     'instance-id': props.instanceId,
-    class: 'block min-h-[38rem] w-full',
+    class: props.className ?? 'fabric-elsa-studio-root block h-full w-full',
   });
 }

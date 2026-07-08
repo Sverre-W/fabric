@@ -77538,46 +77538,143 @@ async function autoLayout(graphId, data) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   calculateActivitySize: () => (/* binding */ calculateActivitySize)
+/* harmony export */   calculateActivitySize: () => (/* binding */ calculateActivitySize),
+/* harmony export */   clearActivitySizeCache: () => (/* binding */ clearActivitySizeCache)
 /* harmony export */ });
 /* harmony import */ var _internal_create_activity_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../internal/create-activity-element */ "./src/designer/internal/create-activity-element.ts");
 
-function calculateActivitySize(activity) {
-    const wrapper = document.createElement('div');
-    const dummyActivityElement = (0,_internal_create_activity_element__WEBPACK_IMPORTED_MODULE_0__.createActivityElement)(activity, true);
-    wrapper.style.position = 'absolute';
-    wrapper.appendChild(dummyActivityElement);
-    // Append the temporary element to the DOM.
+// Cache for storing calculated activity sizes
+// Key format: "activityType:showsDescription:hasIcon:portCount:displayTextLength:descriptionLength"
+const sizeCache = new Map();
+// Queue for batching size calculations
+let calculationQueue = [];
+let batchTimer = null;
+function getCacheKey(activity, portCount) {
+    const type = activity.type || 'unknown';
+    const displayText = activity.metadata?.displayText || '';
+    const description = activity.metadata?.description || '';
+    const hasDescription = !!description;
+    const showDescription = activity.metadata?.showDescription === true;
+    const hasIcon = !!activity.metadata?.icon;
+    const ports = portCount ?? 0;
+    // Include display text and description lengths to differentiate activities with different text content
+    // Using length is more efficient than hashing the full text, while still catching size-affecting changes
+    const displayTextKey = displayText.length;
+    const descriptionKey = hasDescription && showDescription ? description.length : 0;
+    return `${type}:${hasDescription && showDescription}:${hasIcon}:${ports}:${displayTextKey}:${descriptionKey}`;
+}
+function processBatch() {
+    if (calculationQueue.length === 0) {
+        return;
+    }
+    const batch = calculationQueue;
+    calculationQueue = [];
+    batchTimer = null;
+    // Create a single container for all measurements
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.visibility = 'hidden';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
     const bodyElement = document.getElementsByTagName('body')[0];
-    bodyElement.append(wrapper);
-    // Wait for the activity element to be completely rendered.
-    // When using custom elements, they are rendered after they are mounted. Before then, they have a 0 width and height.
-    return new Promise((resolve, reject) => {
-        const checkSize = () => {
-            const activityElement = wrapper.getElementsByTagName(_internal_create_activity_element__WEBPACK_IMPORTED_MODULE_0__.activityTagName)[0];
-            if (activityElement == null) {
-                reject('Activity element not found.');
-                return;
+    bodyElement.appendChild(container);
+    const measurements = [];
+    // Create all elements at once
+    for (const item of batch) {
+        const cacheKey = getCacheKey(item.activity, item.portCount);
+        // Check cache first
+        const cachedSize = sizeCache.get(cacheKey);
+        if (cachedSize) {
+            // Return a shallow copy to prevent mutation
+            item.resolve({ ...cachedSize });
+            continue;
+        }
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'inline-block';
+        const dummyActivityElement = (0,_internal_create_activity_element__WEBPACK_IMPORTED_MODULE_0__.createActivityElement)(item.activity, true);
+        wrapper.appendChild(dummyActivityElement);
+        container.appendChild(wrapper);
+        measurements.push({
+            wrapper,
+            activity: item.activity,
+            portCount: item.portCount,
+            resolve: item.resolve,
+            reject: item.reject
+        });
+    }
+    if (measurements.length === 0) {
+        container.remove();
+        return;
+    }
+    // Wait for all elements to render
+    const checkAllSizes = () => {
+        let allReady = true;
+        for (const measurement of measurements) {
+            const activityElement = measurement.wrapper.getElementsByTagName(_internal_create_activity_element__WEBPACK_IMPORTED_MODULE_0__.activityTagName)[0];
+            if (!activityElement) {
+                // Activity element not yet present; batch is not ready.
+                allReady = false;
+                continue;
             }
             const activityElementRect = activityElement.getBoundingClientRect();
-            // If the custom element has no width or height yet, it means it has not yet rendered.
-            if (activityElementRect.width == 0 || activityElementRect.height == 0) {
-                // Request an animation frame and call ourselves back immediately after.
-                window.requestAnimationFrame(checkSize);
+            // If any element is not ready, continue waiting
+            if (activityElementRect.width === 0 || activityElementRect.height === 0) {
+                allReady = false;
+                break;
             }
-            else {
-                const rect = wrapper.getElementsByClassName("elsa-activity")[0].getBoundingClientRect();
-                const width = rect.width;
-                const height = rect.height;
-                // Remove the temporary element (used only to calculate its size).
-                wrapper.remove();
-                // Update the size of the activity node and resolve the promise.
-                resolve({ width, height });
+        }
+        if (!allReady) {
+            window.requestAnimationFrame(checkAllSizes);
+            return;
+        }
+        // All elements are ready, measure them all
+        for (const measurement of measurements) {
+            try {
+                const rect = measurement.wrapper.getElementsByClassName("elsa-activity")[0]?.getBoundingClientRect();
+                if (!rect) {
+                    measurement.reject('Activity element not found.');
+                    continue;
+                }
+                const size = {
+                    width: rect.width,
+                    height: rect.height
+                };
+                // Cache the size
+                const cacheKey = getCacheKey(measurement.activity, measurement.portCount);
+                sizeCache.set(cacheKey, size);
+                // Return a shallow copy to prevent mutation
+                measurement.resolve({ ...size });
             }
-        };
-        // Begin to try to get our element size.
-        checkSize();
+            catch (error) {
+                measurement.reject(error);
+            }
+        }
+        // Clean up
+        container.remove();
+    };
+    // Start checking
+    checkAllSizes();
+}
+function calculateActivitySize(activity, portCount) {
+    // Check cache first
+    const cacheKey = getCacheKey(activity, portCount);
+    const cachedSize = sizeCache.get(cacheKey);
+    if (cachedSize) {
+        // Return a shallow copy to prevent mutation
+        return Promise.resolve({ ...cachedSize });
+    }
+    // Add to batch queue
+    return new Promise((resolve, reject) => {
+        calculationQueue.push({ activity, portCount, resolve, reject });
+        // Schedule batch processing
+        if (batchTimer === null) {
+            batchTimer = window.setTimeout(processBatch, 0);
+        }
     });
+}
+// Export function to clear cache if needed
+function clearActivitySizeCache() {
+    sizeCache.clear();
 }
 
 
@@ -77625,6 +77722,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _antv_x6_plugin_history__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @antv/x6-plugin-history */ "./node_modules/@antv/x6-plugin-history/es/index.js");
 /* harmony import */ var _graph_bindings__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./graph-bindings */ "./src/designer/api/graph-bindings.ts");
 /* harmony import */ var _dotnet_flowchart_designer__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./dotnet-flowchart-designer */ "./src/designer/api/dotnet-flowchart-designer.ts");
+/* harmony import */ var _update_activity_size__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./update-activity-size */ "./src/designer/api/update-activity-size.ts");
+
 
 
 
@@ -77763,7 +77862,7 @@ async function createGraph(containerId, componentRef, readOnly, settings) {
         }));
         graph.use(new _antv_x6_plugin_transform__WEBPACK_IMPORTED_MODULE_3__.Transform({
             resizing: {
-                enabled: true,
+                enabled: settings?.resizingEnabled ?? true,
             }
         }));
         // Copy the cells in the graph to the internal clipboard with Ctrl+C.
@@ -77936,10 +78035,36 @@ async function createGraph(containerId, componentRef, readOnly, settings) {
         await onGraphUpdated(e);
         return false;
     };
+    // Track if we're currently enforcing minimum size to prevent infinite loops
+    let isEnforcingMinSize = false;
+    const onNodeSizeChanged = async (e) => {
+        // Prevent infinite loop when we programmatically resize after enforcing minimum
+        if (isEnforcingMinSize) {
+            return false;
+        }
+        // Skip graph update when size was changed programmatically (e.g., from updateActivitySize during initial render).
+        // This prevents unwanted auto-saves when the server returns different sizes than what the Studio calculated.
+        const binding = _graph_bindings__WEBPACK_IMPORTED_MODULE_7__.graphBindings[graphId];
+        if (binding?.suppressGraphUpdated > 0) {
+            return false;
+        }
+        const node = e.node || e.cell;
+        if (node) {
+            isEnforcingMinSize = true;
+            try {
+                await (0,_update_activity_size__WEBPACK_IMPORTED_MODULE_9__.enforceMinimumNodeSize)(node);
+            }
+            finally {
+                isEnforcingMinSize = false;
+            }
+        }
+        await interop.raiseGraphUpdated();
+        return false;
+    };
     graph.on('node:moved', onGraphUpdated);
     graph.on('node:added', onNodeAdded);
     graph.on('node:removed', onNodeRemoved);
-    graph.on('node:change:size', onGraphUpdated);
+    graph.on('node:change:size', onNodeSizeChanged);
     graph.on('edge:removed', onGraphUpdated);
     graph.on('edge:connected', onGraphUpdated);
     graph.on('edge:vertexs:added', onGraphUpdated);
@@ -78067,8 +78192,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   autoLayout: () => (/* reexport safe */ _auto_layout__WEBPACK_IMPORTED_MODULE_17__.autoLayout),
 /* harmony export */   calculateActivitySize: () => (/* reexport safe */ _calculate_activity_size__WEBPACK_IMPORTED_MODULE_1__.calculateActivitySize),
 /* harmony export */   centerContent: () => (/* reexport safe */ _center_content__WEBPACK_IMPORTED_MODULE_2__.centerContent),
+/* harmony export */   clearActivitySizeCache: () => (/* reexport safe */ _calculate_activity_size__WEBPACK_IMPORTED_MODULE_1__.clearActivitySizeCache),
 /* harmony export */   createGraph: () => (/* reexport safe */ _create_graph__WEBPACK_IMPORTED_MODULE_3__.createGraph),
 /* harmony export */   disposeGraph: () => (/* reexport safe */ _dispose_graph__WEBPACK_IMPORTED_MODULE_4__.disposeGraph),
+/* harmony export */   enforceMinimumNodeSize: () => (/* reexport safe */ _update_activity_size__WEBPACK_IMPORTED_MODULE_14__.enforceMinimumNodeSize),
 /* harmony export */   graphBindings: () => (/* reexport safe */ _graph_bindings__WEBPACK_IMPORTED_MODULE_5__.graphBindings),
 /* harmony export */   loadGraph: () => (/* reexport safe */ _load_graph__WEBPACK_IMPORTED_MODULE_6__.loadGraph),
 /* harmony export */   pasteCells: () => (/* reexport safe */ _paste_cells__WEBPACK_IMPORTED_MODULE_7__.pasteCells),
@@ -78348,13 +78475,14 @@ function setGridColor(graphId, color) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   enforceMinimumNodeSize: () => (/* binding */ enforceMinimumNodeSize),
 /* harmony export */   updateActivitySize: () => (/* binding */ updateActivitySize)
 /* harmony export */ });
 /* harmony import */ var _calculate_activity_size__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./calculate-activity-size */ "./src/designer/api/calculate-activity-size.ts");
 /* harmony import */ var _graph_bindings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./graph-bindings */ "./src/designer/api/graph-bindings.ts");
 
 
-async function updateActivitySize(elementId, activityModel, size) {
+async function updateActivitySize(elementId, activityModel, size, portCount) {
     // Get wrapper element.
     const wrapper = document.getElementById(elementId);
     if (wrapper == null) {
@@ -78366,11 +78494,12 @@ async function updateActivitySize(elementId, activityModel, size) {
     // Get graph ID.
     const graphId = container.id;
     // Get graph reference.
-    const { graph } = _graph_bindings__WEBPACK_IMPORTED_MODULE_1__.graphBindings[graphId];
+    const graphBinding = _graph_bindings__WEBPACK_IMPORTED_MODULE_1__.graphBindings[graphId];
+    const graph = graphBinding.graph;
     // Parse activity model.
     const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
     // Calculate the size of the activity.
-    const rect = await (0,_calculate_activity_size__WEBPACK_IMPORTED_MODULE_0__.calculateActivitySize)(activity);
+    const rect = await (0,_calculate_activity_size__WEBPACK_IMPORTED_MODULE_0__.calculateActivitySize)(activity, portCount);
     let width = rect.width;
     let height = rect.height;
     // Get the node from the graph and update its size.
@@ -78386,7 +78515,52 @@ async function updateActivitySize(elementId, activityModel, size) {
         if (size.height > height)
             height = size.height;
     }
-    node.size(width, height);
+    // Only update the node size if it actually changed, to avoid triggering unnecessary graph update events.
+    const currentSize = node.size();
+    if (Math.abs(currentSize.width - width) > 0.5 || Math.abs(currentSize.height - height) > 0.5) {
+        // Suppress graph updated events for programmatic size adjustments (e.g., initial render sizing).
+        // This prevents unwanted auto-saves when the calculated size differs from the stored size,
+        // which commonly occurs with NotFoundActivity where the server resets sizes on save.
+        graphBinding.suppressGraphUpdated = (graphBinding.suppressGraphUpdated || 0) + 1;
+        try {
+            node.size(width, height);
+        }
+        finally {
+            graphBinding.suppressGraphUpdated = Math.max(0, (graphBinding.suppressGraphUpdated || 0) - 1);
+        }
+    }
+}
+/**
+ * Enforces the minimum size on a node based on its activity content.
+ * If the current size is smaller than the minimum, the node will snap back to the minimum size.
+ * @param node The X6 node to enforce minimum size on
+ * @returns true if the size was adjusted, false otherwise
+ */
+async function enforceMinimumNodeSize(node) {
+    const activity = node.data;
+    if (!activity) {
+        return false;
+    }
+    // Determine the number of ports on the node, defaulting to 0 if unavailable.
+    const portCount = node.ports?.items?.length ?? 0;
+    // Calculate the minimum size based on content and port count
+    const minSize = await (0,_calculate_activity_size__WEBPACK_IMPORTED_MODULE_0__.calculateActivitySize)(activity, portCount);
+    const currentSize = node.size();
+    let needsResize = false;
+    let newWidth = currentSize.width;
+    let newHeight = currentSize.height;
+    if (currentSize.width < minSize.width) {
+        newWidth = minSize.width;
+        needsResize = true;
+    }
+    if (currentSize.height < minSize.height) {
+        newHeight = minSize.height;
+        needsResize = true;
+    }
+    if (needsResize) {
+        node.size(newWidth, newHeight);
+    }
+    return needsResize;
 }
 
 
@@ -90672,8 +90846,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   autoLayout: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.autoLayout),
 /* harmony export */   calculateActivitySize: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.calculateActivitySize),
 /* harmony export */   centerContent: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.centerContent),
+/* harmony export */   clearActivitySizeCache: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.clearActivitySizeCache),
 /* harmony export */   createGraph: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.createGraph),
 /* harmony export */   disposeGraph: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.disposeGraph),
+/* harmony export */   enforceMinimumNodeSize: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.enforceMinimumNodeSize),
 /* harmony export */   graphBindings: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.graphBindings),
 /* harmony export */   loadGraph: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.loadGraph),
 /* harmony export */   pasteCells: () => (/* reexport safe */ _designer_api__WEBPACK_IMPORTED_MODULE_3__.pasteCells),
@@ -90704,8 +90880,10 @@ const __webpack_exports__addActivityNode = __webpack_exports__.addActivityNode;
 const __webpack_exports__autoLayout = __webpack_exports__.autoLayout;
 const __webpack_exports__calculateActivitySize = __webpack_exports__.calculateActivitySize;
 const __webpack_exports__centerContent = __webpack_exports__.centerContent;
+const __webpack_exports__clearActivitySizeCache = __webpack_exports__.clearActivitySizeCache;
 const __webpack_exports__createGraph = __webpack_exports__.createGraph;
 const __webpack_exports__disposeGraph = __webpack_exports__.disposeGraph;
+const __webpack_exports__enforceMinimumNodeSize = __webpack_exports__.enforceMinimumNodeSize;
 const __webpack_exports__graphBindings = __webpack_exports__.graphBindings;
 const __webpack_exports__loadGraph = __webpack_exports__.loadGraph;
 const __webpack_exports__pasteCells = __webpack_exports__.pasteCells;
@@ -90718,6 +90896,6 @@ const __webpack_exports__updateActivity = __webpack_exports__.updateActivity;
 const __webpack_exports__updateActivitySize = __webpack_exports__.updateActivitySize;
 const __webpack_exports__updateActivityStats = __webpack_exports__.updateActivityStats;
 const __webpack_exports__zoomToFit = __webpack_exports__.zoomToFit;
-export { __webpack_exports__DotNetFlowchartDesigner as DotNetFlowchartDesigner, __webpack_exports__addActivityNode as addActivityNode, __webpack_exports__autoLayout as autoLayout, __webpack_exports__calculateActivitySize as calculateActivitySize, __webpack_exports__centerContent as centerContent, __webpack_exports__createGraph as createGraph, __webpack_exports__disposeGraph as disposeGraph, __webpack_exports__graphBindings as graphBindings, __webpack_exports__loadGraph as loadGraph, __webpack_exports__pasteCells as pasteCells, __webpack_exports__raiseActivityEmbeddedPortSelected as raiseActivityEmbeddedPortSelected, __webpack_exports__raiseActivitySelected as raiseActivitySelected, __webpack_exports__readGraph as readGraph, __webpack_exports__selectActivity as selectActivity, __webpack_exports__setGridColor as setGridColor, __webpack_exports__updateActivity as updateActivity, __webpack_exports__updateActivitySize as updateActivitySize, __webpack_exports__updateActivityStats as updateActivityStats, __webpack_exports__zoomToFit as zoomToFit };
+export { __webpack_exports__DotNetFlowchartDesigner as DotNetFlowchartDesigner, __webpack_exports__addActivityNode as addActivityNode, __webpack_exports__autoLayout as autoLayout, __webpack_exports__calculateActivitySize as calculateActivitySize, __webpack_exports__centerContent as centerContent, __webpack_exports__clearActivitySizeCache as clearActivitySizeCache, __webpack_exports__createGraph as createGraph, __webpack_exports__disposeGraph as disposeGraph, __webpack_exports__enforceMinimumNodeSize as enforceMinimumNodeSize, __webpack_exports__graphBindings as graphBindings, __webpack_exports__loadGraph as loadGraph, __webpack_exports__pasteCells as pasteCells, __webpack_exports__raiseActivityEmbeddedPortSelected as raiseActivityEmbeddedPortSelected, __webpack_exports__raiseActivitySelected as raiseActivitySelected, __webpack_exports__readGraph as readGraph, __webpack_exports__selectActivity as selectActivity, __webpack_exports__setGridColor as setGridColor, __webpack_exports__updateActivity as updateActivity, __webpack_exports__updateActivitySize as updateActivitySize, __webpack_exports__updateActivityStats as updateActivityStats, __webpack_exports__zoomToFit as zoomToFit };
 
 //# sourceMappingURL=designer.entry.js.map

@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "api:generate": "openapi-typescript http://localhost:5245/openapi/v1.json -o src/shared/api/generated/schema.d.ts",
+    "copy:elsa-studio-assets": "rm -rf public/_content public/_framework public/appsettings.json public/Elsa.Studio.Host.CustomElements.styles.css && mkdir -p public && cp -r ../..//../elsa-studio/packages/wasm/wwwroot/_content public/ && cp -r ../..//../elsa-studio/packages/wasm/wwwroot/_framework public/ && cp ../..//../elsa-studio/packages/wasm/wwwroot/appsettings.json public/ && if [ -f ../..//../elsa-studio/packages/wasm/wwwroot/Elsa.Studio.Host.CustomElements.styles.css ]; then cp ../..//../elsa-studio/packages/wasm/wwwroot/Elsa.Studio.Host.CustomElements.styles.css public/; fi",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

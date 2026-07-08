@@ -6,6 +6,7 @@ using Elsa.Persistence.EFCore.Modules.Management;
 using Elsa.Persistence.EFCore.Modules.Runtime;
 using Elsa.Tenants;
 using Elsa.Tenants.Extensions;
+using Fabric.Server.Automation.Kiosk;
 using Fabric.Server.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 
@@ -19,6 +20,10 @@ public static class AutomationServiceCollectionExtensions
         string getDbConnection(IServiceProvider _) => databaseSection ?? throw new InvalidOperationException();
 
         services.AddTransient<IClaimsTransformation, ElsaClaimsTransformer>();
+        services.AddScoped<KioskWorkflowAccessor>();
+        services.AddScoped<KioskInstructionWriter>();
+        services.AddScoped<KioskWorkflowStarter>();
+        services.AddScoped<KioskWorkflowResumer>();
 
         services.AddElsa(elsa =>
         {
@@ -105,5 +110,4 @@ public static class AutomationServiceCollectionExtensions
     }
 
 }
-
 

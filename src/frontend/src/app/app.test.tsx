@@ -214,8 +214,8 @@ describe('App', () => {
 
     expect(await screen.findByRole('button', { name: /automation/i })).toBeInTheDocument();
     expect(await screen.findByRole('navigation', { name: /automation menu/i })).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: /workflow definitions/i })).toBeInTheDocument();
-    expect(document.querySelector('elsa-workflow-definition-list')).toHaveAttribute('remote-endpoint', 'http://localhost:5245/elsa/api');
+    expect(await screen.findByRole('heading', { name: /^workflow$/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /^definitions$/i })).toBeInTheDocument();
   });
 
   it('renders Workflow Instances for Automation module', async () => {
@@ -223,8 +223,7 @@ describe('App', () => {
 
     render(<App appRouter={createAppRouter()} />);
 
-    expect(await screen.findByRole('heading', { name: /workflow instances/i })).toBeInTheDocument();
-    expect(document.querySelector('elsa-workflow-instance-list')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /^history$/i })).toBeInTheDocument();
   });
 
   it('renders Workflow Definition editor route', async () => {
@@ -233,7 +232,9 @@ describe('App', () => {
     render(<App appRouter={createAppRouter()} />);
 
     expect(await screen.findByRole('heading', { name: /workflow definition editor/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /back to workflow definitions/i })).toHaveAttribute('href', '/automation/workflow-definitions');
+    expect(screen.queryByRole('navigation', { name: /automation menu/i })).not.toBeInTheDocument();
+    expect(document.body).toHaveClass('elsa-studio-fullscreen');
+    expect(screen.getByRole('link', { name: /back to workflow definitions/i })).toHaveAttribute('href', '/automation/workflow');
     expect(document.querySelector('elsa-workflow-definition-editor')).toHaveAttribute('definition-id', 'definition-1');
   });
 
@@ -243,8 +244,28 @@ describe('App', () => {
     render(<App appRouter={createAppRouter()} />);
 
     expect(await screen.findByRole('heading', { name: /workflow instance viewer/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /back to workflow instances/i })).toHaveAttribute('href', '/automation/workflow-instances');
+    expect(screen.queryByRole('navigation', { name: /automation menu/i })).not.toBeInTheDocument();
+    expect(document.body).toHaveClass('elsa-studio-fullscreen');
+    expect(screen.getByRole('link', { name: /back to workflow instances/i })).toHaveAttribute('href', '/automation/workflow?tab=history');
     expect(document.querySelector('elsa-workflow-instance-viewer')).toHaveAttribute('instance-id', 'instance-1');
+  });
+
+  it('redirects Elsa workflow definition editor alias route to canonical app route', async () => {
+    window.history.pushState({}, '', '/workflows/definitions/definition-1/edit');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /workflow definition editor/i })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/automation/workflow-definitions/definition-1/edit');
+  });
+
+  it('redirects Elsa workflow instance viewer alias route to canonical app route', async () => {
+    window.history.pushState({}, '', '/workflows/instances/instance-1/view');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /workflow instance viewer/i })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/automation/workflow-instances/instance-1');
   });
 
   it('shows reception kiosk setup when kiosk settings are missing', async () => {

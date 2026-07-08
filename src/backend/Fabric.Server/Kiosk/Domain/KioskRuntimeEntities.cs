@@ -120,10 +120,24 @@ public sealed class KioskSession
         CurrentInstructionVersion++;
     }
 
+    public void AssignWorkflowInstance(string workflowInstanceId, DateTimeOffset now)
+    {
+        WorkflowInstanceId = workflowInstanceId.Trim();
+        LastInteractionAt = now;
+    }
+
     public void SetInstruction(string instructionId, string instructionJson, DateTimeOffset now)
     {
         CurrentInstructionId = instructionId;
         CurrentInstructionJson = instructionJson;
+        CurrentInstructionVersion++;
+        LastInteractionAt = now;
+    }
+
+    public void ClearInstruction(DateTimeOffset now)
+    {
+        CurrentInstructionId = null;
+        CurrentInstructionJson = null;
         CurrentInstructionVersion++;
         LastInteractionAt = now;
     }

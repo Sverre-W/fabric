@@ -2,7 +2,6 @@ import { type ReactNode } from 'react';
 import { useAuth } from 'react-oidc-context';
 
 import { elsaApiBaseUrl } from './automation-settings';
-import { useElsaStudioAssets } from './elsa-studio-assets';
 
 export type ElsaRuntimeProps = {
   readonly remoteEndpoint: string;
@@ -11,7 +10,6 @@ export type ElsaRuntimeProps = {
 
 export function AutomationPageShell({ title, description, children }: { title: string; description: string; children: (props: ElsaRuntimeProps) => ReactNode }) {
   const auth = useAuth();
-  useElsaStudioAssets();
 
   return (
     <section className="grid gap-4">

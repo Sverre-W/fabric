@@ -1,4 +1,4 @@
-import { Navigate, Outlet, createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
+import { Navigate, Outlet, createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
 import { AppLayout } from '@/shared/layout/app-layout';
@@ -150,6 +150,16 @@ const automationRoute = createRoute({
   ),
 });
 
+const workflowsAliasRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: '/workflows',
+  component: () => (
+    <ProtectedRoute>
+      <Outlet />
+    </ProtectedRoute>
+  ),
+});
+
 const automationIndexRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/',
@@ -184,6 +194,30 @@ const automationWorkflowInstanceViewerRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/workflow-instances/$instanceId',
   component: () => <LazyRoute component={<AutomationWorkflowInstanceViewerPage />} />,
+});
+
+const workflowDefinitionEditorAliasRoute = createRoute({
+  getParentRoute: () => workflowsAliasRoute,
+  path: '/definitions/$definitionId/edit',
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/automation/workflow-definitions/$definitionId/edit',
+      params: { definitionId: params.definitionId },
+      replace: true,
+    });
+  },
+});
+
+const workflowInstanceViewerAliasRoute = createRoute({
+  getParentRoute: () => workflowsAliasRoute,
+  path: '/instances/$instanceId/view',
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/automation/workflow-instances/$instanceId',
+      params: { instanceId: params.instanceId },
+      replace: true,
+    });
+  },
 });
 
 const automationKioskRoute = createRoute({
@@ -555,6 +589,10 @@ const routeTree = rootRoute.addChildren([
       automationKioskRoute,
       automationKioskEditRoute,
       automationKioskProfileEditRoute,
+    ]),
+    workflowsAliasRoute.addChildren([
+      workflowDefinitionEditorAliasRoute,
+      workflowInstanceViewerAliasRoute,
     ]),
     cardManagementRoute.addChildren([
       cardManagementIndexRoute,

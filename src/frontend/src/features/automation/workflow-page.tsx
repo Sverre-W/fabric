@@ -63,7 +63,7 @@ export default function WorkflowPage() {
           </TabsContent>
 
           <TabsContent value="history">
-            <WorkflowHistoryPanel query={historyQuery} />
+            <WorkflowHistoryPanel query={historyQuery} definitions={definitionsQuery.data?.items ?? []} />
           </TabsContent>
         </Tabs>
       </div>
@@ -139,7 +139,7 @@ function WorkflowDefinitionsPanel({ query }: { readonly query: ReturnType<typeof
   );
 }
 
-function WorkflowHistoryPanel({ query }: { readonly query: ReturnType<typeof useQuery<WorkflowInstancesResponse>> }) {
+function WorkflowHistoryPanel({ query, definitions }: { readonly query: ReturnType<typeof useQuery<WorkflowInstancesResponse>>; readonly definitions: readonly WorkflowDefinition[] }) {
   const instances = query.data?.items ?? [];
   const totalCount = Number(query.data?.totalCount ?? instances.length);
 
@@ -157,7 +157,7 @@ function WorkflowHistoryPanel({ query }: { readonly query: ReturnType<typeof use
           </EmptyHeader>
         </Empty>
       ) : null}
-      {instances.length > 0 ? <WorkflowHistoryTable instances={instances} /> : null}
+      {instances.length > 0 ? <WorkflowHistoryTable instances={instances} definitions={definitions} /> : null}
     </div>
   );
 }
@@ -255,7 +255,9 @@ function WorkflowActionButton({ destructive, className, ...props }: React.Compon
   );
 }
 
-function WorkflowHistoryTable({ instances }: { readonly instances: readonly WorkflowInstance[] }) {
+function WorkflowHistoryTable({ instances, definitions }: { readonly instances: readonly WorkflowInstance[]; readonly definitions: readonly WorkflowDefinition[] }) {
+  const definitionsById = new Map(definitions.filter((definition): definition is WorkflowDefinition & { definitionId: string } => !!definition.definitionId).map((definition) => [definition.definitionId, definition]));
+
   return (
     <div className="overflow-hidden rounded-structural border border-border">
       <div className="hidden grid-cols-[minmax(0,1.4fr)_7rem_7rem_9rem_9rem_auto] gap-4 border-b border-border bg-hover-gray px-4 py-3 text-[12px] font-semibold uppercase text-muted-foreground lg:grid">
@@ -271,7 +273,7 @@ function WorkflowHistoryTable({ instances }: { readonly instances: readonly Work
         {instances.map((instance) => (
           <div key={instance.id ?? instance.correlationId ?? instance.createdAt} className="grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1.4fr)_7rem_7rem_9rem_9rem_auto] lg:items-center">
             <div className="min-w-0">
-              <p className="truncate text-[14px] font-semibold">{instance.name || 'Workflow instance'}</p>
+              <p className="truncate text-[14px] font-semibold">{getWorkflowInstanceDisplayName(instance, definitionsById)}</p>
               <p className="mt-1 truncate text-[13px] text-muted-foreground">{instance.id || instance.correlationId || instance.definitionId}</p>
             </div>
             <div><InstanceStatusBadge instance={instance} /></div>
@@ -287,6 +289,14 @@ function WorkflowHistoryTable({ instances }: { readonly instances: readonly Work
       </div>
     </div>
   );
+}
+
+function getWorkflowInstanceDisplayName(instance: WorkflowInstance, definitionsById: ReadonlyMap<string, WorkflowDefinition>) {
+  const definition = instance.definitionId ? definitionsById.get(instance.definitionId) : undefined;
+  const resolvedName = definition?.name || instance.name || 'Workflow instance';
+  const resolvedVersion = instance.version ?? definition?.version;
+
+  return resolvedVersion ? `${resolvedName} v${resolvedVersion}` : resolvedName;
 }
 
 function PublicationBadge({ definition }: { readonly definition: WorkflowDefinition }) {
