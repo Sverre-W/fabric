@@ -10,6 +10,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <PackageReference Include="PCSC" />
+    <PackageReference Include="PCSC.Iso7816" />
   </ItemGroup>
 
   <ItemGroup>

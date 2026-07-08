@@ -11,6 +11,7 @@ public static class HardwareCapabilities
     public const string PassportScan = "passport.scan";
     public const string RfidRead = "rfid.read";
     public const string RfidEncode = "rfid.encode";
+    public const string RfidApduExchange = "rfid.apdu.exchange";
     public const string LabelPrint = "label.print";
     public const string PrinterStatus = "printer.status";
 }

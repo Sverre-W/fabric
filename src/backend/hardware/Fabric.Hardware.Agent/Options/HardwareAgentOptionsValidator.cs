@@ -1,13 +1,47 @@
 namespace Fabric.Hardware.Agent.Options;
 
-public sealed class HardwareAgentOptionsValidator : IValidateOptions<HardwareAgentOptions>
+public sealed class HardwareAgentOptionsValidator(IReadOnlyList<EncoderOptions> encoders) : IValidateOptions<HardwareAgentOptions>
 {
     public ValidateOptionsResult Validate(string? name, HardwareAgentOptions options)
     {
         List<string> failures = [];
 
-        if (options.QrReaders.Length == 0 && options.Dispensers.Length == 0 && options.Collectors.Length == 0 && options.RfidEas.Readers.Length == 0)
+        if (options.QrReaders.Length == 0 && options.Dispensers.Length == 0 && options.Collectors.Length == 0 && options.RfidEas.Readers.Length == 0 && encoders.Count == 0)
             failures.Add("At least one hardware device must be configured.");
+
+        foreach (EncoderOptions encoder in encoders)
+        {
+            if (string.IsNullOrWhiteSpace(encoder.DeviceId))
+                failures.Add("Encoder device id is required.");
+
+            if (encoder is HumanAssistedEncoderOptions humanAssistedEncoder)
+            {
+                if (string.IsNullOrWhiteSpace(humanAssistedEncoder.Reader))
+                    failures.Add($"Encoder {humanAssistedEncoder.DeviceId} reader is required.");
+            }
+
+            if (encoder is DispenserEncoderOptions dispenserEncoder)
+            {
+                if (string.IsNullOrWhiteSpace(dispenserEncoder.ComPort))
+                    failures.Add($"Encoder {dispenserEncoder.DeviceId} COM port is required.");
+
+                if (string.IsNullOrWhiteSpace(dispenserEncoder.Reader))
+                    failures.Add($"Encoder {dispenserEncoder.DeviceId} reader is required.");
+
+                if (dispenserEncoder.ResponseTimeout <= TimeSpan.Zero)
+                    failures.Add($"Encoder {dispenserEncoder.DeviceId} response timeout must be positive.");
+            }
+        }
+
+        string[] duplicateEncoderIds = encoders
+            .Where(encoder => !string.IsNullOrWhiteSpace(encoder.DeviceId))
+            .GroupBy(encoder => encoder.DeviceId, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToArray();
+
+        foreach (string duplicateEncoderId in duplicateEncoderIds)
+            failures.Add($"Encoder device id '{duplicateEncoderId}' is configured more than once.");
 
         foreach (QrReaderDeviceOptions qrReader in options.QrReaders)
         {
@@ -125,6 +159,7 @@ public sealed class HardwareAgentOptionsValidator : IValidateOptions<HardwareAge
             .Concat(options.Dispensers.Select(dispenser => dispenser.DeviceId))
             .Concat(options.Collectors.Select(collector => collector.DeviceId))
             .Concat(options.RfidEas.Readers.Select(rfidReader => rfidReader.DeviceId))
+            .Concat(encoders.Select(encoder => encoder.DeviceId))
             .Where(deviceId => !string.IsNullOrWhiteSpace(deviceId))
             .GroupBy(deviceId => deviceId, StringComparer.OrdinalIgnoreCase)
             .Where(group => group.Count() > 1)

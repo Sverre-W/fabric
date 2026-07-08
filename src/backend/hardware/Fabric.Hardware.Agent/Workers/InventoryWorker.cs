@@ -11,6 +11,7 @@ public sealed class InventoryWorker(
     IReadOnlyList<IQrReaderDevice> qrReaders,
     IReadOnlyList<IDispenserDevice> dispensers,
     IReadOnlyList<ICollectorDevice> collectors,
+    IReadOnlyList<IEncoderDevice> encoders,
     IReadOnlyList<IRfidReaderDevice> rfidReaders,
     TimeProvider timeProvider,
     IOptions<HardwareAgentOptions> options,
@@ -31,6 +32,7 @@ public sealed class InventoryWorker(
                     .. qrReaders.Select(qrReader => qrReader.GetInventoryItem()),
                     .. dispensers.Select(dispenser => dispenser.GetInventoryItem()),
                     .. collectors.Select(collector => collector.GetInventoryItem()),
+                    .. encoders.Select(encoder => encoder.GetInventoryItem()),
                     .. rfidReaders.Select(rfidReader => rfidReader.GetInventoryItem())
                 ];
                 var request = new PostHardwareInventoryRequest(timeProvider.GetUtcNow(), devices);

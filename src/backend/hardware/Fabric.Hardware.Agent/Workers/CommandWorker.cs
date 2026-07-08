@@ -5,6 +5,7 @@ using Fabric.Hardware.Agent.Options;
 using Fabric.Hardware.Contracts;
 using Fabric.Hardware.Contracts.Capabilities;
 using Fabric.Hardware.Contracts.Commands;
+using Fabric.Hardware.Contracts.Rfid;
 using Microsoft.Extensions.Options;
 
 namespace Fabric.Hardware.Agent;
@@ -14,6 +15,7 @@ public sealed class CommandWorker(
     IReadOnlyList<IQrReaderDevice> qrReaders,
     IReadOnlyList<IDispenserDevice> dispensers,
     IReadOnlyList<ICollectorDevice> collectors,
+    IReadOnlyList<IEncoderDevice> encoders,
     IReadOnlyList<IRfidReaderDevice> rfidReaders,
     TimeProvider timeProvider,
     IOptions<HardwareAgentOptions> options,
@@ -22,6 +24,7 @@ public sealed class CommandWorker(
     private readonly SemaphoreSlim _drainLock = new(1, 1);
     private readonly IReadOnlyDictionary<string, ICollectorDevice> _collectors = collectors.ToDictionary(collector => collector.DeviceId, StringComparer.OrdinalIgnoreCase);
     private readonly IReadOnlyDictionary<string, IDispenserDevice> _dispensers = dispensers.ToDictionary(dispenser => dispenser.DeviceId, StringComparer.OrdinalIgnoreCase);
+    private readonly IReadOnlyDictionary<string, IEncoderDevice> _encoders = encoders.ToDictionary(encoder => encoder.DeviceId, StringComparer.OrdinalIgnoreCase);
     private readonly HardwareAgentOptions _options = options.Value;
     private readonly IReadOnlyDictionary<string, IQrReaderDevice> _qrReaders = qrReaders.ToDictionary(qrReader => qrReader.DeviceId, StringComparer.OrdinalIgnoreCase);
     private readonly IReadOnlyDictionary<string, IRfidReaderDevice> _rfidReaders = rfidReaders.ToDictionary(rfidReader => rfidReader.DeviceId, StringComparer.OrdinalIgnoreCase);
@@ -151,6 +154,9 @@ public sealed class CommandWorker(
         if (_collectors.TryGetValue(command.DeviceId, out ICollectorDevice? collector))
             return await ExecuteCollectorCommandAsync(command, collector, stoppingToken);
 
+        if (_encoders.TryGetValue(command.DeviceId, out IEncoderDevice? encoder))
+            return await ExecuteEncoderCommandAsync(command, encoder, stoppingToken);
+
         if (_rfidReaders.TryGetValue(command.DeviceId, out IRfidReaderDevice? rfidReader))
             return await ExecuteRfidCommandAsync(command, rfidReader, stoppingToken);
 
@@ -184,6 +190,57 @@ public sealed class CommandWorker(
             logger.CommandDeviceUnavailable(command.CommandId, rfidReader.DeviceId, ex);
             return Failure(HardwareOperationStatus.DeviceUnavailable, "device_unavailable", "RFID reader is not available.");
         }
+    }
+
+    private async Task<PostHardwareCommandResultRequest> ExecuteEncoderCommandAsync(HardwareCommandEnvelope command, IEncoderDevice encoder, CancellationToken stoppingToken)
+    {
+        using var timeout = new CancellationTokenSource(_options.CommandTimeout);
+        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token);
+
+        try
+        {
+            if (string.Equals(command.Capability, HardwareCapabilities.CardPresent, StringComparison.OrdinalIgnoreCase))
+            {
+                await encoder.WaitForCardPresentAsync(linkedCancellation.Token);
+                var result = new JsonObject { ["present"] = true };
+                return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
+            }
+
+            if (string.Equals(command.Capability, HardwareCapabilities.RfidApduExchange, StringComparison.OrdinalIgnoreCase))
+                return await ExchangeEncoderApduAsync(command.Payload, encoder, linkedCancellation.Token);
+
+            if (string.Equals(command.Capability, HardwareCapabilities.CardEject, StringComparison.OrdinalIgnoreCase))
+            {
+                await encoder.WaitForCardRemovalAsync(linkedCancellation.Token);
+                var result = new JsonObject { ["removed"] = true };
+                return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
+            }
+
+            return Failure(HardwareOperationStatus.Failed, "unsupported_capability", "Capability is not supported by this device.");
+        }
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested && !stoppingToken.IsCancellationRequested)
+        {
+            return Failure(HardwareOperationStatus.Timeout, "timeout", "Encoder command timed out.");
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+            return Failure(HardwareOperationStatus.Cancelled, "cancelled", "Encoder command was cancelled.");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            logger.CommandDeviceUnavailable(command.CommandId, encoder.DeviceId, ex);
+            return Failure(HardwareOperationStatus.DeviceUnavailable, "device_unavailable", ex.Message);
+        }
+    }
+
+    private async Task<PostHardwareCommandResultRequest> ExchangeEncoderApduAsync(JsonObject? payload, IEncoderDevice encoder, CancellationToken cancellationToken)
+    {
+        if (!TryReadApduRequest(payload, out RfidApduExchangeRequest? request, out PostHardwareCommandResultRequest? invalidPayload))
+            return invalidPayload!;
+
+        byte[] response = await encoder.ExchangeApduAsync(Convert.FromHexString(request!.CommandHex), cancellationToken);
+        var result = new JsonObject { ["responseHex"] = Convert.ToHexString(response) };
+        return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
     }
 
     private async Task<PostHardwareCommandResultRequest> ExecuteQrCommandAsync(HardwareCommandEnvelope command, IQrReaderDevice qrReader, CancellationToken stoppingToken)
@@ -444,6 +501,37 @@ public sealed class CommandWorker(
 
     private PostHardwareCommandResultRequest Failure(HardwareOperationStatus status, string code, string message) =>
         new(status, null, new HardwareErrorResponse(code, message), timeProvider.GetUtcNow());
+
+    private bool TryReadApduRequest(JsonObject? payload, out RfidApduExchangeRequest? request, out PostHardwareCommandResultRequest? error)
+    {
+        request = null;
+        error = null;
+
+        if (payload is null)
+        {
+            error = Failure(HardwareOperationStatus.Failed, "invalid_payload", "commandHex is required.");
+            return false;
+        }
+
+        try
+        {
+            string commandHex = payload["commandHex"]?.GetValue<string>() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(commandHex))
+            {
+                error = Failure(HardwareOperationStatus.Failed, "invalid_payload", "commandHex is required.");
+                return false;
+            }
+
+            Convert.FromHexString(commandHex);
+            request = new RfidApduExchangeRequest(commandHex);
+            return true;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or FormatException)
+        {
+            error = Failure(HardwareOperationStatus.Failed, "invalid_payload", "commandHex must be a valid hex string.");
+            return false;
+        }
+    }
 
     private bool TryReadPlaceInCollectorStack(JsonObject? payload, out bool placeInCollectorStack, out PostHardwareCommandResultRequest? error)
     {

@@ -5,7 +5,16 @@ using Fabric.Hardware.Agent.Options;
 using Fabric.Hardware.RfidEas;
 using Fabric.Hardware.RfidEas.Infrastructure;
 
+if (ShouldListEncoders(args))
+{
+    foreach (string reader in PcscEncoderDeviceBase.ListReaders())
+        Console.WriteLine(reader);
+
+    return;
+}
+
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+IReadOnlyList<EncoderOptions> encoderOptions = EncoderOptionsParser.Parse(builder.Configuration);
 
 builder.Services.AddTransient<TimeProvider>(_ => TimeProvider.System);
 
@@ -16,7 +25,8 @@ builder.Services.AddOptions<HardwareAgentOptions>()
     .Bind(builder.Configuration.GetSection(HardwareAgentOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
-builder.Services.AddSingleton<IValidateOptions<HardwareAgentOptions>, HardwareAgentOptionsValidator>();
+builder.Services.AddSingleton<IReadOnlyList<EncoderOptions>>(encoderOptions);
+builder.Services.AddSingleton<IValidateOptions<HardwareAgentOptions>>(_ => new HardwareAgentOptionsValidator(encoderOptions));
 
 builder.Services.AddHttpClient<HardwareGatewayClient>((serviceProvider, client) =>
 {
@@ -69,9 +79,29 @@ builder.Services.AddSingleton<IReadOnlyList<IRfidReaderDevice>>(serviceProvider 
         .Select<RfidEasReaderOptions, IRfidReaderDevice>(readerOptions => new EasRfidReaderDevice(readerOptions, () => reader.Value, logger))
         .ToArray();
 });
+builder.Services.AddSingleton<IReadOnlyList<IEncoderDevice>>(serviceProvider =>
+{
+    IReadOnlyList<EncoderOptions> options = serviceProvider.GetRequiredService<IReadOnlyList<EncoderOptions>>();
+    ILogger<Fabric.Hardware.Dispenser.DispenserSerialPort> dispenserLogger = serviceProvider.GetRequiredService<ILogger<Fabric.Hardware.Dispenser.DispenserSerialPort>>();
+    return options.Select(encoder => (IEncoderDevice)(encoder switch
+    {
+        HumanAssistedEncoderOptions humanAssistedEncoder => new HumanAssistedPcscEncoderDevice(humanAssistedEncoder),
+        DispenserEncoderOptions dispenserEncoder => new DispenserEncoderDevice(dispenserEncoder, dispenserLogger),
+        _ => throw new InvalidOperationException($"Unsupported encoder option type '{encoder.GetType().Name}'.")
+    })).ToArray();
+});
 builder.Services.AddHostedService<HeartbeatWorker>();
 builder.Services.AddHostedService<InventoryWorker>();
 builder.Services.AddHostedService<QrEventWorker>();
 builder.Services.AddHostedService<CommandWorker>();
 
 await builder.Build().RunAsync();
+
+static bool ShouldListEncoders(string[] args) =>
+    args.Length switch
+    {
+        1 => string.Equals(args[0], "list-encoders", StringComparison.OrdinalIgnoreCase),
+        >= 2 => string.Equals(args[0], "list", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(args[1], "encoders", StringComparison.OrdinalIgnoreCase),
+        _ => false
+    };
