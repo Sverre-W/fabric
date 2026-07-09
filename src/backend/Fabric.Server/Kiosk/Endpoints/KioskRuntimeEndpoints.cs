@@ -13,6 +13,8 @@ namespace Fabric.Server.Kiosk.Endpoints;
 
 public static class KioskRuntimeEndpoints
 {
+    private static readonly TimeSpan SessionStartupTimeout = TimeSpan.FromSeconds(30);
+
     public static IEndpointRouteBuilder MapKioskRuntimeEndpoints(this IEndpointRouteBuilder app)
     {
         RouteGroupBuilder kiosk = app.MapGroup("/api/kiosk").RequireAuthorization(KioskAuthenticationDefaults.Policy);
@@ -84,8 +86,9 @@ public static class KioskRuntimeEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> StartKioskSession([FromBody] StartKioskSessionRequest request, HttpContext context, KioskDbContext db, KioskWorkflowStarter workflowStarter, KioskSagaService kioskSagaService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> StartKioskSession([FromBody] StartKioskSessionRequest request, HttpContext context, KioskDbContext db, KioskWorkflowStarter workflowStarter, KioskSagaService kioskSagaService, TimeProvider timeProvider, ILoggerFactory loggerFactory, CancellationToken cancellationToken = default)
     {
+        ILogger logger = loggerFactory.CreateLogger("Fabric.Server.Kiosk.StartKioskSession");
         Domain.Kiosk? kiosk = await GetAuthenticatedKioskAsync(context, db, cancellationToken);
         if (kiosk is null)
             return Results.NotFound();
@@ -96,19 +99,38 @@ public static class KioskRuntimeEndpoints
         if (string.IsNullOrWhiteSpace(kiosk.WorkflowDefinitionId))
             return Results.Problem("Kiosk has no assigned workflow.", statusCode: StatusCodes.Status409Conflict);
 
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        KioskRuntimeLog.SessionStartRequested(logger, kiosk.Id, request.LanguageCode);
         KioskSession? existing = await db.Sessions
-            .Where(session => session.KioskId == kiosk.Id && session.Status == KioskSessionStatus.Running)
+            .Where(session => session.KioskId == kiosk.Id && (session.Status == KioskSessionStatus.Starting || session.Status == KioskSessionStatus.Running))
             .OrderByDescending(session => session.StartedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (existing is not null)
-            return Results.Ok(existing.ToResponse());
+        {
+            if (existing.Status == KioskSessionStatus.Running && !string.IsNullOrWhiteSpace(existing.WorkflowInstanceId))
+            {
+                KioskRuntimeLog.ReusingRunningSession(logger, kiosk.Id, existing.Id, existing.WorkflowInstanceId);
+                return Results.Ok(existing.ToResponse());
+            }
+
+            if (existing.Status == KioskSessionStatus.Starting && existing.StartedAt >= now.Subtract(SessionStartupTimeout))
+            {
+                KioskRuntimeLog.StartingSessionStillPending(logger, kiosk.Id, existing.Id, existing.StartedAt);
+                return Results.Problem("Kiosk session is still starting.", statusCode: StatusCodes.Status409Conflict);
+            }
+
+            KioskRuntimeLog.RemovingStaleSession(logger, kiosk.Id, existing.Id, existing.Status, existing.WorkflowInstanceId);
+            db.Sessions.Remove(existing);
+            await db.SaveChangesAsync(cancellationToken);
+        }
 
         KioskProfile profile = await db.Profiles.AsNoTracking().SingleAsync(profile => profile.Id == kiosk.ProfileId, cancellationToken);
         string languageCode = string.IsNullOrWhiteSpace(request.LanguageCode) ? profile.DefaultLanguageCode : request.LanguageCode;
-        KioskSession session = KioskSession.Start(kiosk.Id, languageCode, timeProvider.GetUtcNow());
+        KioskSession session = KioskSession.Start(kiosk.Id, languageCode, now);
         db.Sessions.Add(session);
         await db.SaveChangesAsync(cancellationToken);
+        KioskRuntimeLog.SessionCreated(logger, kiosk.Id, session.Id, session.Status, languageCode);
 
         try
         {
@@ -117,9 +139,12 @@ public static class KioskRuntimeEndpoints
                 throw new InvalidOperationException("Workflow instance was not assigned to kiosk session.");
 
             await kioskSagaService.StartAsync(session.Id, session.WorkflowInstanceId, cancellationToken);
+            KioskRuntimeLog.SessionReady(logger, kiosk.Id, session.Id, session.WorkflowInstanceId);
         }
-        catch
+        catch (Exception exception)
         {
+            KioskRuntimeLog.SessionStartFailed(logger, exception, kiosk.Id, session.Id);
+            await kioskSagaService.CleanupAsync(session.Id, cancellationToken);
             db.Sessions.Remove(session);
             await db.SaveChangesAsync(cancellationToken);
             throw;
@@ -146,7 +171,7 @@ public static class KioskRuntimeEndpoints
         if (session is null)
             return Results.NotFound();
 
-        if (sinceVersion.HasValue && sinceVersion.Value >= session.CurrentInstructionVersion && session.Status == KioskSessionStatus.Running)
+        if (sinceVersion.HasValue && sinceVersion.Value >= session.CurrentInstructionVersion && (session.Status == KioskSessionStatus.Starting || session.Status == KioskSessionStatus.Running))
         {
             using var delay = new CancellationTokenSource(TimeSpan.FromSeconds(25));
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, delay.Token);
@@ -154,7 +179,7 @@ public static class KioskRuntimeEndpoints
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(500), linked.Token).ContinueWith(_ => { }, CancellationToken.None);
                 await db.Entry(session).ReloadAsync(cancellationToken);
-                if (session.CurrentInstructionVersion > sinceVersion.Value || session.Status != KioskSessionStatus.Running)
+                if (session.CurrentInstructionVersion > sinceVersion.Value || (session.Status != KioskSessionStatus.Starting && session.Status != KioskSessionStatus.Running))
                     break;
             }
         }
@@ -181,23 +206,14 @@ public static class KioskRuntimeEndpoints
         return Results.Ok(session.ToResponse());
     }
 
-    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskInstructionService instructionService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskSagaService kioskSagaService, CancellationToken cancellationToken = default)
     {
         Guid kioskId = context.User.GetKioskId();
         KioskSession? session = await GetCurrentSessionAsync(kioskId, db, cancellationToken);
         if (session is null)
             return Results.NotFound();
 
-        session.Cancel(timeProvider.GetUtcNow());
-        await db.SaveChangesAsync(cancellationToken);
-
-        try
-        {
-            await instructionService.CancelInstructionAsync(session.Id, cancellationToken);
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        session = await kioskSagaService.CancelSessionAsync(session.Id, cancellationToken);
 
         await cleanupService.CleanupAsync(kioskId, cancellationToken);
         return Results.Ok(session.ToResponse());
@@ -228,7 +244,31 @@ public static class KioskRuntimeEndpoints
         await db.Kiosks.SingleOrDefaultAsync(kiosk => kiosk.Id == context.User.GetKioskId(), cancellationToken);
 
     private static async Task<KioskSession?> GetCurrentSessionAsync(Guid kioskId, KioskDbContext db, CancellationToken cancellationToken) =>
-        await db.Sessions.Where(session => session.KioskId == kioskId && session.Status == KioskSessionStatus.Running).OrderByDescending(session => session.StartedAt).FirstOrDefaultAsync(cancellationToken);
+        await db.Sessions.Where(session => session.KioskId == kioskId && (session.Status == KioskSessionStatus.Starting || session.Status == KioskSessionStatus.Running)).OrderByDescending(session => session.StartedAt).FirstOrDefaultAsync(cancellationToken);
 
     private static Guid GetKioskId(this ClaimsPrincipal principal) => Guid.Parse(principal.FindFirstValue(KioskAuthenticationDefaults.KioskIdClaim)!);
+}
+
+internal static partial class KioskRuntimeLog
+{
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Kiosk {KioskId} requested session start with language {LanguageCode}")]
+    public static partial void SessionStartRequested(this ILogger logger, Guid kioskId, string? languageCode);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Reusing running session {SessionId} for kiosk {KioskId} with workflow instance {WorkflowInstanceId}")]
+    public static partial void ReusingRunningSession(this ILogger logger, Guid kioskId, Guid sessionId, string workflowInstanceId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Kiosk {KioskId} still has starting session {SessionId} created at {StartedAt}")]
+    public static partial void StartingSessionStillPending(this ILogger logger, Guid kioskId, Guid sessionId, DateTimeOffset startedAt);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Removing stale kiosk session {SessionId} for kiosk {KioskId} with status {Status} and workflow instance {WorkflowInstanceId}")]
+    public static partial void RemovingStaleSession(this ILogger logger, Guid kioskId, Guid sessionId, KioskSessionStatus status, string? workflowInstanceId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Created kiosk session {SessionId} for kiosk {KioskId} in status {Status} with language {LanguageCode}")]
+    public static partial void SessionCreated(this ILogger logger, Guid kioskId, Guid sessionId, KioskSessionStatus status, string languageCode);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Kiosk session {SessionId} for kiosk {KioskId} is ready with workflow instance {WorkflowInstanceId}")]
+    public static partial void SessionReady(this ILogger logger, Guid kioskId, Guid sessionId, string workflowInstanceId);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to start session {SessionId} for kiosk {KioskId}")]
+    public static partial void SessionStartFailed(this ILogger logger, Exception exception, Guid kioskId, Guid sessionId);
 }

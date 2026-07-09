@@ -38,6 +38,57 @@
   --radius-fixed-action: 20px;
 }
 
+@layer base {
+  /*
+   * Neutralize Tailwind v4 preflight inside Elsa custom elements.
+   * MudBlazor / Blazor components expect browser defaults, not Tailwind's
+   * universal reset.  Putting this in @layer base keeps specificity below
+   * MudBlazor's unlayered class-level styles — they can still override.
+   */
+
+  /* box-sizing */
+  .fabric-elsa-studio-root,
+  .fabric-elsa-studio-root *,
+  .fabric-elsa-studio-root *::before,
+  .fabric-elsa-studio-root *::after {
+    box-sizing: content-box;
+  }
+
+  /* inherited properties — set on root, cascade to children */
+  .fabric-elsa-studio-root {
+    line-height: normal;
+    font-family: initial;
+    color: initial;
+  }
+
+  /* Tailwind resets form element backgrounds — restore browser default */
+  .fabric-elsa-studio-root button,
+  .fabric-elsa-studio-root input,
+  .fabric-elsa-studio-root select,
+  .fabric-elsa-studio-root textarea {
+    background-color: revert;
+    border-radius: revert;
+  }
+
+  /* Tailwind makes img/svg display:block — restore inline */
+  .fabric-elsa-studio-root img,
+  .fabric-elsa-studio-root svg {
+    display: revert;
+    vertical-align: revert;
+  }
+
+  /* Tailwind strips heading sizes */
+  .fabric-elsa-studio-root h1,
+  .fabric-elsa-studio-root h2,
+  .fabric-elsa-studio-root h3,
+  .fabric-elsa-studio-root h4,
+  .fabric-elsa-studio-root h5,
+  .fabric-elsa-studio-root h6 {
+    font-size: revert;
+    font-weight: revert;
+  }
+}
+
 :root {
   color-scheme: light;
   --fabric-background: #f8f8f8;
@@ -64,25 +115,17 @@ body {
   color: var(--fabric-text);
   font-family: var(--font-sans);
 }
-
 html.elsa-studio-fullscreen,
 body.elsa-studio-fullscreen {
   overflow: hidden;
 }
 
 .fabric-elsa-studio-root {
-  all: revert;
   display: block;
   width: 100%;
   height: 100%;
-  color: initial;
-  font-family: initial;
-  line-height: normal;
 }
 
-.fabric-elsa-studio-root :where(button, input, textarea, select) {
-  font: revert;
-}
 
 button,
 input,

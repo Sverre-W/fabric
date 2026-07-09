@@ -9,7 +9,7 @@ using Fabric.Server.Kiosk.Domain;
 namespace Fabric.Server.Automation.Kiosk.Activities;
 
 [Activity("Fabric", "Kiosk", "Show a form instruction and wait for kiosk input.", DisplayName = "Show Form Instruction")]
-[FlowNode("Done", "Cancelled")]
+[FlowNode("Done")]
 public sealed class ShowFormInstruction : KioskInstructionActivity<IDictionary<string, string>>
 {
     [Input(DisplayName = "Layout mode", Description = "default, split-left-visual, or split-right-visual")]
@@ -41,12 +41,13 @@ public sealed class ShowFormInstruction : KioskInstructionActivity<IDictionary<s
             [.. context.Get(Fields) ?? []]);
     }
 
-    protected override ValueTask HandleSubmissionAsync(ActivityExecutionContext context, KioskInstructionResult response)
+    protected override ValueTask HandleSubmissionAsync(ActivityExecutionContext context, KioskInstructionResult response, out string outcome)
     {
         IReadOnlyDictionary<string, string> values = response is KioskFormInstructionResult formResult
             ? formResult.Values
             : throw new InvalidOperationException($"Expected {nameof(KioskFormInstructionResult)} but received {response.GetType().Name}.");
         context.Set(Result, new Dictionary<string, string>(values));
+        outcome = "Done";
         return ValueTask.CompletedTask;
     }
 }

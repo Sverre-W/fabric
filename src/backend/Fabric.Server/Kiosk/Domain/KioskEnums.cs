@@ -9,6 +9,7 @@ public enum KioskMode
 
 public enum KioskSessionStatus
 {
+    Starting,
     Running,
     Completed,
     Cancelled,

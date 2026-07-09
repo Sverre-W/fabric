@@ -1,6 +1,7 @@
 using Elsa.Common.DistributedHosting.DistributedLocks;
 using Elsa.Expressions.JavaScript.Options;
 using Elsa.Extensions;
+using Elsa.Mediator.Contracts;
 using Elsa.Persistence.EFCore.Extensions;
 using Elsa.Persistence.EFCore.Modules.Management;
 using Elsa.Persistence.EFCore.Modules.Runtime;
@@ -23,6 +24,9 @@ public static class AutomationServiceCollectionExtensions
         services.AddScoped<KioskWorkflowAccessor>();
         services.AddScoped<KioskWorkflowStarter>();
         services.AddScoped<KioskWorkflowResumer>();
+
+        services.AddNotificationHandlersFrom<Program>();
+
 
         services.AddElsa(elsa =>
         {
@@ -49,6 +53,8 @@ public static class AutomationServiceCollectionExtensions
                 runtime.UseEntityFrameworkCore(ef => ef.UsePostgreSql(getDbConnection));
                 runtime.DistributedLockProvider = _ => new NoopDistributedSynchronizationProvider();
             });
+
+
 
             // Configure ASP.NET authentication/authorization.
             //elsa.UseDefaultAuthentication(auth => auth.UseAdminApiKey());

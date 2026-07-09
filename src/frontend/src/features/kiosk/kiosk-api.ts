@@ -1,7 +1,13 @@
-import { api } from '@/shared/api/client';
+import { api, apiBaseUrl } from '@/shared/api/client';
 
 import { getKioskSettings } from './kiosk-settings';
 import type { KioskConfig, KioskInstructionResponse, KioskSession } from './kiosk-types';
+
+export class NoActiveKioskSessionError extends Error {
+  constructor() {
+    super('Kiosk session has ended.');
+  }
+}
 
 function getHeaders() {
   const settings = getKioskSettings();
@@ -33,13 +39,22 @@ export async function postKioskHeartbeat() {
 }
 
 export async function startKioskSession(languageCode?: string): Promise<KioskSession> {
-  const { data, error } = await api.POST('/api/kiosk/sessions', {
-    headers: getHeaders(),
-    body: { languageCode: languageCode || null },
+  const response = await fetch(`${apiBaseUrl}/api/kiosk/sessions`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...getHeaders(),
+    },
+    body: JSON.stringify({ languageCode: languageCode || null }),
   });
 
-  if (error || !data) throw new Error('Could not start kiosk session.');
-  return data;
+  if (!response.ok) {
+    const problem = await readProblemDetail(response);
+    throw new Error(problem ?? 'Could not start kiosk session.');
+  }
+
+  return response.json() as Promise<KioskSession>;
 }
 
 export async function changeKioskLanguage(languageCode: string): Promise<KioskSession> {
@@ -53,11 +68,12 @@ export async function changeKioskLanguage(languageCode: string): Promise<KioskSe
 }
 
 export async function getCurrentInstruction(sinceVersion?: number): Promise<KioskInstructionResponse> {
-  const { data, error } = await api.GET('/api/kiosk/sessions/current/instruction', {
+  const { data, error, response } = await api.GET('/api/kiosk/sessions/current/instruction', {
     headers: getHeaders(),
     params: { query: { sinceVersion } },
   });
 
+  if (response.status === 404) throw new NoActiveKioskSessionError();
   if (error || !data) throw new Error('Could not load kiosk instruction.');
   return data;
 }
@@ -80,4 +96,12 @@ export async function cancelCurrentSession(): Promise<KioskSession> {
 
   if (error || !data) throw new Error('Could not cancel kiosk session.');
   return data;
+}
+
+async function readProblemDetail(response: Response): Promise<string | null> {
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) return null;
+
+  const payload = await response.json() as { readonly detail?: string | null; readonly title?: string | null };
+  return payload.detail || payload.title || null;
 }

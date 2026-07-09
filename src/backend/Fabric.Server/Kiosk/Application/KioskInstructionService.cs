@@ -65,9 +65,9 @@ public sealed class KioskInstructionService(KioskDbContext db, SagasDbContext sa
         sagaTrigger.Notify();
     }
 
-    public async Task ClearCurrentInstructionAsync(string workflowInstanceId, CancellationToken cancellationToken)
+    public async Task ClearCurrentInstructionAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        KioskSession session = await GetRequiredSessionByWorkflowInstanceAsync(workflowInstanceId, cancellationToken);
+        KioskSession session = await GetRequiredSessionAsync(sessionId, cancellationToken);
         if (string.IsNullOrWhiteSpace(session.CurrentInstructionId))
             return;
 
@@ -79,12 +79,6 @@ public sealed class KioskInstructionService(KioskDbContext db, SagasDbContext sa
     {
         KioskSession? session = await db.Sessions.SingleOrDefaultAsync(session => session.Id == sessionId, cancellationToken);
         return session ?? throw new InvalidOperationException($"Kiosk session '{sessionId}' not found.");
-    }
-
-    private async Task<KioskSession> GetRequiredSessionByWorkflowInstanceAsync(string workflowInstanceId, CancellationToken cancellationToken)
-    {
-        KioskSession? session = await db.Sessions.SingleOrDefaultAsync(session => session.WorkflowInstanceId == workflowInstanceId, cancellationToken);
-        return session ?? throw new InvalidOperationException($"Kiosk session not found for workflow instance '{workflowInstanceId}'.");
     }
 
     private static KioskInstructionContent ResolveContent(KioskInstructionContent content, IReadOnlyDictionary<string, string> translations) =>

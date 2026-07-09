@@ -1,8 +1,12 @@
 import type { components } from '@/shared/api/generated/schema';
 
 export type KioskConfig = components['schemas']['KioskConfigResponse'];
-export type KioskSession = components['schemas']['KioskSessionResponse'];
-export type KioskInstructionResponse = components['schemas']['KioskInstructionResponse'];
+type GeneratedKioskSession = components['schemas']['KioskSessionResponse'];
+type GeneratedKioskInstructionResponse = components['schemas']['KioskInstructionResponse'];
+
+export type KioskSessionStatus = components['schemas']['KioskSessionStatus'] | 'Starting';
+export type KioskSession = Omit<GeneratedKioskSession, 'status'> & { readonly status: KioskSessionStatus };
+export type KioskInstructionResponse = Omit<GeneratedKioskInstructionResponse, 'status'> & { readonly status: KioskSessionStatus };
 export type KioskProfileLanguage = components['schemas']['KioskProfileLanguageResponse'];
 
 export type KioskInstructionEnvelope = {

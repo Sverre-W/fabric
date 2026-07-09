@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
 
-import { changeKioskLanguage, getCurrentInstruction, getKioskConfig, postKioskHeartbeat, startKioskSession, submitInstructionResponse } from './kiosk-api';
+import { NoActiveKioskSessionError, changeKioskLanguage, getCurrentInstruction, getKioskConfig, postKioskHeartbeat, startKioskSession, submitInstructionResponse } from './kiosk-api';
 import { KioskLayout } from './kiosk-layout';
 import { KioskRenderer } from './kiosk-renderer';
 import { getKioskSettings, hasKioskSettings, saveKioskLanguage } from './kiosk-settings';
@@ -62,7 +62,7 @@ export default function KioskPage() {
   }, [settings]);
 
   useEffect(() => {
-    if (!session || session.status !== 'Running') return;
+    if (!session || (session.status !== 'Starting' && session.status !== 'Running')) return;
 
     let disposed = false;
     async function poll() {
@@ -74,9 +74,19 @@ export default function KioskPage() {
           if (disposed) return;
           setInstruction(nextInstruction);
           sinceVersion = Number(nextInstruction.version ?? sinceVersion);
-          if (nextInstruction.status !== 'Running') return;
+          if (nextInstruction.status !== 'Starting' && nextInstruction.status !== 'Running') {
+            resetToWelcome();
+            return;
+          }
+
+          setSession((current) => current ? { ...current, status: nextInstruction.status } : current);
         } catch (pollError) {
           if (disposed) return;
+          if (pollError instanceof NoActiveKioskSessionError) {
+            resetToWelcome();
+            return;
+          }
+
           setState('offline');
           setError(pollError instanceof Error ? pollError.message : 'Connection lost. Retrying...');
           await delay(3000);
@@ -86,7 +96,7 @@ export default function KioskPage() {
 
     void poll();
     return () => { disposed = true; };
-  }, [session?.id]);
+  }, [instruction?.version, session?.id, session?.status]);
 
   if (!hasKioskSettings()) return <Navigate to="/kiosk/setup" replace />;
 
@@ -122,10 +132,22 @@ export default function KioskPage() {
     if (!instruction?.instructionId) return;
     try {
       const nextSession = await submitInstructionResponse(instruction.instructionId, values);
+      if (nextSession.status !== 'Starting' && nextSession.status !== 'Running') {
+        resetToWelcome();
+        return;
+      }
+
       setSession(nextSession);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Could not submit response.');
     }
+  }
+
+  function resetToWelcome() {
+    setSession(null);
+    setInstruction(null);
+    setState('welcome');
+    setError(null);
   }
 
   return (
@@ -135,8 +157,8 @@ export default function KioskPage() {
       {config?.kiosk.mode === 'Disabled' ? <StateCard title="Kiosk disabled" message="This kiosk is currently disabled." /> : null}
       {config?.kiosk.mode === 'Maintenance' ? <StateCard title="Maintenance" message="This kiosk is temporarily unavailable." /> : null}
       {config?.kiosk.mode === 'Active' && !session && state !== 'loading-config' && state !== 'offline' ? <Welcome config={config} onStart={start} busy={state === 'starting'} /> : null}
-      {config?.kiosk.mode === 'Active' && session && parsedInstruction ? <InstructionBackdrop instruction={parsedInstruction} config={config}><KioskRenderer instruction={parsedInstruction} onSubmit={submit} /></InstructionBackdrop> : null}
-      {config?.kiosk.mode === 'Active' && session && !parsedInstruction ? <StateCard title="Please wait" message="Waiting for next instruction..." loading /> : null}
+      {config?.kiosk.mode === 'Active' && (session?.status === 'Starting' || session?.status === 'Running') && parsedInstruction ? <InstructionBackdrop instruction={parsedInstruction} config={config}><KioskRenderer instruction={parsedInstruction} onSubmit={submit} /></InstructionBackdrop> : null}
+      {config?.kiosk.mode === 'Active' && (session?.status === 'Starting' || session?.status === 'Running') && !parsedInstruction ? <StateCard title={session.status === 'Starting' ? 'Starting session' : 'Please wait'} message={session.status === 'Starting' ? 'Launching workflow and waiting for first instruction...' : 'Waiting for next instruction...'} loading /> : null}
       {error && state !== 'offline' ? <p className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-interactive border border-error bg-error-background px-4 py-3 text-[15px] font-medium text-error shadow-sm">{error}</p> : null}
       <a href="/kiosk/setup" className="fixed bottom-4 right-4 rounded-full border border-border bg-content p-3 text-muted-foreground shadow-sm transition hover:text-foreground" aria-label="Kiosk setup"><Settings className="size-5" /></a>
     </KioskLayout>

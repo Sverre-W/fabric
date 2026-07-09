@@ -1,35 +1,46 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import { Eye, MoreHorizontal } from 'lucide-react';
+import { useLocation, useNavigate } from '@tanstack/react-router';
+import { MoreHorizontal, Plus } from 'lucide-react';
+
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { useState, type FormEvent } from 'react';
 import { useAuth } from 'react-oidc-context';
 import { toast } from 'sonner';
 
 import { apiBaseUrl } from '@/shared/api/client';
 import type { components } from '@/shared/api/generated/schema';
 import { Badge, type BadgeVariant } from '@/shared/components/ui/badge';
-import { Button, buttonVariants } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/components/ui/empty';
+import { Input } from '@/shared/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { cn } from '@/shared/utils/cn';
+import { allWorkflowDefinitionsQueryKey, workflowDefinitionsQueryKey, workflowHistoryQueryKey } from './workflow-query-keys';
 
 type WorkflowTab = 'definitions' | 'history';
 type WorkflowDefinition = components['schemas']['LinkedWorkflowDefinitionSummary'];
+type WorkflowDefinitionModel = components['schemas']['LinkedWorkflowDefinitionModel'];
 type WorkflowInstance = components['schemas']['WorkflowInstanceSummary'];
 type WorkflowDefinitionsResponse = components['schemas']['PagedListResponseOfLinkedWorkflowDefinitionSummary'];
 type WorkflowInstancesResponse = components['schemas']['Response'];
-
-const workflowDefinitionsQueryKey = ['automation', 'workflow', 'definitions'] as const;
-const workflowHistoryQueryKey = ['automation', 'workflow', 'history'] as const;
 
 export default function WorkflowPage() {
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newDefinitionName, setNewDefinitionName] = useState('');
   const activeTab = getActiveTab(location.pathname, location.searchStr);
 
   const definitionsQuery = useQuery({
     queryKey: workflowDefinitionsQueryKey,
+    queryFn: () => fetchElsa<WorkflowDefinitionsResponse>('/elsa/api/workflow-definitions?versionOptions=Published', auth.user?.access_token),
+  });
+
+  const allDefinitionsQuery = useQuery({
+    queryKey: allWorkflowDefinitionsQueryKey,
     queryFn: () => fetchElsa<WorkflowDefinitionsResponse>('/elsa/api/workflow-definitions', auth.user?.access_token),
   });
 
@@ -38,9 +49,32 @@ export default function WorkflowPage() {
     queryFn: () => fetchElsa<WorkflowInstancesResponse>('/elsa/api/workflow-instances', auth.user?.access_token, { method: 'POST', body: '{}' }),
   });
 
+  const createDefinition = useMutation({
+    mutationFn: () => createWorkflowDefinition(newDefinitionName, auth.user?.access_token),
+    onSuccess: async (definition) => {
+      await queryClient.invalidateQueries({ queryKey: workflowDefinitionsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: allWorkflowDefinitionsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: workflowHistoryQueryKey });
+      setIsCreateOpen(false);
+      setNewDefinitionName('');
+      void navigate({ to: '/automation/workflow-definitions/$definitionId/edit', params: { definitionId: definition.definitionId ?? definition.id ?? '' } });
+    },
+    onError: () => toast.error('Could not create workflow definition.'),
+  });
+
   function updateTab(tab: string) {
     const nextTab = tab === 'history' ? 'history' : 'definitions';
+    void queryClient.invalidateQueries({ queryKey: workflowDefinitionsQueryKey });
+    void queryClient.invalidateQueries({ queryKey: workflowHistoryQueryKey });
     void navigate({ to: '/automation/workflow', search: { tab: nextTab } as never });
+  }
+
+  function submitCreateDefinition(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!newDefinitionName.trim() || createDefinition.isPending)
+      return;
+
+    createDefinition.mutate();
   }
 
   return (
@@ -53,17 +87,38 @@ export default function WorkflowPage() {
 
       <div className="rounded-structural border border-border bg-content p-4 sm:p-6">
         <Tabs value={activeTab} onValueChange={updateTab}>
-          <TabsList aria-label="Workflow sections">
-            <TabsTrigger value="definitions">Definitions</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <TabsList aria-label="Workflow sections">
+              <TabsTrigger value="definitions">Definitions</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
+            <Popover open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <PopoverTrigger render={<Button type="button" className="sm:w-fit" />}>
+                <Plus className="size-4" />
+                New workflow definition
+              </PopoverTrigger>
+              <PopoverContent align="end" className="grid min-w-[22rem] gap-3 p-4">
+                <form className="grid gap-3" onSubmit={submitCreateDefinition}>
+                  <div>
+                    <h3 className="text-[14px] font-semibold">Create workflow definition</h3>
+                    <p className="mt-1 text-[13px] text-muted-foreground">Give the definition a name before opening the editor.</p>
+                  </div>
+                  <Input value={newDefinitionName} onChange={(event) => setNewDefinitionName(event.target.value)} placeholder="Visitor onboarding" autoFocus required />
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} disabled={createDefinition.isPending}>Cancel</Button>
+                    <Button type="submit" disabled={!newDefinitionName.trim() || createDefinition.isPending}>Create</Button>
+                  </div>
+                </form>
+              </PopoverContent>
+            </Popover>
+          </div>
 
           <TabsContent value="definitions">
             <WorkflowDefinitionsPanel query={definitionsQuery} />
           </TabsContent>
 
           <TabsContent value="history">
-            <WorkflowHistoryPanel query={historyQuery} definitions={definitionsQuery.data?.items ?? []} />
+            <WorkflowHistoryPanel query={historyQuery} definitions={allDefinitionsQuery.data?.items ?? []} />
           </TabsContent>
         </Tabs>
       </div>
@@ -116,7 +171,7 @@ function WorkflowDefinitionsPanel({ query }: { readonly query: ReturnType<typeof
     <div className="grid gap-4">
       <PanelHeader title="Definitions" description="Browse workflow definitions and open the Elsa Studio designer for edits." count={totalCount} />
 
-      {query.isLoading ? <StatusMessage>Loading workflow definitions...</StatusMessage> : null}
+      {query.isLoading ? <SkeletonTable rows={5} columns={[1.6, '7rem', '7rem', '9rem']} /> : null}
       {query.isError ? <StatusMessage tone="error">Could not load workflow definitions.</StatusMessage> : null}
       {!query.isLoading && !query.isError && definitions.length === 0 ? (
         <Empty>
@@ -147,7 +202,7 @@ function WorkflowHistoryPanel({ query, definitions }: { readonly query: ReturnTy
     <div className="grid gap-4">
       <PanelHeader title="History" description="Inspect workflow runs, statuses, execution history, and active automation work." count={totalCount} />
 
-      {query.isLoading ? <StatusMessage>Loading workflow history...</StatusMessage> : null}
+      {query.isLoading ? <SkeletonTable rows={5} columns={[1.4, '7rem', '7rem', '9rem', '9rem']} /> : null}
       {query.isError ? <StatusMessage tone="error">Could not load workflow history.</StatusMessage> : null}
       {!query.isLoading && !query.isError && instances.length === 0 ? (
         <Empty>
@@ -256,22 +311,38 @@ function WorkflowActionButton({ destructive, className, ...props }: React.Compon
 }
 
 function WorkflowHistoryTable({ instances, definitions }: { readonly instances: readonly WorkflowInstance[]; readonly definitions: readonly WorkflowDefinition[] }) {
+  const navigate = useNavigate();
   const definitionsById = new Map(definitions.filter((definition): definition is WorkflowDefinition & { definitionId: string } => !!definition.definitionId).map((definition) => [definition.definitionId, definition]));
+
+  function openInstance(instance: WorkflowInstance) {
+    void navigate({ to: '/automation/workflow-instances/$instanceId', params: { instanceId: instance.id ?? '' } });
+  }
 
   return (
     <div className="overflow-hidden rounded-structural border border-border">
-      <div className="hidden grid-cols-[minmax(0,1.4fr)_7rem_7rem_9rem_9rem_auto] gap-4 border-b border-border bg-hover-gray px-4 py-3 text-[12px] font-semibold uppercase text-muted-foreground lg:grid">
+      <div className="hidden grid-cols-[minmax(0,1.4fr)_7rem_7rem_9rem_9rem] gap-4 border-b border-border bg-hover-gray px-4 py-3 text-[12px] font-semibold uppercase text-muted-foreground lg:grid">
         <span>Name</span>
         <span>Status</span>
         <span>Incidents</span>
         <span>Started</span>
         <span>Finished</span>
-        <span className="text-right">Action</span>
       </div>
 
       <div className="divide-y divide-border">
         {instances.map((instance) => (
-          <div key={instance.id ?? instance.correlationId ?? instance.createdAt} className="grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1.4fr)_7rem_7rem_9rem_9rem_auto] lg:items-center">
+          <div
+            key={instance.id ?? instance.correlationId ?? instance.createdAt}
+            role="link"
+            tabIndex={0}
+            className="grid cursor-pointer gap-4 px-4 py-4 transition hover:bg-hover-gray focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/20 lg:grid-cols-[minmax(0,1.4fr)_7rem_7rem_9rem_9rem] lg:items-center"
+            onClick={() => openInstance(instance)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openInstance(instance);
+              }
+            }}
+          >
             <div className="min-w-0">
               <p className="truncate text-[14px] font-semibold">{getWorkflowInstanceDisplayName(instance, definitionsById)}</p>
               <p className="mt-1 truncate text-[13px] text-muted-foreground">{instance.id || instance.correlationId || instance.definitionId}</p>
@@ -280,10 +351,6 @@ function WorkflowHistoryTable({ instances, definitions }: { readonly instances: 
             <p className="text-[14px] text-muted-foreground">{instance.incidentCount ?? 0}</p>
             <p className="text-[14px] text-muted-foreground">{formatDate(instance.createdAt)}</p>
             <p className="text-[14px] text-muted-foreground">{formatDate(instance.finishedAt)}</p>
-            <Link to="/automation/workflow-instances/$instanceId" params={{ instanceId: instance.id ?? '' }} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'justify-self-start lg:justify-self-end')}>
-              <Eye className="size-4" aria-hidden="true" />
-              View
-            </Link>
           </div>
         ))}
       </div>
@@ -318,6 +385,29 @@ function InstanceStatusBadge({ instance }: { readonly instance: WorkflowInstance
   return <Badge variant={variant}>{status}</Badge>;
 }
 
+function SkeletonTable({ rows, columns }: { readonly rows: number; readonly columns: readonly (number | string)[] }) {
+  return (
+    <div className="overflow-hidden rounded-structural border border-border">
+      <div className="divide-y divide-border">
+        {Array.from({ length: rows }, (_, index) => (
+          <div key={index} className="flex items-center gap-4 px-4 py-4">
+            {columns.map((col, colIndex) => (
+              <Skeleton
+                key={colIndex}
+                className="h-4"
+                style={{
+                  flex: typeof col === 'number' ? `${col} ${col} 0` : undefined,
+                  width: typeof col === 'string' ? col : undefined,
+                }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StatusMessage({ children, tone = 'muted' }: { readonly children: string; readonly tone?: 'muted' | 'error' }) {
   return <p className={cn('rounded-structural border border-border p-4 text-[14px]', tone === 'error' ? 'text-error' : 'text-muted-foreground')}>{children}</p>;
 }
@@ -350,6 +440,46 @@ function updateWorkflowDefinition(definition: WorkflowDefinition, action: 'publi
 
 function deleteWorkflowDefinition(definition: WorkflowDefinition, accessToken: string | undefined) {
   return fetchElsa<void>(`/elsa/api/workflow-definitions/${encodeURIComponent(getDefinitionRouteId(definition))}`, accessToken, { method: 'DELETE' });
+}
+
+function createWorkflowDefinition(name: string, accessToken: string | undefined) {
+  const trimmedName = name.trim();
+
+  return fetchElsa<WorkflowDefinitionModel>('/elsa/api/workflow-definitions', accessToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      model: {
+        definitionId: null,
+        name: trimmedName,
+        description: null,
+        toolVersion: '3.7.1',
+        variables: null,
+        inputs: null,
+        outputs: null,
+        outcomes: null,
+        customProperties: null,
+        isReadonly: false,
+        options: null,
+        root: {
+          id: createFlowchartRootId(),
+          type: 'Elsa.Flowchart',
+          version: 1,
+          name: 'Flowchart1',
+        },
+        links: null,
+        createdAt: '0001-01-01T00:00:00+00:00',
+        version: 1,
+        isLatest: true,
+        isPublished: false,
+        id: null,
+      },
+      publish: null,
+    }),
+  });
+}
+
+function createFlowchartRootId() {
+  return crypto.getRandomValues(new Uint8Array(8)).reduce((value, byte) => value + byte.toString(16).padStart(2, '0'), '');
 }
 
 function getDefinitionRouteId(definition: WorkflowDefinition) {

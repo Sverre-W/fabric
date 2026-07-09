@@ -8,7 +8,7 @@ public sealed record CreateKioskProfileRequest(string Name, string DefaultLangua
 
 public sealed record UpdateKioskProfileRequest(string Name, string DefaultLanguageCode);
 
-public sealed record KioskResponse(Guid Id, Guid ProfileId, string Name, KioskMode Mode, string? WorkflowDefinitionId, DateTimeOffset? LastSeenAt, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
+public sealed record KioskResponse(Guid Id, Guid ProfileId, string Name, KioskMode Mode, string? WorkflowDefinitionId, Guid? ActiveSessionId, KioskSessionStatus? ActiveSessionStatus, DateTimeOffset? ActiveSessionStartedAt, DateTimeOffset? LastSeenAt, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
 
 public sealed record CreateKioskRequest(string Name, Guid ProfileId);
 
@@ -82,7 +82,7 @@ public static class KioskMapper
 {
     public static KioskProfileResponse ToResponse(this KioskProfile profile) => new(profile.Id, profile.Name, profile.DefaultLanguageCode, profile.CreatedAt, profile.UpdatedAt);
 
-    public static KioskResponse ToResponse(this Domain.Kiosk kiosk) => new(kiosk.Id, kiosk.ProfileId, kiosk.Name, kiosk.Mode, kiosk.WorkflowDefinitionId, kiosk.LastSeenAt, kiosk.CreatedAt, kiosk.UpdatedAt);
+    public static KioskResponse ToResponse(this Domain.Kiosk kiosk, KioskSession? activeSession = null) => new(kiosk.Id, kiosk.ProfileId, kiosk.Name, kiosk.Mode, kiosk.WorkflowDefinitionId, activeSession?.Id, activeSession?.Status, activeSession?.StartedAt, kiosk.LastSeenAt, kiosk.CreatedAt, kiosk.UpdatedAt);
 
     public static KioskProfileLanguageResponse ToResponse(this KioskProfileLanguage language) => new(language.Id, language.ProfileId, language.LanguageCode, language.DisplayName, language.IsDefault, language.SortOrder);
 

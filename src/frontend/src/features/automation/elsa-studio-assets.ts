@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+const fontPreconnectOrigins = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'] as const;
+
 const headLinks = [
   { href: 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap', rel: 'stylesheet' },
   { href: 'https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap', rel: 'stylesheet' },
@@ -9,6 +11,7 @@ const headLinks = [
   { href: '/_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css', rel: 'stylesheet' },
   { href: '/_content/Radzen.Blazor/css/material-base.css', rel: 'stylesheet' },
   { href: '/_content/Elsa.Studio.Shell/css/shell.css', rel: 'stylesheet' },
+  { href: '/_content/Elsa.Studio.Workflows.Designer/designer.css', rel: 'stylesheet', optional: true },
   { href: '/Elsa.Studio.Host.CustomElements.styles.css', rel: 'stylesheet', optional: true },
 ] as const;
 
@@ -25,8 +28,14 @@ const scripts = [
 const injectedLinkAttribute = 'data-fabric-elsa-link';
 const injectedScriptAttribute = 'data-fabric-elsa-script';
 
+const dynamicLinkAttribute = 'data-fabric-elsa-dynamic';
+const preconnectAttribute = 'data-fabric-elsa-preconnect';
+
 let activeStyleUsers = 0;
 let scriptsReadyPromise: Promise<void> | null = null;
+
+const _dynamicLinks = new Set<HTMLLinkElement>();
+let _observer: MutationObserver | null = null;
 
 export function useElsaStudioAssets(requiredElements: readonly string[]) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(isJsDomEnvironment() ? 'ready' : 'loading');
@@ -62,8 +71,11 @@ export function useElsaStudioAssets(requiredElements: readonly string[]) {
 }
 
 async function ensureElsaAssetsReady(requiredElements: readonly string[]) {
+  console.log('[ElsaLoader] Starting asset boot sequence…');
   await ensureElsaScriptsReady();
+  console.log('[ElsaLoader] All scripts loaded — waiting for custom elements…');
   await Promise.all(requiredElements.map(waitForCustomElement));
+  console.log('[ElsaLoader] All custom elements registered — ready.');
 }
 
 function attachElsaStyles() {
@@ -71,7 +83,11 @@ function attachElsaStyles() {
   if (activeStyleUsers > 1)
     return;
 
-  for (const { href, rel } of headLinks) {
+  console.log('[ElsaLoader] Injecting CSS and preconnects…');
+  injectPreconnects();
+
+  for (const entry of headLinks) {
+    const { href, rel } = entry;
     if (document.head.querySelector(`link[${injectedLinkAttribute}="${href}"]`))
       continue;
 
@@ -79,8 +95,15 @@ function attachElsaStyles() {
     link.rel = rel;
     link.href = href;
     link.setAttribute(injectedLinkAttribute, href);
+
+    if ('optional' in entry && entry.optional) {
+      link.addEventListener('error', () => link.remove(), { once: true });
+    }
+
     document.head.appendChild(link);
   }
+
+  ensureMutationObserver();
 }
 
 function detachElsaStyles() {
@@ -90,6 +113,54 @@ function detachElsaStyles() {
 
   for (const link of document.head.querySelectorAll(`link[${injectedLinkAttribute}]`))
     link.remove();
+
+  for (const link of _dynamicLinks)
+    link.remove();
+  _dynamicLinks.clear();
+
+  _observer?.disconnect();
+  _observer = null;
+}
+
+function injectPreconnects() {
+  for (const origin of fontPreconnectOrigins) {
+    if (document.head.querySelector(`link[rel="preconnect"][${preconnectAttribute}="${origin}"]`))
+      continue;
+
+    const link = document.createElement('link');
+    link.rel = 'preconnect';
+    link.href = origin;
+    link.setAttribute(preconnectAttribute, origin);
+    if (origin.includes('gstatic'))
+      link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+  }
+}
+
+function ensureMutationObserver() {
+  if (_observer)
+    return;
+
+  _observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of Array.from(mutation.addedNodes)) {
+        if (node instanceof HTMLLinkElement && node.rel === 'stylesheet' && !node.hasAttribute(injectedLinkAttribute)) {
+          const href = node.getAttribute('href') ?? '';
+          try {
+            const url = new URL(href, location.href);
+            if (url.pathname.startsWith('/assets/elsa/') || url.pathname.startsWith('/_content/') || url.pathname.startsWith('/_framework/')) {
+              node.setAttribute(dynamicLinkAttribute, '');
+              _dynamicLinks.add(node);
+            }
+          } catch {
+            // ignore malformed hrefs
+          }
+        }
+      }
+    }
+  });
+
+  _observer.observe(document.head, { childList: true });
 }
 
 function ensureElsaScriptsReady() {
@@ -98,8 +169,13 @@ function ensureElsaScriptsReady() {
 }
 
 async function loadScriptsSequentially() {
-  for (const src of scripts)
+  let index = 0;
+  for (const src of scripts) {
+    index++;
+    console.log(`[ElsaLoader] Injecting script [${index}/${scripts.length}]: ${src}`);
     await loadScript(src);
+    console.log(`[ElsaLoader] Loaded script [${index}/${scripts.length}]: ${src}`);
+  }
 }
 
 function loadScript(src: string) {
@@ -112,17 +188,37 @@ function loadScript(src: string) {
     return waitForScript(existingScript);
 
   return new Promise<void>((resolve, reject) => {
+    const isBlazor = src.includes('blazor.webassembly.js');
     const script = document.createElement('script');
     script.src = src;
     script.async = false;
     script.setAttribute(injectedScriptAttribute, src);
+
+    if (isBlazor)
+      script.setAttribute('autostart', 'false');
+
     script.addEventListener('load', () => {
       script.dataset.loaded = 'true';
-      resolve();
+      if (isBlazor) {
+        startBlazor().then(resolve).catch(reject);
+      } else {
+        resolve();
+      }
     }, { once: true });
     script.addEventListener('error', () => reject(new Error(`Could not load Elsa Studio script '${src}'.`)), { once: true });
     document.body.appendChild(script);
   });
+}
+
+async function startBlazor() {
+  const win = window as any;
+  if (!win.Blazor) {
+    console.error('[ElsaLoader] window.Blazor not found after script load');
+    return;
+  }
+  console.log('[ElsaLoader] Calling Blazor.start()…');
+  await win.Blazor.start();
+  console.log('[ElsaLoader] Blazor.start() completed');
 }
 
 function waitForScript(script: HTMLScriptElement) {

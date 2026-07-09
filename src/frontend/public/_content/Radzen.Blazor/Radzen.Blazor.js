@@ -21,7 +21,6 @@ var rejectCallbacks = [];
 var radzenRecognition;
 
 window.Radzen = {
-    selectedNavigationSelector: undefined,
     isRTL: function (el) {
         return el && getComputedStyle(el).direction == 'rtl';
     },
@@ -37,17 +36,6 @@ window.Radzen = {
                 }, delay);
             }
         };
-    },
-    downloadFile: function (fileName, data, mimeType) {
-        const blob = new Blob([data], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        a.click();
-
-        URL.revokeObjectURL(url);
     },
     mask: function (id, mask, pattern, characterPattern) {
       var el = document.getElementById(id);
@@ -92,7 +80,6 @@ window.Radzen = {
         var handler = function (e) {
             e.stopPropagation();
             e.preventDefault();
-            try {
             ref.invokeMethodAsync('RadzenComponent.RaiseContextMenu',
                 {
                     ClientX: e.clientX,
@@ -106,7 +93,6 @@ window.Radzen = {
                     Button: e.button,
                     Buttons: e.buttons,
                 });
-            } catch { }
             return false;
         };
         Radzen[id + 'contextmenu'] = handler;
@@ -117,7 +103,7 @@ window.Radzen = {
      var el = document.getElementById(id);
      if (el) {
         var handler = function (e) {
-            try { ref.invokeMethodAsync('RadzenComponent.RaiseMouseEnter'); } catch { }
+            ref.invokeMethodAsync('RadzenComponent.RaiseMouseEnter');
         };
         Radzen[id + 'mouseenter'] = handler;
         el.addEventListener('mouseenter', handler, false);
@@ -127,7 +113,7 @@ window.Radzen = {
      var el = document.getElementById(id);
      if (el) {
         var handler = function (e) {
-            try { ref.invokeMethodAsync('RadzenComponent.RaiseMouseLeave'); } catch { }
+            ref.invokeMethodAsync('RadzenComponent.RaiseMouseLeave');;
         };
         Radzen[id + 'mouseleave'] = handler;
         el.addEventListener('mouseleave', handler, false);
@@ -256,9 +242,9 @@ window.Radzen = {
       });
 
       Radzen[id].instance.addListener('click', function (e) {
-        try { Radzen[id].invokeMethodAsync('RadzenGoogleMap.OnMapClick', {
+        Radzen[id].invokeMethodAsync('RadzenGoogleMap.OnMapClick', {
           Position: {Lat: e.latLng.lat(), Lng: e.latLng.lng()}
-        }); } catch { }
+        });
       });
 
       Radzen.updateMap(id, apiKey, zoom, center, markers, options, fitBoundsToMarkersOnUpdate, language);
@@ -304,11 +290,11 @@ window.Radzen = {
                     });
 
                     marker.addListener('click', function (e) {
-                        try { Radzen[id].invokeMethodAsync('RadzenGoogleMap.OnMarkerClick', {
+                        Radzen[id].invokeMethodAsync('RadzenGoogleMap.OnMarkerClick', {
                             Title: marker.title,
                             Label: marker.content.innerText,
                             Position: marker.position
-                        }); } catch { }
+                        });
                     });
 
                     marker.setMap(Radzen[id].instance);
@@ -394,7 +380,7 @@ window.Radzen = {
                   var code = Radzen[id].inputs.map(i => i.value).join('').trim();
                   hidden.value = code;
 
-                  try { ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', code); } catch { }
+                  ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', code);
 
                   Radzen[id].inputs[Radzen[id].inputs.length - 1].focus();
               }
@@ -434,7 +420,7 @@ window.Radzen = {
           var value = Radzen[id].inputs.map(i => i.value).join('').trim();
           hidden.value = value;
 
-          try { ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', value); } catch { }
+          ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', value);
 
           var index = Radzen[id].inputs.indexOf(e.currentTarget);
           if (index < Radzen[id].inputs.length - 1) {
@@ -450,7 +436,7 @@ window.Radzen = {
               var value = Radzen[id].inputs.map(i => i.value).join('').trim();
               hidden.value = value;
 
-              try { ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', value); } catch { }
+              ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', value);
 
               var index = Radzen[id].inputs.indexOf(e.currentTarget);
               if (index > 0) {
@@ -512,11 +498,11 @@ window.Radzen = {
         newValue >= min &&
         newValue <= max
       ) {
-        try { slider.invokeMethodAsync(
+        slider.invokeMethodAsync(
           'RadzenSlider.OnValueChange',
           newValue,
           !!slider.isMin
-        ); } catch { }
+        );
       }
     };
 
@@ -548,11 +534,11 @@ window.Radzen = {
         var newValue = percent * (max - min) + min;
         var oldValue = range ? value[slider.isMin ? 0 : 1] : value;
         if (newValue >= min && newValue <= max && newValue != oldValue) {
-          try { slider.invokeMethodAsync(
+          slider.invokeMethodAsync(
             'RadzenSlider.OnValueChange',
             newValue,
             !!slider.isMin
-          ); } catch { }
+          );
         }
       }
     };
@@ -802,9 +788,9 @@ window.Radzen = {
 
     return [table.nextSelectedIndex, table.nextSelectedCellIndex];
   },
-  uploadInputChange: function (e, url, auto, multiple, clear, parameterName, method = 'POST', stream = false) {
+  uploadInputChange: function (e, url, auto, multiple, clear, parameterName) {
       if (auto) {
-          Radzen.upload(e.target, url, multiple, clear, parameterName, method, stream);
+          Radzen.upload(e.target, url, multiple, clear, parameterName);
           e.target.value = '';
       } else {
           Radzen.uploadChange(e.target);
@@ -842,7 +828,7 @@ window.Radzen = {
 
       uploadComponent.files = Array.from(fileInput.files);
       uploadComponent.localFiles = files;
-      try { uploadComponent.invokeMethodAsync('RadzenUpload.OnChange', files); } catch { }
+      uploadComponent.invokeMethodAsync('RadzenUpload.OnChange', files);
     }
 
     for (var i = 0; i < fileInput.files.length; i++) {
@@ -852,25 +838,20 @@ window.Radzen = {
       }
     }
   },
-  removeFileFromUpload: function (ref, name, id) {
-    var uploadComponent = (Radzen.uploadComponents && Radzen.uploadComponents[ref]) ?? Radzen.uploadComponents[id];
+  removeFileFromUpload: function (name, id) {
+    var uploadComponent = Radzen.uploadComponents && Radzen.uploadComponents[id];
     if (!uploadComponent) return;
-    if (!uploadComponent.files) return;
     var file = uploadComponent.files.find(function (f) { return f.name == name; })
     if (!file) { return; }
     var localFile = uploadComponent.localFiles.find(function (f) { return f.Name == name; });
     if (localFile) {
       URL.revokeObjectURL(localFile.Url);
-      var localIndex = uploadComponent.localFiles.indexOf(localFile);
-      if (localIndex != -1) {
-        uploadComponent.localFiles.splice(localIndex, 1);
-      }
     }
     var index = uploadComponent.files.indexOf(file)
     if (index != -1) {
         uploadComponent.files.splice(index, 1);
     }
-    var fileInput = document.getElementById(id).querySelector('input[type="file"]');
+    var fileInput = document.getElementById(id);
     if (fileInput && uploadComponent.files.length == 0) {
         fileInput.value = '';
     }
@@ -878,35 +859,20 @@ window.Radzen = {
   removeFileFromFileInput: function (fileInput) {
     fileInput.value = '';
   },
-  upload: function (fileInput, url, multiple, clear, parameterName, method = 'POST', stream = false) {
+  upload: function (fileInput, url, multiple, clear, parameterName) {
     var uploadComponent = Radzen.uploadComponents && Radzen.uploadComponents[fileInput.id];
     if (!uploadComponent) { return; }
     if (!uploadComponent.files || clear) {
         uploadComponent.files = Array.from(fileInput.files);
     }
-    
-	function asFormData() {
-		var data = new FormData();
-		var files = [];
-		for (var i = 0; i < uploadComponent.files.length; i++) {
-			var file = uploadComponent.files[i];
-			data.append(parameterName || (multiple ? 'files' : 'file'), file, file.name);
-			files.push({Name: file.name, Size: file.size});
-		}
-		return {data, files}
-	}
-	
-	function asStream() {
-		if (uploadComponent.files.length > 0) {
-			var file = uploadComponent.files[0];
-			return {data: file, files: [{Name: file.name, Size: file.size}]};
-		}
-		return {data: null, files: []}
-	}
-
-  	var cancelled = false;
-	var {data, files} = stream ? asStream() : asFormData();
-	
+    var data = new FormData();
+    var files = [];
+    var cancelled = false;
+    for (var i = 0; i < uploadComponent.files.length; i++) {
+      var file = uploadComponent.files[i];
+      data.append(parameterName || (multiple ? 'files' : 'file'), file, file.name);
+      files.push({Name: file.name, Size: file.size});
+    }
     var xhr = new XMLHttpRequest();
     xhr.withCredentials = true;
     xhr.upload.onprogress = function (e) {
@@ -915,7 +881,7 @@ window.Radzen = {
           Radzen.uploadComponents && Radzen.uploadComponents[fileInput.id];
         if (uploadComponent) {
           var progress = parseInt((e.loaded / e.total) * 100);
-          try { uploadComponent.invokeMethodAsync(
+          uploadComponent.invokeMethodAsync(
             'RadzenUpload.OnProgress',
             progress,
             e.loaded,
@@ -927,7 +893,7 @@ window.Radzen = {
                   cancelled = true;
                   xhr.abort();
               }
-          }); } catch { }
+          });
         }
       }
     };
@@ -938,27 +904,27 @@ window.Radzen = {
           Radzen.uploadComponents && Radzen.uploadComponents[fileInput.id];
         if (uploadComponent) {
           if (status === 0 || (status >= 200 && status < 400)) {
-            try { uploadComponent.invokeMethodAsync(
+            uploadComponent.invokeMethodAsync(
               'RadzenUpload.OnComplete',
                 xhr.responseText,
                 cancelled
-            ); } catch { }
+            );
           } else {
-            try { uploadComponent.invokeMethodAsync(
+            uploadComponent.invokeMethodAsync(
               'RadzenUpload.OnError',
               xhr.responseText
-            ); } catch { }
+            );
           }
         }
       }
     };
-    try { uploadComponent.invokeMethodAsync('GetHeaders').then(function (headers) {
-      xhr.open(method, url, true);
+    uploadComponent.invokeMethodAsync('GetHeaders').then(function (headers) {
+      xhr.open('POST', url, true);
       for (var name in headers) {
         xhr.setRequestHeader(name, headers[name]);
       }
       xhr.send(data);
-    }); } catch { }
+    });
   },
   getCookie: function (name) {
     var value = '; ' + decodeURIComponent(document.cookie);
@@ -972,63 +938,21 @@ window.Radzen = {
       : null;
     return uiCulture || 'en-US';
   },
-  numericOnPaste: function (e, min, max, locale = navigator.language) {
-    if (!e.clipboardData) return;
+  numericOnPaste: function (e, min, max) {
+    if (e.clipboardData) {
+      var value = e.clipboardData.getData('text');
 
-    let value = e.clipboardData.getData("text");
-    if (!value) {
-        e.preventDefault();
-        return;
-    }
+      if (value && !isNaN(+value)) {
+        var numericValue = +value;
+        if (min != null && numericValue >= min) {
+            return;
+        }
+        if (max != null && numericValue <= max) {
+            return;
+        }
+      }
 
-    value = String(value).trim();
-
-    const parts = new Intl.NumberFormat(locale).formatToParts(1234567.89);
-
-    let group = ",";
-    let decimal = ".";
-
-    for (const p of parts) {
-        if (p.type === "group") group = p.value;
-        if (p.type === "decimal") decimal = p.value;
-    }
-
-    value = value.replace(/[\u00A0\u202F]/g, " ");
-
-    if (group) {
-        const escapedGroup = group.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        value = value.replace(new RegExp(escapedGroup, "g"), "");
-    }
-
-    if (group === " ") {
-        value = value.replace(/ /g, "");
-    }
-
-    if (decimal !== ".") {
-        const escapedDecimal = decimal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        value = value.replace(new RegExp(escapedDecimal, "g"), ".");
-    }
-
-    if (!/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(value)) {
-        e.preventDefault();
-        return;
-    }
-
-    const numericValue = Number(value);
-
-    if (!Number.isFinite(numericValue)) {
-        e.preventDefault();
-        return;
-    }
-
-    if (min != null && numericValue < min) {
-        e.preventDefault();
-        return;
-    }
-
-    if (max != null && numericValue > max) {
-        e.preventDefault();
-        return;
+      e.preventDefault();
     }
   },
   numericOnInput: function (e, min, max, isNullable) {
@@ -1181,18 +1105,6 @@ window.Radzen = {
 
       popup.style.top = top + 'px';
   },
-  setPopupAriaExpanded: function (parent, id, expanded) {
-    if (!parent || !id) return;
-    var control = null;
-    if (parent.getAttribute && parent.getAttribute('aria-controls') === id) {
-      control = parent;
-    } else if (parent.querySelector) {
-      control = parent.querySelector('[aria-controls="' + id + '"]');
-    }
-    if (control) {
-      control.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    }
-  },
   openPopup: function (parent, id, syncWidth, position, x, y, instance, callback, closeOnDocumentClick = true, autoFocusFirstElement = false, disableSmartPosition = false) {
     var popup = document.getElementById(id);
     if (!popup) return;
@@ -1232,17 +1144,10 @@ window.Radzen = {
     popup.onanimationend = null;
     popup.classList.add("rz-open");
     popup.classList.remove("rz-close");
-    Radzen.setPopupAriaExpanded(parent, id, true);
 
     var rect = popup.getBoundingClientRect();
     rect.width = x ? rect.width + 20 : rect.width;
     rect.height = y ? rect.height + 20 : rect.height;
-
-    var isRTL = Radzen.isRTL(popup);
-
-    if (isRTL && (position == 'bottom' || position == 'top')) {
-      left = parentRect.right - rect.width;
-    }
 
     var smartPosition = !position || position == 'bottom';
 
@@ -1284,24 +1189,6 @@ window.Radzen = {
       }
     }
 
-    if (smartPosition && isRTL && left < 0 && window.innerWidth > rect.width) {
-      left = !position ? 0 : rect.left;
-
-      if (position) {
-        top = y || parentRect.top;
-        var tooltipContent = popup.children[0];
-        var tooltipContentClassName = 'rz-' + position + '-tooltip-content';
-        if (tooltipContent.classList.contains(tooltipContentClassName)) {
-          tooltipContent.classList.remove(tooltipContentClassName);
-          tooltipContent.classList.add('rz-right-tooltip-content');
-          position = 'right';
-          if (instance && callback) {
-              try { instance.invokeMethodAsync(callback, position); } catch { }
-          }
-        }
-      }
-    }
-
     if (smartPosition) {
       if (position) {
         top = top + 20;
@@ -1320,7 +1207,7 @@ window.Radzen = {
 
     if (position == 'top') {
       top = parentRect.top - rect.height + 5;
-      left = isRTL ? parentRect.right - rect.width : parentRect.left;
+      left = parentRect.left;
     }
 
     popup.style.zIndex = 2000;
@@ -1426,10 +1313,6 @@ window.Radzen = {
   closePopup: function (id, instance, callback, e) {
     var popup = document.getElementById(id);
     if (!popup) return;
-    var popupInfo = (Radzen.popups || []).find(function (p) { return p.id === id; });
-    if (popupInfo && popupInfo.parent) {
-      Radzen.setPopupAriaExpanded(popupInfo.parent, id, false);
-    }
     if (popup.style.display == 'none') {
         var popups = Radzen.findPopup(id);
         if (popups.length > 1) {
@@ -1566,77 +1449,6 @@ window.Radzen = {
           }
       }, 500);
   },
-  createSideDialogResizer: function(handle, sideDialog, options) {
-      const normalizeDir = (value) => {
-          if (typeof value === 'string' && value.length) {
-              return value.toLowerCase();
-          }
-          if (typeof value === 'number') {
-              const positions = ['right', 'left', 'top', 'bottom'];
-              return positions[value] || 'right';
-          }
-          return 'right';
-      };
-
-      const dir = normalizeDir(options?.position);
-
-      let start = null;
-
-      const onDown = (e) => {
-          e.preventDefault();
-
-          start = {x: e.clientX, y: e.clientY, w: sideDialog.clientWidth, h: sideDialog.clientHeight};
-
-          document.addEventListener('pointermove', onMove);
-          document.addEventListener('pointerup', onUp, {once: true});
-          document.addEventListener('pointercancel', onUp, {once: true});
-      };
-
-      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
-      const applyWidth = (w) => {
-          sideDialog.style.width = Math.round(w) + 'px';
-      };
-      const applyHeight = (h) => {
-          sideDialog.style.height = `${Math.round(h)}px`;
-      };
-
-      const onMove = (e) => {
-          if (!start) return;
-
-          const dx = e.clientX - start.x;
-          const dy = e.clientY - start.y;
-
-          switch (dir) {
-              case 'right':
-                  applyWidth(clamp(start.w - dx, options.minWidth, Infinity));
-                  break;
-              case 'left':
-                  applyWidth(clamp(start.w + dx, options.minWidth, Infinity));
-                  break;
-              case 'bottom':
-                  applyHeight(clamp(start.h - dy, options.minHeight, Infinity));
-                  break;
-              case 'top':
-                  applyHeight(clamp(start.h + dy, options.minHeight, Infinity));
-                  break;
-          }
-      };
-
-      const onUp = (e) => {
-          start = null;
-          document.removeEventListener('pointermove', onMove);
-      };
-
-      handle.addEventListener('pointerdown', onDown);
-
-      return {
-          dispose() {
-              handle.removeEventListener('pointerdown', onDown);
-              document.removeEventListener('pointermove', onMove);
-          }
-      };
-  },
   openDialog: function (options, dialogService, dialog) {
     if (Radzen.closeAllPopups) {
         Radzen.closeAllPopups();
@@ -1673,12 +1485,10 @@ window.Radzen = {
                             'RadzenDialog.OnResize',
                             e[0].target.offsetWidth,
                             e[0].target.offsetHeight
-                        ).catch(function () { });
+                        );
                     }
                 };
-                var resizeObserver = new ResizeObserver(dialogResize);
-                resizeObserver.observe(lastDialog.parentElement);
-                Radzen.dialogResizer = resizeObserver;
+                Radzen.dialogResizer = new ResizeObserver(dialogResize).observe(lastDialog.parentElement);
             }
 
             if (options.draggable) {
@@ -1696,7 +1506,7 @@ window.Radzen = {
                             lastDialog.parentElement.style.left = left + 'px';
                             lastDialog.parentElement.style.top = top + 'px';
 
-                            try { dialog.invokeMethodAsync('RadzenDialog.OnDrag', top, left); } catch { }
+                            dialog.invokeMethodAsync('RadzenDialog.OnDrag', top, left);
                         };
 
                         var stop = function () {
@@ -1724,9 +1534,6 @@ window.Radzen = {
     }
   },
   closeDialog: function () {
-    if (Radzen.dialogResizer && typeof Radzen.dialogResizer.disconnect === 'function') {
-      Radzen.dialogResizer.disconnect();
-    }
     Radzen.dialogResizer = null;
     document.body.classList.remove('no-scroll');
     var dialogs = document.querySelectorAll('.rz-dialog-content');
@@ -1806,7 +1613,7 @@ window.Radzen = {
           var lastDialog = dialogs[dialogs.length - 1];
 
           if (lastDialog && lastDialog.options && lastDialog.options.closeDialogOnEsc) {
-              try { Radzen.dialogService.invokeMethodAsync('DialogService.Close', null); } catch { }
+              Radzen.dialogService.invokeMethodAsync('DialogService.Close', null);
 
               if (dialogs.length <= 1) {
                   document.removeEventListener('keydown', Radzen.closePopupOrDialog);
@@ -1920,7 +1727,6 @@ window.Radzen = {
       var children = item.querySelector('.rz-navigation-menu');
 
       if (children) {
-        item.setAttribute('aria-expanded', active);
         if (active) {
           children.onanimationend = null;
           children.style.display = '';
@@ -1993,7 +1799,7 @@ window.Radzen = {
     ref.resizeHandler = function () {
       var rect = ref.getBoundingClientRect();
 
-      try { instance.invokeMethodAsync('Resize', rect.width, rect.height); } catch { }
+      instance.invokeMethodAsync('Resize', rect.width, rect.height);
     };
 
     if (window.ResizeObserver) {
@@ -2014,7 +1820,7 @@ window.Radzen = {
         var rect = ref.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
-        try { instance.invokeMethodAsync('MouseMove', x, y); } catch { }
+        instance.invokeMethodAsync('MouseMove', x, y);
      }
     }, 100);
     ref.mouseEnterHandler = function () {
@@ -2025,14 +1831,14 @@ window.Radzen = {
             return;
         }
         inside = false;
-        try { instance.invokeMethodAsync('MouseMove', -1, -1); } catch { }
+        instance.invokeMethodAsync('MouseMove', -1, -1);
     };
     ref.clickHandler = function (e) {
       var rect = ref.getBoundingClientRect();
       var x = e.clientX - rect.left;
       var y = e.clientY - rect.top;
       if (!e.target.closest('.rz-marker')) {
-        try { instance.invokeMethodAsync('Click', x, y); } catch { }
+        instance.invokeMethodAsync('Click', x, y);
       }
     };
 
@@ -2056,7 +1862,7 @@ window.Radzen = {
     ref.resizeHandler = function () {
       var rect = ref.getBoundingClientRect();
 
-      try { instance.invokeMethodAsync('Resize', rect.width, rect.height); } catch { }
+      instance.invokeMethodAsync('Resize', rect.width, rect.height);
     };
 
     window.addEventListener('resize', ref.resizeHandler);
@@ -2105,7 +1911,7 @@ window.Radzen = {
   mediaQuery: function(query, instance) {
     if (instance) {
       function callback(event) {
-          try { instance.invokeMethodAsync('OnChange', event.matches); } catch { }
+          instance.invokeMethodAsync('OnChange', event.matches)
       };
       var query = matchMedia(query);
       this.mediaQueries[instance._id] = function() {
@@ -2123,7 +1929,7 @@ window.Radzen = {
   },
   createEditor: function (ref, uploadUrl, paste, instance, shortcuts) {
     ref.inputListener = function () {
-      try { instance.invokeMethodAsync('OnChange', ref.innerHTML); } catch { }
+      instance.invokeMethodAsync('OnChange', ref.innerHTML);
     };
     ref.keydownListener = function (e) {
       var key = '';
@@ -2140,7 +1946,7 @@ window.Radzen = {
 
       if (shortcuts.includes(key)) {
         e.preventDefault();
-        try { instance.invokeMethodAsync('ExecuteShortcutAsync', key); } catch { }
+        instance.invokeMethodAsync('ExecuteShortcutAsync', key);
       }
     };
 
@@ -2166,103 +1972,87 @@ window.Radzen = {
 
     ref.selectionChangeListener = function () {
       if (document.activeElement == ref) {
-        try { instance.invokeMethodAsync('OnSelectionChange'); } catch { }
+        instance.invokeMethodAsync('OnSelectionChange');
       }
     };
-    ref.handleInsert = function (e, transfer, hasDelegate) {
+    ref.pasteListener = function (e) {
+      var item = e.clipboardData.items[0];
 
-      if (transfer.files.length > 0) {
-        for (const file of transfer.files) {
-          ref.handleFileInsert(e, file, hasDelegate);
-          }
-      }
-      else if (hasDelegate) {
-        ref.handleTextInsert(e, transfer)
-      }
-    };
-    ref.handleFileInsert = function (event, file, hasDelegate) {
-      event.preventDefault();
+      if (item.kind == 'file') {
+        e.preventDefault();
+        var file = item.getAsFile();
 
-      if (uploadUrl) {
-        var xhr = new XMLHttpRequest();
-        var data = new FormData();
-        data.append("file", file);
-        xhr.onreadystatechange = function (e) {
-          if (xhr.readyState === XMLHttpRequest.DONE) {
-            var status = xhr.status;
-            if (status === 0 || (status >= 200 && status < 400)) {
-              var result = JSON.parse(xhr.responseText);
-              var html = '<img src="' + result.url + '">';
-              if (hasDelegate) {
-                try { instance.invokeMethodAsync('OnPaste', html)
+        if (uploadUrl) {
+            var xhr = new XMLHttpRequest();
+            var data = new FormData();
+            data.append("file", file);
+            xhr.onreadystatechange = function (e) {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    var status = xhr.status;
+                    if (status === 0 || (status >= 200 && status < 400)) {
+                        var result = JSON.parse(xhr.responseText);
+                        var html = '<img src="' + result.url + '">';
+                        if (paste) {
+                            instance.invokeMethodAsync('OnPaste', html)
+                                .then(function (html) {
+                                    document.execCommand("insertHTML", false, html);
+                                });
+                        } else {
+                          document.execCommand("insertHTML", false, '<img src="' + result.url + '">');
+                        }
+                        instance.invokeMethodAsync('OnUploadComplete', xhr.responseText);
+                    } else {
+                        instance.invokeMethodAsync('OnError', xhr.responseText);
+                    }
+                }
+            }
+            instance.invokeMethodAsync('GetHeaders').then(function (headers) {
+                xhr.open('POST', uploadUrl, true);
+                for (var name in headers) {
+                    xhr.setRequestHeader(name, headers[name]);
+                }
+                xhr.send(data);
+            });
+        } else {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              var html = '<img src="' + e.target.result + '">';
+
+              if (paste) {
+                instance.invokeMethodAsync('OnPaste', html)
                   .then(function (html) {
                     document.execCommand("insertHTML", false, html);
-                  }); } catch { }
+                  });
               } else {
-                document.execCommand("insertHTML", false, '<img src="' + result.url + '">');
-              }
-              try { instance.invokeMethodAsync('OnUploadComplete', xhr.responseText); } catch { }
-            } else {
-              try { instance.invokeMethodAsync('OnError', xhr.responseText); } catch { }
-            }
-          }
-        }
-        try { instance.invokeMethodAsync('GetHeaders').then(function (headers) {
-          xhr.open('POST', uploadUrl, true);
-          for (var name in headers) {
-            xhr.setRequestHeader(name, headers[name]);
-          }
-          xhr.send(data);
-        }); } catch { }
-      } else {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          var html = '<img src="' + e.target.result + '">';
-
-          if (hasDelegate) {
-            try { instance.invokeMethodAsync('OnPaste', html)
-              .then(function (html) {
                 document.execCommand("insertHTML", false, html);
-              }); } catch { }
-            } else {
-              document.execCommand("insertHTML", false, html);
-            }
-        };
-        reader.readAsDataURL(file);
+              }
+            };
+            reader.readAsDataURL(file);
+        }
+      } else if (paste) {
+        e.preventDefault();
+        var data = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
+        
+        const startMarker = "<!--StartFragment-->";
+        const endMarker = "<!--EndFragment-->";
+
+        const startIndex = data.indexOf(startMarker);
+        const endIndex = data.indexOf(endMarker);
+
+        // check if the pasted data contains fragment markers
+        if (startIndex != -1 || endIndex != -1 || endIndex > startIndex) {
+            // only paste the fragment
+            data = data.substring(startIndex + startMarker.length, endIndex).trim();
+        }
+
+        instance.invokeMethodAsync('OnPaste', data)
+          .then(function (html) {
+            document.execCommand("insertHTML", false, html);
+          });
       }
-    }
-    ref.handleTextInsert = function (e, transfer) {
-      e.preventDefault();
-
-      var data = transfer.getData('text/html') || transfer.getData('text/plain');
-
-      const startMarker = "<!--StartFragment-->";
-      const endMarker = "<!--EndFragment-->";
-
-      const startIndex = data.indexOf(startMarker);
-      const endIndex = data.indexOf(endMarker);
-
-      // check if the pasted data contains fragment markers
-      if (startIndex != -1 || endIndex != -1 || endIndex > startIndex) {
-        // only paste the fragment
-        data = data.substring(startIndex + startMarker.length, endIndex).trim();
-      }
-
-      try { instance.invokeMethodAsync('OnPaste', data)
-        .then(ref.focus())
-        .then(function (html) {
-          document.execCommand("insertHTML", false, html);
-        }); } catch { }
-    }
-    ref.pasteListener = function (e) {
-      ref.handleInsert(e, e.clipboardData, paste);
-    };
-    ref.dropListener = function (e) {
-      ref.handleInsert(e, e.dataTransfer, paste);
     };
     ref.addEventListener('input', ref.inputListener);
     ref.addEventListener('paste', ref.pasteListener);
-    ref.addEventListener('drop', ref.dropListener);
     ref.addEventListener('keydown', ref.keydownListener);
     ref.addEventListener('click', ref.clickListener);
     document.addEventListener('selectionchange', ref.selectionChangeListener);
@@ -2338,7 +2128,6 @@ window.Radzen = {
     if (ref) {
       ref.removeEventListener('input', ref.inputListener);
       ref.removeEventListener('paste', ref.pasteListener);
-      ref.removeEventListener('drop', ref.dropListener);
       ref.removeEventListener('keydown', ref.keydownListener);
       ref.removeEventListener('click', ref.clickListener);
       document.removeEventListener('selectionchange', ref.selectionChangeListener);
@@ -2349,11 +2138,11 @@ window.Radzen = {
         return { left: 0, top: 0, width: 0, height: 0 };
     }
     ref.mouseMoveHandler = function (e) {
-      try { instance.invokeMethodAsync(handler, { clientX: e.clientX, clientY: e.clientY }); } catch { }
+      instance.invokeMethodAsync(handler, { clientX: e.clientX, clientY: e.clientY });
     };
     ref.touchMoveHandler = function (e) {
       if (e.targetTouches[0] && ref.contains(e.targetTouches[0].target)) {
-        try { instance.invokeMethodAsync(handler, { clientX: e.targetTouches[0].clientX, clientY: e.targetTouches[0].clientY }); } catch { }
+        instance.invokeMethodAsync(handler, { clientX: e.targetTouches[0].clientX, clientY: e.targetTouches[0].clientY });
       }
     };
     ref.mouseUpHandler = function (e) {
@@ -2375,35 +2164,28 @@ window.Radzen = {
     var rect = el.getBoundingClientRect();
     return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
   },
-  outerHTML: function (arg) {
-    var el = arg instanceof Element || arg instanceof HTMLDocument
-        ? arg
-        : document.getElementById(arg);
-    return el ? el.outerHTML : '';
-  },
   endDrag: function (ref) {
     document.removeEventListener('mousemove', ref.mouseMoveHandler);
     document.removeEventListener('mouseup', ref.mouseUpHandler);
     document.removeEventListener('touchmove', ref.touchMoveHandler)
     document.removeEventListener('touchend', ref.mouseUpHandler);
   },
-  startColumnReorder: function(id, gridId) {
-      var grid = document.getElementById(gridId);
+  startColumnReorder: function(id) {
       var el = document.getElementById(id + '-drag');
-      Radzen[id + 'cell'] = el.parentNode.parentNode;
+      var cell = el.parentNode.parentNode;
       var visual = document.createElement("th");
-      visual.className = Radzen[id + 'cell'].className + ' rz-column-draggable';
-      visual.style = Radzen[id + 'cell'].style;
+      visual.className = cell.className + ' rz-column-draggable';
+      visual.style = cell.style;
       visual.style.display = 'none';
       visual.style.position = 'absolute';
-      visual.style.height = Radzen[id + 'cell'].offsetHeight + 'px';
-      visual.style.width = Radzen[id + 'cell'].offsetWidth + 'px';
+      visual.style.height = cell.offsetHeight + 'px';
+      visual.style.width = cell.offsetWidth + 'px';
       visual.style.zIndex = 2000;
-      visual.innerHTML = Radzen[id + 'cell'].firstChild.outerHTML;
+      visual.innerHTML = cell.firstChild.outerHTML;
       visual.id = id + 'visual';
       document.body.appendChild(visual);
 
-      var resizers = Radzen[id + 'cell'].parentNode.querySelectorAll('.rz-column-resizer');
+      var resizers = cell.parentNode.querySelectorAll('.rz-column-resizer');
       for (let i = 0; i < resizers.length; i++) {
           resizers[i].style.display = 'none';
       }
@@ -2412,26 +2194,16 @@ window.Radzen = {
           var el = document.getElementById(id + 'visual');
           if (el) {
               document.body.removeChild(el);
-              var resizers = Radzen[id + 'cell'].parentNode.querySelectorAll('.rz-column-resizer');
+              Radzen[id + 'end'] = null;
+              Radzen[id + 'move'] = null;
+              var resizers = cell.parentNode.querySelectorAll('.rz-column-resizer');
               for (let i = 0; i < resizers.length; i++) {
                   resizers[i].style.display = 'block';
               }
           }
-
-          grid.removeEventListener('mousemove', Radzen[id + 'move']);
-          grid.removeEventListener('click', Radzen[id + 'end']);
-          document.removeEventListener('mouseup', Radzen[id + 'end']);
-          document.removeEventListener('touchend', Radzen[id + 'end']);
-
-          Radzen[id + 'end'] = null;
-          Radzen[id + 'move'] = null;
       }
-      grid.removeEventListener('click', Radzen[id + 'end']);
-      grid.addEventListener('click', Radzen[id + 'end']);
-      document.removeEventListener('mouseup', Radzen[id + 'end']);
-      document.addEventListener('mouseup', Radzen[id + 'end']);
-      document.removeEventListener('touchend', Radzen[id + 'end']);
-      document.addEventListener('touchend', Radzen[id + 'end'], { passive: true });
+      document.removeEventListener('click', Radzen[id + 'end']);
+      document.addEventListener('click', Radzen[id + 'end']);
 
       Radzen[id + 'move'] = function (e) {
           var el = document.getElementById(id + 'visual');
@@ -2450,8 +2222,8 @@ window.Radzen = {
               el.style.left = e.clientX + scrollLeft + 10 + 'px';
           }
       }
-      grid.removeEventListener('mousemove', Radzen[id + 'move']);
-      grid.addEventListener('mousemove', Radzen[id + 'move']);
+      document.removeEventListener('mousemove', Radzen[id + 'move']);
+      document.addEventListener('mousemove', Radzen[id + 'move']);
   },
   stopColumnResize: function (id, grid, columnIndex) {
     var el = document.getElementById(id + '-resizer');
@@ -2459,11 +2231,11 @@ window.Radzen = {
     var cell = el.parentNode.parentNode;
     if (!cell) return;
     if (Radzen[el]) {
-        try { grid.invokeMethodAsync(
+        grid.invokeMethodAsync(
             'RadzenGrid.OnColumnResized',
             columnIndex,
             cell.getBoundingClientRect().width
-        ); } catch { }
+        );
         el.style.width = null;
         document.removeEventListener('mousemove', Radzen[el].mouseMoveHandler);
         document.removeEventListener('mouseup', Radzen[el].mouseUpHandler);
@@ -2483,11 +2255,11 @@ window.Radzen = {
           width: cell.getBoundingClientRect().width,
           mouseUpHandler: function (e) {
               if (Radzen[el]) {
-                  try { grid.invokeMethodAsync(
+                  grid.invokeMethodAsync(
                       'RadzenGrid.OnColumnResized',
                       columnIndex,
                       cell.getBoundingClientRect().width
-                  ); } catch { }
+                  );
                   el.style.width = null;
                   document.removeEventListener('mousemove', Radzen[el].mouseMoveHandler);
                   document.removeEventListener('mouseup', Radzen[el].mouseUpHandler);
@@ -2609,13 +2381,13 @@ window.Radzen = {
             paneNextLength: isFinite(paneNextLength) ? paneNextLength : 0,
             mouseUpHandler: function(e) {
                 if (Radzen[el]) {
-                    try { splitter.invokeMethodAsync(
+                    splitter.invokeMethodAsync(
                         'RadzenSplitter.OnPaneResized',
                         parseInt(pane.getAttribute('data-index')),
                         parseFloat(pane.style.flexBasis),
                         paneNext ? parseInt(paneNext.getAttribute('data-index')) : null,
                         paneNext ? parseFloat(paneNext.style.flexBasis) : null
-                    ); } catch { }
+                    );
 
                     document.removeEventListener('pointerup', Radzen[el].mouseUpHandler);
                     document.removeEventListener('pointermove', Radzen[el].mouseMoveHandler);
@@ -2626,9 +2398,9 @@ window.Radzen = {
             mouseMoveHandler: function(e) {
                 if (Radzen[el]) {
 
-                    try { splitter.invokeMethodAsync(
+                    splitter.invokeMethodAsync(
                         'RadzenSplitter.OnPaneResizing'
-                    ); } catch { }
+                    );
 
                     var spacePerc = Radzen[el].panePerc + Radzen[el].paneNextPerc;
                     var spaceLength = Radzen[el].paneLength + Radzen[el].paneNextLength;
@@ -2743,10 +2515,10 @@ window.Radzen = {
                 let current = event.results[event.results.length - 1][0]
                 let result = current.transcript;
 
-                try { componentRef.invokeMethodAsync("OnResult", result); } catch { }
+                componentRef.invokeMethodAsync("OnResult", result);
             };
             radzenRecognition.onend = function (event) {
-                try { componentRef.invokeMethodAsync("StopRecording"); } catch { }
+                componentRef.invokeMethodAsync("StopRecording");
                 radzenRecognition = null;
             };
             radzenRecognition.start();
@@ -2790,83 +2562,53 @@ window.Radzen = {
 
       if (scroll) {
         const target = document.querySelector(selector);
-          if (target) {
-            this.selectedNavigationSelector = selector;
-            target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' });
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
         }
       }
     },
     registerScrollListener: function (element, ref, selectors, selector) {
-        let currentSelector;
-        const container = selector ? document.querySelector(selector) : document.documentElement;
-        const elements = selectors.map(document.querySelector, document);
+      let currentSelector;
+      const container = selector ? document.querySelector(selector) : document.documentElement;
+      const elements = selectors.map(document.querySelector, document);
 
-        this.unregisterScrollListener(element);
+      this.unregisterScrollListener(element);
+      element.scrollHandler = () => {
+        const center = (container.tagName === 'HTML' ? 0 : container.getBoundingClientRect().top) + container.clientHeight / 2;
 
-        // helper to get current scroll position of container
-        const getScrollPosition = () => container && container.tagName === 'HTML' ? (window.scrollY || document.documentElement.scrollTop) : (container ? container.scrollTop : 0);
-        // store last scroll position on the element so we can determine direction
-        let lastScrollPosition = getScrollPosition();
+        let min = Number.MAX_SAFE_INTEGER;
+        let match;
 
-        let timeoutId = null;
-        const debounce = (callback, wait) => {
-            return () => {
-                window.clearTimeout(timeoutId);
-                timeoutId = window.setTimeout(() => {
-                    callback();
-                }, wait);
-            };
+        for (let i = 0; i < elements.length; i++) {
+          const element = elements[i];
+          if (!element) continue;
+
+          const rect = element.getBoundingClientRect();
+          const diff = Math.abs(rect.top - center);
+
+          if (!match && rect.top < center) {
+            match = selectors[i];
+            min = diff;
+            continue;
+          }
+
+          if (match && rect.top >= center) continue;
+
+          if (diff < min) {
+            match = selectors[i];
+            min = diff;
+          }
         }
 
-        element.scrollHandler = () => {
-            const containerRect = container && container.tagName === 'HTML'
-                ? { top: 0, bottom: window.innerHeight, height: window.innerHeight, clientHeight: window.innerHeight }
-                : container.getBoundingClientRect();
+        if (match !== currentSelector) {
+          currentSelector = match;
+          this.navigateTo(currentSelector, false);
+          ref.invokeMethodAsync('ScrollIntoView', currentSelector);
+        }
+      };
 
-            const scrollTop = getScrollPosition();
-            //When loading the page or when no scrolling has been execute -> always look at the top of the container
-            const isDown = lastScrollPosition != 0 && scrollTop > lastScrollPosition;
-            // determine threshold based on scroll direction with a small offset
-            const threshold = isDown ? containerRect.bottom - 5 : containerRect.top + 5;
-            lastScrollPosition = scrollTop;
-            let min = Number.MAX_SAFE_INTEGER;
-            let match;
-            for (let i = 0; i < elements.length; i++) {
-                const elm = elements[i];
-                if (!elm) continue;
-
-                const rect = elm.getBoundingClientRect();
-                const diff = Math.abs(rect.top - threshold);
-
-                if (!match && rect.top < threshold) {
-                    match = selectors[i];
-                    min = diff;
-                    continue;
-                }
-
-                if (match && rect.top > threshold) continue;
-
-                if (diff < min) {
-                    match = selectors[i];
-                    min = diff;
-                }                
-            }
-
-            if (match && match !== currentSelector) {
-                currentSelector = match;
-                if (!this.selectedNavigationSelector || (match === this.selectedNavigationSelector)) {
-                    this.navigateTo(currentSelector, false);
-                    try { ref.invokeMethodAsync('ScrollIntoView', currentSelector); } catch { }
-                }
-            }
-            // clear selected navigation selector after scroll completes
-            if (this.selectedNavigationSelector && match === this.selectedNavigationSelector) {
-                debounce(() => { this.selectedNavigationSelector = undefined; }, 100)();
-            }
-        };
-
-        document.addEventListener('scroll', element.scrollHandler, true);
-        window.addEventListener('resize', element.scrollHandler, true);
+      document.addEventListener('scroll', element.scrollHandler, true);
+      window.addEventListener('resize', element.scrollHandler, true);
     },
     unregisterScrollListener: function (element) {
       document.removeEventListener('scroll', element.scrollHandler, true);
@@ -2898,7 +2640,7 @@ window.Radzen = {
     createDraggable: function(element, ref, onDragStart) {
       function handleDragStart(e) {
         e.dataTransfer.setData('', e.target.id);
-        try { ref.invokeMethodAsync(onDragStart); } catch { }
+        ref.invokeMethodAsync(onDragStart);
       }
       element.draggable = true;
       element.addEventListener('dragstart', handleDragStart);
@@ -2918,7 +2660,7 @@ Radzen.registerFabMenu = function(element, dotnet){
   }
   const handler = function(e){
     if(!element.contains(e.target)){
-      try { dotnet.invokeMethodAsync('CloseAsync'); } catch { }
+      dotnet.invokeMethodAsync('CloseAsync');
     }
   };
   element.__rzOutsideClickHandler = handler;

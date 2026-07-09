@@ -62,13 +62,14 @@ function ComboboxInput({
       <ComboboxPrimitive.Input render={<InputGroupInput disabled={disabled} />} {...props} />
       <InputGroupAddon align="inline-end">
         {showTrigger && (
-          <InputGroupButton
-            data-slot="input-group-button"
-            className="group-has-data-[slot=combobox-clear]/input-group:hidden"
-            disabled={disabled}
-          >
-            <ComboboxTrigger />
-          </InputGroupButton>
+          <ComboboxTrigger
+            render={
+              <InputGroupButton
+                className="group-has-data-[slot=combobox-clear]/input-group:hidden"
+                disabled={disabled}
+              />
+            }
+          />
         )}
         {showClear && <ComboboxClear disabled={disabled} />}
       </InputGroupAddon>

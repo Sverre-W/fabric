@@ -106,12 +106,18 @@ public sealed class KioskSession
     {
         Id = Guid.NewGuid(),
         KioskId = kioskId,
-        Status = KioskSessionStatus.Running,
+        Status = KioskSessionStatus.Starting,
         LanguageCode = KioskProfile.NormalizeLanguage(languageCode),
         CurrentInstructionVersion = 0,
         StartedAt = now,
         LastInteractionAt = now
     };
+
+    public void MarkRunning(DateTimeOffset now)
+    {
+        Status = KioskSessionStatus.Running;
+        LastInteractionAt = now;
+    }
 
     public void ChangeLanguage(string languageCode, DateTimeOffset now)
     {

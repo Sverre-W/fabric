@@ -1,9 +1,11 @@
-import { Link } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { type PropsWithChildren, useEffect } from 'react';
 
 import { WorkflowDefinitionEditor, WorkflowInstanceViewer } from './elsa-studio-elements';
 import { type ElsaRuntimeProps } from './automation-page-shell';
 import { useElsaStudioAssets } from './elsa-studio-assets';
+import { workflowDefinitionsQueryKey, workflowHistoryQueryKey } from './workflow-query-keys';
 
 const fullscreenRouteExpression = /^\/automation\/(workflow-definitions\/[^/]+\/edit|workflow-instances\/[^/]+)$/;
 const editorElements = ['elsa-workflow-definition-editor'] as const;
@@ -40,12 +42,21 @@ export function ElsaStudioViewerScreen({ instanceId, runtime, onEditWorkflowDefi
 }
 
 function ElsaStudioFullscreenFrame({ title, backTo, backLabel, children }: PropsWithChildren<{ readonly title: string; readonly backTo: string; readonly backLabel: string }>) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  function goBack() {
+    void queryClient.invalidateQueries({ queryKey: workflowDefinitionsQueryKey });
+    void queryClient.invalidateQueries({ queryKey: workflowHistoryQueryKey });
+    void navigate({ to: backTo as never });
+  }
+
   return (
     <section className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
       <div className="flex items-center gap-4 border-b border-border bg-content px-4 py-3 sm:px-5">
-        <Link to={backTo} className="rounded-interactive border border-border px-3 py-2 text-[14px] font-semibold transition hover:bg-hover-blue">
+        <button type="button" onClick={goBack} className="rounded-interactive border border-border px-3 py-2 text-[14px] font-semibold transition hover:bg-hover-blue">
           {backLabel}
-        </Link>
+        </button>
         <div className="min-w-0">
           <h1 className="truncate text-[18px] font-semibold tracking-tight sm:text-[20px]">{title}</h1>
           <p className="text-[12px] text-muted-foreground sm:text-[13px]">Fullscreen Elsa Studio workspace.</p>

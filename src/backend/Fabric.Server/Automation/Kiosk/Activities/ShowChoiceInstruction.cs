@@ -3,6 +3,7 @@ using Elsa.Workflows;
 using Elsa.Workflows.Activities.Flowchart.Attributes;
 using Elsa.Workflows.Attributes;
 using Elsa.Workflows.Models;
+using Elsa.Workflows.UIHints;
 using Fabric.Server.Kiosk.Application;
 using Fabric.Server.Kiosk.Domain;
 
@@ -27,7 +28,7 @@ public sealed class ShowChoiceInstruction : KioskInstructionActivity<string>
     [Input(DisplayName = "Message")]
     public Input<string?> Message { get; set; } = default!;
 
-    [Input(DisplayName = "Choices", Description = "Array of { value, label }.")]
+    [Input(DisplayName = "Choices", Description = "Array of { value, label }.", UIHint = InputUIHints.DynamicOutcomes)]
     public Input<ICollection<string>> Choices { get; set; } = default!;
 
     protected override KioskInstructionDefinition BuildInstruction(ActivityExecutionContext context)
@@ -41,12 +42,13 @@ public sealed class ShowChoiceInstruction : KioskInstructionActivity<string>
             []);
     }
 
-    protected override ValueTask HandleSubmissionAsync(ActivityExecutionContext context, KioskInstructionResult response)
+    protected override ValueTask HandleSubmissionAsync(ActivityExecutionContext context, KioskInstructionResult response, out string outcome)
     {
         string value = response is KioskChoiceInstructionResult choiceResult
             ? choiceResult.Value
             : throw new InvalidOperationException($"Expected {nameof(KioskChoiceInstructionResult)} but received {response.GetType().Name}.");
         context.Set(Result, value);
+        outcome = value;
         return ValueTask.CompletedTask;
     }
 }

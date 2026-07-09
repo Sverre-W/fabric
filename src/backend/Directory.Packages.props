@@ -10,17 +10,17 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.9" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="Elsa" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Expressions.CSharp" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Expressions.JavaScript" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Expressions.Liquid" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Http" Version="3.7.1" />
+    <PackageVersion Include="Elsa" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Expressions.CSharp" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Expressions.JavaScript" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Expressions.Liquid" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Http" Version="3.6.3" />
     <PackageVersion Include="Elsa.JavaScript" Version="3.5.3" />
-    <PackageVersion Include="Elsa.Persistence.EFCore" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Persistence.EFCore.PostgreSql" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Scheduling" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Tenants" Version="3.7.1" />
-    <PackageVersion Include="Elsa.Workflows.Api" Version="3.7.1" />
+    <PackageVersion Include="Elsa.Persistence.EFCore" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Persistence.EFCore.PostgreSql" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Scheduling" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Tenants" Version="3.6.3" />
+    <PackageVersion Include="Elsa.Workflows.Api" Version="3.6.3" />
     <PackageVersion Include="Fluid.Core" Version="2.31.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
@@ -29,7 +29,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
-      <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.9" />

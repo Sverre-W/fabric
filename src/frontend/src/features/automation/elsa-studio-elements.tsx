@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, type Ref } from 'react';
+import { createElement, useEffect, useRef, type Ref, type RefObject } from 'react';
 
 type ElsaElementProps = {
   readonly remoteEndpoint: string;
@@ -25,6 +25,8 @@ type WorkflowInstanceListProps = ElsaElementProps & {
 };
 
 type ElsaCustomElement = HTMLElement & {
+  accessToken?: string;
+  remoteEndpoint?: string;
   editWorkflowDefinition?: (definitionId: string) => void;
   viewWorkflowInstance?: (instanceId: string) => void;
   workflowDefinitionExecuted?: (workflowInstanceId: string) => void;
@@ -44,6 +46,8 @@ export function WorkflowDefinitionList({ onEditWorkflowDefinition, ...props }: W
 
 export function WorkflowDefinitionEditor({ definitionId, ...props }: WorkflowDefinitionEditorProps) {
   const ref = useRef<ElsaCustomElement>(null);
+
+  useElsaRuntimeSync(ref, props);
 
   useEffect(() => {
     if (ref.current)
@@ -68,6 +72,8 @@ export function WorkflowInstanceList({ onViewWorkflowInstance, ...props }: Workf
 export function WorkflowInstanceViewer({ instanceId, ...props }: WorkflowInstanceViewerProps) {
   const ref = useRef<ElsaCustomElement>(null);
 
+  useElsaRuntimeSync(ref, props);
+
   useEffect(() => {
     if (ref.current)
       ref.current.editWorkflowDefinition = props.onEditWorkflowDefinition;
@@ -85,4 +91,26 @@ function createElsaElement(tagName: string, props: ElsaElementProps & { definiti
     'instance-id': props.instanceId,
     class: props.className ?? 'fabric-elsa-studio-root block h-full w-full',
   });
+}
+
+function useElsaRuntimeSync(ref: RefObject<ElsaCustomElement | null>, props: ElsaElementProps) {
+  useEffect(() => {
+    if (!ref.current)
+      return;
+
+    ref.current.remoteEndpoint = props.remoteEndpoint;
+    ref.current.setAttribute('remote-endpoint', props.remoteEndpoint);
+  }, [props.remoteEndpoint, ref]);
+
+  useEffect(() => {
+    if (!ref.current)
+      return;
+
+    ref.current.accessToken = props.accessToken;
+
+    if (props.accessToken)
+      ref.current.setAttribute('access-token', props.accessToken);
+    else
+      ref.current.removeAttribute('access-token');
+  }, [props.accessToken, ref]);
 }

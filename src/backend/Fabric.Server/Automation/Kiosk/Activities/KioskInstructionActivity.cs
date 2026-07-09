@@ -10,12 +10,15 @@ public abstract class KioskInstructionActivity<TResult> : Activity<TResult>
 {
     protected abstract KioskInstructionDefinition BuildInstruction(ActivityExecutionContext context);
 
-    protected abstract ValueTask HandleSubmissionAsync(ActivityExecutionContext context, KioskInstructionResult response);
+    protected abstract ValueTask HandleSubmissionAsync(ActivityExecutionContext context, KioskInstructionResult response, out string outcome);
 
     protected override async ValueTask ExecuteAsync(ActivityExecutionContext context)
     {
-        var sagaService = context.GetRequiredService<KioskSagaService>();
+        KioskWorkflowAccessor accessor = context.GetRequiredService<KioskWorkflowAccessor>();
+        KioskSagaService sagaService = context.GetRequiredService<KioskSagaService>();
+        Guid sessionId = await accessor.GetRequiredSessionIdAsync(context, context.CancellationToken);
         KioskInstructionBookmark bookmark = await sagaService.ScheduleInstructionAsync(
+            sessionId,
             context.WorkflowExecutionContext.Id,
             BuildInstruction(context),
             context.CancellationToken);
@@ -25,17 +28,18 @@ public abstract class KioskInstructionActivity<TResult> : Activity<TResult>
 
     private async ValueTask ResumeAsync(ActivityExecutionContext context)
     {
-        var instructionService = context.GetRequiredService<KioskInstructionService>();
-        await instructionService.ClearCurrentInstructionAsync(context.WorkflowExecutionContext.Id, context.CancellationToken);
+        KioskWorkflowAccessor accessor = context.GetRequiredService<KioskWorkflowAccessor>();
+        KioskInstructionService instructionService = context.GetRequiredService<KioskInstructionService>();
+        Guid sessionId = await accessor.GetRequiredSessionIdAsync(context, context.CancellationToken);
+        await instructionService.ClearCurrentInstructionAsync(sessionId, context.CancellationToken);
 
-        if (context.TryGetWorkflowInput<bool>(KioskWorkflowContext.CancelledInputName, out bool cancelled) && cancelled)
+        if (context.TryGetWorkflowInput(KioskWorkflowContext.CancelledInputName, out bool cancelled) && cancelled)
         {
-            await context.CompleteActivityWithOutcomesAsync("Cancelled");
             return;
         }
 
         KioskInstructionResult response = context.GetWorkflowInput<KioskInstructionResult>(KioskWorkflowContext.InstructionResponseInputName);
-        await HandleSubmissionAsync(context, response);
-        await context.CompleteActivityWithOutcomesAsync("Done");
+        await HandleSubmissionAsync(context, response, out string outcome);
+        await context.CompleteActivityWithOutcomesAsync(outcome);
     }
 }
