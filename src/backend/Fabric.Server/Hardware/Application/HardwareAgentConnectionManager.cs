@@ -1,28 +1,39 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using Fabric.Hardware.Contracts.Commands;
 
 namespace Fabric.Server.Hardware.Application;
 
 public sealed class HardwareAgentConnectionManager
 {
-    private readonly ConcurrentDictionary<string, Channel<Guid>> _channels = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Channel<HardwareCommandStreamEvent>> _channels = new(StringComparer.OrdinalIgnoreCase);
 
-    public ChannelReader<Guid> Connect(string agentId)
+    public ChannelReader<HardwareCommandStreamEvent> Connect(string agentId)
     {
-        Channel<Guid> channel = Channel.CreateUnbounded<Guid>();
+        Channel<HardwareCommandStreamEvent> channel = Channel.CreateUnbounded<HardwareCommandStreamEvent>();
         _channels[agentId] = channel;
         return channel.Reader;
     }
 
     public void Disconnect(string agentId)
     {
-        if (_channels.TryRemove(agentId, out Channel<Guid>? channel))
+        if (_channels.TryRemove(agentId, out Channel<HardwareCommandStreamEvent>? channel))
             channel.Writer.TryComplete();
     }
 
     public void NotifyCommandAvailable(string agentId, Guid commandId)
     {
-        if (_channels.TryGetValue(agentId, out Channel<Guid>? channel))
-            channel.Writer.TryWrite(commandId);
+        Notify(agentId, new HardwareCommandStreamEvent(HardwareCommandEventType.CommandAvailable, commandId, null, null, null));
+    }
+
+    public void NotifyCommandCancelled(string agentId, Guid commandId, string deviceId, string capability, string? reason)
+    {
+        Notify(agentId, new HardwareCommandStreamEvent(HardwareCommandEventType.CommandCancelled, commandId, deviceId, capability, reason));
+    }
+
+    private void Notify(string agentId, HardwareCommandStreamEvent commandEvent)
+    {
+        if (_channels.TryGetValue(agentId, out Channel<HardwareCommandStreamEvent>? channel))
+            channel.Writer.TryWrite(commandEvent);
     }
 }

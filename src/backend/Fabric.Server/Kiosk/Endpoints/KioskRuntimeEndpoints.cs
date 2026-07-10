@@ -206,16 +206,12 @@ public static class KioskRuntimeEndpoints
         return Results.Ok(session.ToResponse());
     }
 
-    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskSagaService kioskSagaService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskSessionCancellationService cancellationService, CancellationToken cancellationToken = default)
     {
         Guid kioskId = context.User.GetKioskId();
-        KioskSession? session = await GetCurrentSessionAsync(kioskId, db, cancellationToken);
+        KioskSession? session = await cancellationService.CancelActiveSessionAsync(kioskId, cancellationToken);
         if (session is null)
             return Results.NotFound();
-
-        session = await kioskSagaService.CancelSessionAsync(session.Id, cancellationToken);
-
-        await cleanupService.CleanupAsync(kioskId, cancellationToken);
         return Results.Ok(session.ToResponse());
     }
 

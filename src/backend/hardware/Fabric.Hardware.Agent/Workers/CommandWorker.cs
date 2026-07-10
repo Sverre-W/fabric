@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using Fabric.Hardware.Agent.Devices;
 using Fabric.Hardware.Agent.Gateway;
@@ -22,6 +23,9 @@ public sealed class CommandWorker(
     ILogger<CommandWorker> logger) : BackgroundService
 {
     private readonly SemaphoreSlim _drainLock = new(1, 1);
+    private readonly ConcurrentDictionary<Guid, ActiveCommandExecution> _activeCommands = [];
+    private int _drainRequested;
+    private int _drainWorkerActive;
     private readonly IReadOnlyDictionary<string, ICollectorDevice> _collectors = collectors.ToDictionary(collector => collector.DeviceId, StringComparer.OrdinalIgnoreCase);
     private readonly IReadOnlyDictionary<string, IDispenserDevice> _dispensers = dispensers.ToDictionary(dispenser => dispenser.DeviceId, StringComparer.OrdinalIgnoreCase);
     private readonly IReadOnlyDictionary<string, IEncoderDevice> _encoders = encoders.ToDictionary(encoder => encoder.DeviceId, StringComparer.OrdinalIgnoreCase);
@@ -57,9 +61,19 @@ public sealed class CommandWorker(
             {
                 logger.CommandStreamConnected();
                 failures = 0;
+                await ReconcileActiveCommandStatusesAsync(stoppingToken);
 
-                await foreach (Guid _ in gatewayClient.StreamCommandNotificationsAsync(stoppingToken))
-                    await DrainCommandsAsync(stoppingToken);
+                await foreach (HardwareCommandStreamEvent commandEvent in gatewayClient.StreamCommandEventsAsync(stoppingToken))
+                {
+                    if (commandEvent.Type == HardwareCommandEventType.CommandCancelled)
+                    {
+                        HandleCommandCancelled(commandEvent);
+                        continue;
+                    }
+
+                    logger.CommandNotificationReceived(commandEvent.CommandId);
+                    RequestDrain(stoppingToken);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -68,7 +82,11 @@ public sealed class CommandWorker(
             catch (Exception ex)
             {
                 failures++;
-                logger.CommandStreamDisconnected(ex);
+                if (_activeCommands.IsEmpty)
+                    logger.CommandStreamDisconnected(ex);
+                else
+                    logger.CommandStreamDisconnectedWithActiveCommands(_activeCommands.Count, ex);
+
                 await PollUntilReconnectAsync(GetReconnectDelay(failures), stoppingToken);
             }
         }
@@ -79,7 +97,7 @@ public sealed class CommandWorker(
         while (!stoppingToken.IsCancellationRequested)
         {
             await Task.Delay(_options.CommandReconcileInterval, stoppingToken);
-            await DrainCommandsAsync(stoppingToken);
+            RequestDrain(stoppingToken);
         }
     }
 
@@ -92,7 +110,8 @@ public sealed class CommandWorker(
         {
             try
             {
-                await DrainCommandsAsync(stoppingToken);
+                RequestDrain(stoppingToken);
+                await ReconcileActiveCommandStatusesAsync(stoppingToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -101,7 +120,8 @@ public sealed class CommandWorker(
 
             try
             {
-                await Task.Delay(_options.CommandPollInterval, linkedCancellation.Token);
+                TimeSpan nextDelay = _activeCommands.IsEmpty ? _options.CommandPollInterval : _options.CommandReconcileInterval;
+                await Task.Delay(nextDelay, linkedCancellation.Token);
             }
             catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
             {
@@ -121,6 +141,8 @@ public sealed class CommandWorker(
                 if (command is null)
                     return;
 
+                logger.CommandFetched(command.CommandId, command.DeviceId, command.Capability);
+
                 await ProcessCommandAsync(command, stoppingToken);
             }
         }
@@ -128,6 +150,44 @@ public sealed class CommandWorker(
         {
             _drainLock.Release();
         }
+    }
+
+    private void RequestDrain(CancellationToken stoppingToken)
+    {
+        Interlocked.Exchange(ref _drainRequested, 1);
+        if (Interlocked.CompareExchange(ref _drainWorkerActive, 1, 0) != 0)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    if (Interlocked.Exchange(ref _drainRequested, 0) == 0)
+                        break;
+
+                    try
+                    {
+                        await DrainCommandsAsync(stoppingToken);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.CommandPollFailed(ex);
+                    }
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _drainWorkerActive, 0);
+                if (!stoppingToken.IsCancellationRequested && Interlocked.CompareExchange(ref _drainRequested, 0, 0) == 1)
+                    RequestDrain(stoppingToken);
+            }
+        }, CancellationToken.None);
     }
 
     private async Task ProcessCommandAsync(HardwareCommandEnvelope command, CancellationToken stoppingToken)
@@ -139,40 +199,54 @@ public sealed class CommandWorker(
             return;
         }
 
-        PostHardwareCommandResultRequest result = await ExecuteCommandAsync(claim.Command, stoppingToken);
-        await gatewayClient.PostCommandResultAsync(command.CommandId, result, stoppingToken);
+        logger.CommandClaimed(claim.Command.CommandId, claim.Command.DeviceId, claim.Command.Capability);
+        logger.CommandExecuting(claim.Command.CommandId, claim.Command.DeviceId, claim.Command.Capability);
+        using ActiveCommandExecution execution = new(claim.Command.CommandId, claim.Command.DeviceId, claim.Command.Capability);
+        _activeCommands[claim.Command.CommandId] = execution;
+
+        try
+        {
+            PostHardwareCommandResultRequest result = await ExecuteCommandAsync(claim.Command, stoppingToken, execution);
+            await gatewayClient.PostCommandResultAsync(command.CommandId, result, stoppingToken);
+            logger.CommandCompleted(claim.Command.CommandId, claim.Command.DeviceId, claim.Command.Capability, result.Status);
+        }
+        finally
+        {
+            _activeCommands.TryRemove(claim.Command.CommandId, out _);
+        }
     }
 
-    private async Task<PostHardwareCommandResultRequest> ExecuteCommandAsync(HardwareCommandEnvelope command, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> ExecuteCommandAsync(HardwareCommandEnvelope command, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         if (_qrReaders.TryGetValue(command.DeviceId, out IQrReaderDevice? qrReader))
-            return await ExecuteQrCommandAsync(command, qrReader, stoppingToken);
+            return await ExecuteQrCommandAsync(command, qrReader, stoppingToken, execution);
 
         if (_dispensers.TryGetValue(command.DeviceId, out IDispenserDevice? dispenser))
-            return await ExecuteDispenserCommandAsync(command, dispenser, stoppingToken);
+            return await ExecuteDispenserCommandAsync(command, dispenser, stoppingToken, execution);
 
         if (_collectors.TryGetValue(command.DeviceId, out ICollectorDevice? collector))
-            return await ExecuteCollectorCommandAsync(command, collector, stoppingToken);
+            return await ExecuteCollectorCommandAsync(command, collector, stoppingToken, execution);
 
         if (_encoders.TryGetValue(command.DeviceId, out IEncoderDevice? encoder))
-            return await ExecuteEncoderCommandAsync(command, encoder, stoppingToken);
+            return await ExecuteEncoderCommandAsync(command, encoder, stoppingToken, execution);
 
         if (_rfidReaders.TryGetValue(command.DeviceId, out IRfidReaderDevice? rfidReader))
-            return await ExecuteRfidCommandAsync(command, rfidReader, stoppingToken);
+            return await ExecuteRfidCommandAsync(command, rfidReader, stoppingToken, execution);
 
         return Failure(HardwareOperationStatus.DeviceUnavailable, "device_unavailable", "Device is not available on this agent.");
     }
 
-    private async Task<PostHardwareCommandResultRequest> ExecuteRfidCommandAsync(HardwareCommandEnvelope command, IRfidReaderDevice rfidReader, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> ExecuteRfidCommandAsync(HardwareCommandEnvelope command, IRfidReaderDevice rfidReader, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         if (!string.Equals(command.Capability, HardwareCapabilities.RfidRead, StringComparison.OrdinalIgnoreCase))
             return Failure(HardwareOperationStatus.Failed, "unsupported_capability", "Capability is not supported by this device.");
 
         using var timeout = new CancellationTokenSource(_options.CommandTimeout);
-        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token);
+        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token, execution.RemoteCancellation.Token);
 
         try
         {
+            execution.SetPhase("rfid read");
             string cardNumber = await rfidReader.ReadCardAsync(linkedCancellation.Token);
             var result = new JsonObject { ["cardNumber"] = cardNumber };
             return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
@@ -180,6 +254,10 @@ public sealed class CommandWorker(
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !stoppingToken.IsCancellationRequested)
         {
             return Failure(HardwareOperationStatus.Timeout, "timeout", "RFID read timed out.");
+        }
+        catch (OperationCanceledException) when (execution.IsRemoteCancellationRequested)
+        {
+            return HandleRemoteCancellation(command, execution);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
@@ -192,25 +270,30 @@ public sealed class CommandWorker(
         }
     }
 
-    private async Task<PostHardwareCommandResultRequest> ExecuteEncoderCommandAsync(HardwareCommandEnvelope command, IEncoderDevice encoder, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> ExecuteEncoderCommandAsync(HardwareCommandEnvelope command, IEncoderDevice encoder, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         using var timeout = new CancellationTokenSource(_options.CommandTimeout);
-        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token);
+        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token, execution.RemoteCancellation.Token);
 
         try
         {
             if (string.Equals(command.Capability, HardwareCapabilities.CardPresent, StringComparison.OrdinalIgnoreCase))
             {
+                execution.SetPhase("waiting for card present");
                 await encoder.WaitForCardPresentAsync(linkedCancellation.Token);
                 var result = new JsonObject { ["present"] = true };
                 return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
             }
 
             if (string.Equals(command.Capability, HardwareCapabilities.RfidApduExchange, StringComparison.OrdinalIgnoreCase))
+            {
+                execution.SetPhase("apdu exchange");
                 return await ExchangeEncoderApduAsync(command.Payload, encoder, linkedCancellation.Token);
+            }
 
             if (string.Equals(command.Capability, HardwareCapabilities.CardEject, StringComparison.OrdinalIgnoreCase))
             {
+                execution.SetPhase("waiting for card removal");
                 await encoder.WaitForCardRemovalAsync(linkedCancellation.Token);
                 var result = new JsonObject { ["removed"] = true };
                 return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
@@ -221,6 +304,10 @@ public sealed class CommandWorker(
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !stoppingToken.IsCancellationRequested)
         {
             return Failure(HardwareOperationStatus.Timeout, "timeout", "Encoder command timed out.");
+        }
+        catch (OperationCanceledException) when (execution.IsRemoteCancellationRequested)
+        {
+            return HandleRemoteCancellation(command, execution);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
@@ -243,16 +330,17 @@ public sealed class CommandWorker(
         return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
     }
 
-    private async Task<PostHardwareCommandResultRequest> ExecuteQrCommandAsync(HardwareCommandEnvelope command, IQrReaderDevice qrReader, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> ExecuteQrCommandAsync(HardwareCommandEnvelope command, IQrReaderDevice qrReader, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         if (!string.Equals(command.Capability, HardwareCapabilities.QrScan, StringComparison.OrdinalIgnoreCase))
             return Failure(HardwareOperationStatus.Failed, "unsupported_capability", "Capability is not supported by this device.");
 
         using var timeout = new CancellationTokenSource(_options.CommandTimeout);
-        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token);
+        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token, execution.RemoteCancellation.Token);
 
         try
         {
+            execution.SetPhase("qr scan");
             string value = await qrReader.ReadQrCodeAsync(linkedCancellation.Token);
             var result = new JsonObject { ["value"] = value };
             return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
@@ -260,6 +348,10 @@ public sealed class CommandWorker(
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !stoppingToken.IsCancellationRequested)
         {
             return Failure(HardwareOperationStatus.Timeout, "timeout", "QR scan timed out.");
+        }
+        catch (OperationCanceledException) when (execution.IsRemoteCancellationRequested)
+        {
+            return HandleRemoteCancellation(command, execution);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
@@ -272,30 +364,30 @@ public sealed class CommandWorker(
         }
     }
 
-    private async Task<PostHardwareCommandResultRequest> ExecuteDispenserCommandAsync(HardwareCommandEnvelope command, IDispenserDevice dispenser, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> ExecuteDispenserCommandAsync(HardwareCommandEnvelope command, IDispenserDevice dispenser, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         if (string.Equals(command.Capability, HardwareCapabilities.CardDrop, StringComparison.OrdinalIgnoreCase))
             return await DropCardAsync(command, dispenser, stoppingToken);
 
         if (string.Equals(command.Capability, HardwareCapabilities.CardPresent, StringComparison.OrdinalIgnoreCase))
-            return await PresentCardAsync(command, dispenser, dropAfterRead: false, stoppingToken);
+            return await PresentCardAsync(command, dispenser, dropAfterRead: false, stoppingToken, execution);
 
         if (string.Equals(command.Capability, HardwareCapabilities.CardDispense, StringComparison.OrdinalIgnoreCase))
-            return await PresentCardAsync(command, dispenser, dropAfterRead: true, stoppingToken);
+            return await PresentCardAsync(command, dispenser, dropAfterRead: true, stoppingToken, execution);
 
         return Failure(HardwareOperationStatus.Failed, "unsupported_capability", "Capability is not supported by this device.");
     }
 
-    private async Task<PostHardwareCommandResultRequest> ExecuteCollectorCommandAsync(HardwareCommandEnvelope command, ICollectorDevice collector, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> ExecuteCollectorCommandAsync(HardwareCommandEnvelope command, ICollectorDevice collector, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         if (string.Equals(command.Capability, HardwareCapabilities.CardPresent, StringComparison.OrdinalIgnoreCase))
-            return await PresentCollectorCardAsync(command, collector, stoppingToken);
+            return await PresentCollectorCardAsync(command, collector, stoppingToken, execution);
 
         if (string.Equals(command.Capability, HardwareCapabilities.CardCollect, StringComparison.OrdinalIgnoreCase))
             return await CollectCardAsync(command, collector, stoppingToken);
 
         if (string.Equals(command.Capability, HardwareCapabilities.CardEject, StringComparison.OrdinalIgnoreCase))
-            return await EjectCardAsync(command, collector, stoppingToken);
+            return await EjectCardAsync(command, collector, stoppingToken, execution);
 
         return Failure(HardwareOperationStatus.Failed, "unsupported_capability", "Capability is not supported by this device.");
     }
@@ -321,20 +413,23 @@ public sealed class CommandWorker(
         }
     }
 
-    private async Task<PostHardwareCommandResultRequest> PresentCollectorCardAsync(HardwareCommandEnvelope command, ICollectorDevice collector, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> PresentCollectorCardAsync(HardwareCommandEnvelope command, ICollectorDevice collector, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         if (!_rfidReaders.TryGetValue(collector.RfidReaderDeviceId, out IRfidReaderDevice? rfidReader))
             return Failure(HardwareOperationStatus.DeviceUnavailable, "rfid_reader_unavailable", "Configured RFID reader is not available on this agent.");
 
         try
         {
-            await collector.WaitForCardAtReaderAsync(stoppingToken);
+            execution.SetPhase("waiting for collector card present");
+            using var waitCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, execution.RemoteCancellation.Token);
+            await collector.WaitForCardAtReaderAsync(waitCancellation.Token);
 
             using var timeout = new CancellationTokenSource(collector.RfidReadTimeout);
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token);
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token, execution.RemoteCancellation.Token);
 
             try
             {
+                execution.SetPhase("collector rfid read");
                 string cardNumber = await rfidReader.ReadCardAsync(linkedCancellation.Token);
                 var result = new JsonObject { ["cardNumber"] = cardNumber };
                 return new PostHardwareCommandResultRequest(HardwareOperationStatus.Succeeded, result, null, timeProvider.GetUtcNow());
@@ -343,6 +438,10 @@ public sealed class CommandWorker(
             {
                 return Failure(HardwareOperationStatus.Timeout, "rfid_read_timeout", "RFID read timed out.");
             }
+        }
+        catch (OperationCanceledException) when (execution.IsRemoteCancellationRequested)
+        {
+            return HandleRemoteCancellation(command, execution);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
@@ -383,11 +482,13 @@ public sealed class CommandWorker(
         }
     }
 
-    private async Task<PostHardwareCommandResultRequest> EjectCardAsync(HardwareCommandEnvelope command, ICollectorDevice collector, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> EjectCardAsync(HardwareCommandEnvelope command, ICollectorDevice collector, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         try
         {
-            bool ejected = await collector.EjectAsync(stoppingToken);
+            using var ejectCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, execution.RemoteCancellation.Token);
+            execution.SetPhase("card eject");
+            bool ejected = await collector.EjectAsync(ejectCancellation.Token);
             if (!ejected)
             {
                 logger.CollectorCommandFailed(collector.DeviceId, command.Capability);
@@ -395,10 +496,11 @@ public sealed class CommandWorker(
             }
 
             using var removalTimeout = new CancellationTokenSource(collector.RemovalTimeout);
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, removalTimeout.Token);
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, removalTimeout.Token, execution.RemoteCancellation.Token);
 
             try
             {
+                execution.SetPhase("waiting for collector card removal");
                 await collector.WaitForCardRemovalAsync(linkedCancellation.Token);
                 var removed = new JsonObject
                 {
@@ -422,6 +524,10 @@ public sealed class CommandWorker(
                     timeProvider.GetUtcNow());
             }
         }
+        catch (OperationCanceledException) when (execution.IsRemoteCancellationRequested)
+        {
+            return HandleRemoteCancellation(command, execution);
+        }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
             return Failure(HardwareOperationStatus.Cancelled, "cancelled", "Card eject operation was cancelled.");
@@ -433,14 +539,16 @@ public sealed class CommandWorker(
         }
     }
 
-    private async Task<PostHardwareCommandResultRequest> PresentCardAsync(HardwareCommandEnvelope command, IDispenserDevice dispenser, bool dropAfterRead, CancellationToken stoppingToken)
+    private async Task<PostHardwareCommandResultRequest> PresentCardAsync(HardwareCommandEnvelope command, IDispenserDevice dispenser, bool dropAfterRead, CancellationToken stoppingToken, ActiveCommandExecution execution)
     {
         if (!_rfidReaders.TryGetValue(dispenser.RfidReaderDeviceId, out IRfidReaderDevice? rfidReader))
             return Failure(HardwareOperationStatus.DeviceUnavailable, "rfid_reader_unavailable", "Configured RFID reader is not available on this agent.");
 
         try
         {
-            bool dispensed = await dispenser.DispenseAsync(stoppingToken);
+            using var dispenseCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, execution.RemoteCancellation.Token);
+            execution.SetPhase(dropAfterRead ? "dispense and read" : "waiting for dispenser card present");
+            bool dispensed = await dispenser.DispenseAsync(dispenseCancellation.Token);
             if (!dispensed)
             {
                 logger.DispenserCommandFailed(dispenser.DeviceId, dropAfterRead ? HardwareCapabilities.CardDispense : HardwareCapabilities.CardPresent);
@@ -448,10 +556,11 @@ public sealed class CommandWorker(
             }
 
             using var timeout = new CancellationTokenSource(dispenser.RfidReadTimeout);
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token);
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeout.Token, execution.RemoteCancellation.Token);
 
             try
             {
+                execution.SetPhase("dispenser rfid read");
                 string cardNumber = await rfidReader.ReadCardAsync(linkedCancellation.Token);
                 if (dropAfterRead && !await DropAfterReadAsync(dispenser, stoppingToken))
                     return Failure(HardwareOperationStatus.Failed, "drop_failed", "Card was read, but dispenser did not confirm card drop.");
@@ -470,6 +579,10 @@ public sealed class CommandWorker(
                 logger.CardPresentReadFailed(dispenser.DeviceId, rfidReader.DeviceId, ex);
                 return Failure(HardwareOperationStatus.Failed, "rfid_read_failed", "RFID read failed.");
             }
+        }
+        catch (OperationCanceledException) when (execution.IsRemoteCancellationRequested)
+        {
+            return HandleRemoteCancellation(command, execution);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
@@ -501,6 +614,44 @@ public sealed class CommandWorker(
 
     private PostHardwareCommandResultRequest Failure(HardwareOperationStatus status, string code, string message) =>
         new(status, null, new HardwareErrorResponse(code, message), timeProvider.GetUtcNow());
+
+    private void HandleCommandCancelled(HardwareCommandStreamEvent commandEvent)
+    {
+        if (!_activeCommands.TryGetValue(commandEvent.CommandId, out ActiveCommandExecution? execution))
+            return;
+
+        string reason = string.IsNullOrWhiteSpace(commandEvent.Reason) ? "Command was cancelled remotely." : commandEvent.Reason;
+        if (!execution.TryCancel(reason))
+            return;
+
+        logger.CommandCancellationObserved(commandEvent.CommandId, execution.DeviceId, execution.Capability, reason);
+    }
+
+    private async Task ReconcileActiveCommandStatusesAsync(CancellationToken cancellationToken)
+    {
+        if (_activeCommands.IsEmpty)
+            return;
+
+        foreach ((Guid commandId, ActiveCommandExecution execution) in _activeCommands)
+        {
+            HardwareCommandStatusResponse? status = await gatewayClient.GetCommandStatusAsync(commandId, cancellationToken);
+            if (status?.Status != HardwareCommandStatus.Cancelled)
+                continue;
+
+            string reason = status.ErrorMessage ?? "Command was cancelled remotely.";
+            if (!execution.TryCancel(reason))
+                continue;
+
+            logger.CommandCancellationObserved(commandId, execution.DeviceId, execution.Capability, reason);
+        }
+    }
+
+    private PostHardwareCommandResultRequest HandleRemoteCancellation(HardwareCommandEnvelope command, ActiveCommandExecution execution)
+    {
+        logger.CommandCancelledDuringPhase(command.CommandId, command.DeviceId, command.Capability, execution.Phase);
+        string message = execution.CancellationReason ?? "Command was cancelled remotely.";
+        return Failure(HardwareOperationStatus.Cancelled, "cancelled", message);
+    }
 
     private bool TryReadApduRequest(JsonObject? payload, out RfidApduExchangeRequest? request, out PostHardwareCommandResultRequest? error)
     {
@@ -561,4 +712,32 @@ public sealed class CommandWorker(
         4 => TimeSpan.FromSeconds(10),
         _ => TimeSpan.FromSeconds(30)
     };
+
+    private sealed class ActiveCommandExecution(Guid commandId, string deviceId, string capability) : IDisposable
+    {
+        private string _phase = "command execution";
+        private string? _cancellationReason;
+
+        public Guid CommandId { get; } = commandId;
+        public string DeviceId { get; } = deviceId;
+        public string Capability { get; } = capability;
+        public CancellationTokenSource RemoteCancellation { get; } = new();
+        public bool IsRemoteCancellationRequested => RemoteCancellation.IsCancellationRequested;
+        public string Phase => _phase;
+        public string? CancellationReason => _cancellationReason;
+
+        public void SetPhase(string phase) => _phase = phase;
+
+        public bool TryCancel(string reason)
+        {
+            _cancellationReason = reason;
+            if (RemoteCancellation.IsCancellationRequested)
+                return false;
+
+            RemoteCancellation.Cancel();
+            return true;
+        }
+
+        public void Dispose() => RemoteCancellation.Dispose();
+    }
 }

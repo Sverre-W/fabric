@@ -50,6 +50,7 @@ namespace Fabric.Server.Kiosk;
 [JsonSerializable(typeof(KioskInstructionResponse))]
 [JsonSerializable(typeof(SubmitKioskInstructionResponseRequest))]
 [JsonSerializable(typeof(Domain.KioskInstruction))]
+[JsonSerializable(typeof(Domain.KioskMessageInstruction))]
 [JsonSerializable(typeof(Domain.KioskChoiceInstruction))]
 [JsonSerializable(typeof(Domain.KioskFormInstruction))]
 [JsonSerializable(typeof(Domain.KioskChoiceInstructionResult))]

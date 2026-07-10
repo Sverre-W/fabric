@@ -1,0 +1,84 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.Hosting.Lifetime": "Information",
+      "Fabric" : "Trace",
+      "System.Net.Http" : "Warning"
+    }
+  },
+  "HardwareAgent": {
+    "ServerBaseUrl": "http://localhost:5173",
+    "AgentId": "kiosk-001",
+    "ApiKey": "",
+    "HeartbeatInterval": "00:00:30",
+    "InventoryInterval": "00:05:00",
+    "CommandPollInterval": "00:00:02",
+    "CommandReconcileInterval": "00:01:00",
+    "CommandTimeout": "00:02:00",
+    "ServiceName": "Fabric Hardware Agent",
+    "Encoders": [
+      {
+        "$type": "HumanAssistedEncoder",
+        "DeviceId": "smart-card-encoder-01",
+        "Reader": "HID OMNIKEY 5427 CK (01010053575235303105353340223530) 00 00",
+        "Implementation": "Native"
+      },
+      {
+        "$type": "DispenserEncoder",
+        "DeviceId": "smart-card-encoder-02",
+        "ComPort": "COM8",
+        "Reader": "smart-card-hid-2",
+        "Implementation": "Iso",
+        "ResponseTimeout": "00:00:05"
+      }
+    ],
+    "QrReaders": [
+      {
+        "DeviceId": "front-qr-reader",
+        "ComPort": "COM3"
+      }
+    ],
+    "Dispensers": [
+      {
+        "DeviceId": "card-dispenser-bnpf",
+        "ComPort": "COM5",
+        "RfidReaderDeviceId": "rfid-reader-collector",
+        "ResponseTimeout": "00:00:05",
+        "RfidReadTimeout": "00:00:05"
+      },
+      {
+        "DeviceId": "card-dispenser-fluxsys",
+        "ComPort": "COM6",
+        "RfidReaderDeviceId": "rfid-reader-collector",
+        "ResponseTimeout": "00:00:05",
+        "RfidReadTimeout": "00:00:05"
+      }
+    ],
+    "Collectors": [
+      {
+        "DeviceId": "card-collector-01",
+        "ComPort": "COM7",
+        "RfidReaderDeviceId": "rfid-reader-collector",
+        "PollingInterval": "00:00:00.250",
+        "RfidReadTimeout": "00:00:05",
+        "RemovalTimeout": "00:00:20",
+        "AckTimeout": "00:00:00.500",
+        "MechanicalAckTimeout": "00:00:03",
+        "MaxJamCount": 3
+      }
+    ],
+    "RfidEas": {
+      "CardFormat": "BCD",
+      "Transformer": "None",
+      "DelayAfterRead": "00:00:00.250",
+      "PollingDelay": "00:00:00.250",
+      "Readers": [
+        {
+          "DeviceId": "rfid-reader-collector",
+          "ReaderId": 0
+        }
+      ]
+    }
+  }
+}

@@ -28,6 +28,7 @@ public static class DesfireServiceCollectionExtensions
         collection.AddScoped<DesfireDeviceLeaseStore>();
         collection.AddScoped<DesfireVariableResolver>();
         collection.AddScoped<DesfireEncodingService>();
+        collection.AddSingleton<DesfireEncodingWakeChannel>();
         collection.AddHostedService<DesfireEncodingWorker>();
 
         return collection;

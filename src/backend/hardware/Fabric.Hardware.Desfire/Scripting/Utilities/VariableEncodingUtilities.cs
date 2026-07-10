@@ -26,7 +26,7 @@ public static class VariableEncodingUtilities
     private static byte[] EncodeHex(byte[] value)
     {
         string text = System.Text.Encoding.UTF8.GetString(value).Trim();
-        return text.Length == 0 ? [] : Convert.FromHexString(text);
+        return text.Length == 0 ? [] : Convert.FromHexString(PadHex(text));
     }
 
     private static byte[] EncodeUnsignedInteger(byte[] value, int widthInBytes, bool littleEndian)
@@ -135,6 +135,11 @@ public static class VariableEncodingUtilities
         }
 
         return new EncodingSpec(EncodingKind.UnsignedInteger, widthInBytes, littleEndian);
+    }
+
+    private static string PadHex(string value)
+    {
+        return value.Length % 2 == 0 ? value : $"0{value}";
     }
 
     private readonly record struct EncodingSpec(EncodingKind Kind, int WidthInBytes, bool LittleEndian);

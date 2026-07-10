@@ -9,7 +9,9 @@ import { Button, buttonVariants } from '@/shared/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/components/ui/empty';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 
-import { chipDesignsQueryKey, formatDateTime, systemProvidersQueryKey, transformationsQueryKey, type ChipDesign, type SystemProvider, type Transformation } from './card-management-types';
+import { chipDesignsQueryKey, formatDateTime, systemProvidersQueryKey, type ChipDesign, type SystemProvider, type Transformation } from './card-management-types';
+
+const chipDesignerTransformationsQueryKey = ['card-management', 'chip-designer-page', 'transformations'] as const;
 
 export default function ChipDesignerPage() {
   const queryClient = useQueryClient();
@@ -26,7 +28,7 @@ export default function ChipDesignerPage() {
   });
 
   const transformationsQuery = useQuery({
-    queryKey: transformationsQueryKey,
+    queryKey: chipDesignerTransformationsQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/transformations', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error) {
@@ -69,7 +71,7 @@ export default function ChipDesignerPage() {
       }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: transformationsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: chipDesignerTransformationsQueryKey });
       toast.success('Transformation deleted.');
     },
     onError: () => toast.error('Could not delete transformation. Encoding history may reference it.'),

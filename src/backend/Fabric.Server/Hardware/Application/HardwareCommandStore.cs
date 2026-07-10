@@ -5,12 +5,12 @@ using Fabric.Hardware.Contracts.Commands;
 
 namespace Fabric.Server.Hardware.Application;
 
-public sealed class HardwareCommandStore(TimeProvider timeProvider)
+public sealed class HardwareCommandStore(TimeProvider timeProvider, HardwareAgentConnectionManager connectionManager)
 {
     private static readonly TimeSpan LeaseDuration = TimeSpan.FromSeconds(30);
     private readonly ConcurrentDictionary<Guid, PendingHardwareCommand> _commands = new();
 
-    public PendingHardwareCommand Create(string agentId, string deviceId, string capability, JsonObject? payload, TimeSpan timeout)
+    public PendingHardwareCommand Create(string agentId, string deviceId, string capability, JsonObject? payload, TimeSpan timeout, Guid? ownerId = null)
     {
         DateTimeOffset now = timeProvider.GetUtcNow();
         var command = new PendingHardwareCommand(
@@ -20,7 +20,8 @@ public sealed class HardwareCommandStore(TimeProvider timeProvider)
             capability,
             now,
             now.Add(timeout),
-            payload);
+            payload,
+            ownerId);
 
         _commands[command.CommandId] = command;
         return command;
@@ -66,6 +67,16 @@ public sealed class HardwareCommandStore(TimeProvider timeProvider)
         return command.TryComplete(agentId, request);
     }
 
+    public HardwareCommandStatusResponse? GetStatus(Guid commandId, string agentId)
+    {
+        if (!_commands.TryGetValue(commandId, out PendingHardwareCommand? command))
+            return null;
+
+        return command.AgentId.Equals(agentId, StringComparison.OrdinalIgnoreCase)
+            ? command.ToStatusResponse()
+            : null;
+    }
+
     public async Task<PostHardwareCommandResultRequest> WaitForResultAsync(
         PendingHardwareCommand command,
         CancellationToken cancellationToken)
@@ -89,6 +100,28 @@ public sealed class HardwareCommandStore(TimeProvider timeProvider)
             return result;
         }
     }
+
+    public int CancelByOwner(Guid ownerId, string reason)
+    {
+        int cancelledCount = 0;
+        foreach (PendingHardwareCommand command in _commands.Values)
+        {
+            if (command.OwnerId != ownerId)
+                continue;
+
+            if (!command.TryCancel(new PostHardwareCommandResultRequest(
+                    HardwareOperationStatus.Cancelled,
+                    null,
+                    new HardwareErrorResponse("cancelled", reason),
+                    timeProvider.GetUtcNow())))
+                continue;
+
+            connectionManager.NotifyCommandCancelled(command.AgentId, command.CommandId, command.DeviceId, command.Capability, reason);
+            cancelledCount++;
+        }
+
+        return cancelledCount;
+    }
 }
 
 public sealed class PendingHardwareCommand(
@@ -98,7 +131,8 @@ public sealed class PendingHardwareCommand(
     string capability,
     DateTimeOffset createdAt,
     DateTimeOffset expiresAt,
-    JsonObject? payload)
+    JsonObject? payload,
+    Guid? ownerId)
 {
     private readonly object _sync = new();
 
@@ -109,11 +143,15 @@ public sealed class PendingHardwareCommand(
     public DateTimeOffset CreatedAt { get; } = createdAt;
     public DateTimeOffset ExpiresAt { get; } = expiresAt;
     public JsonObject? Payload { get; } = payload;
+    public Guid? OwnerId { get; } = ownerId;
     public HardwareCommandStatus Status { get; private set; } = HardwareCommandStatus.Pending;
+    public string? ErrorCode { get; private set; }
+    public string? ErrorMessage { get; private set; }
     public DateTimeOffset? LeaseExpiresAt { get; private set; }
     public TaskCompletionSource<PostHardwareCommandResultRequest> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public HardwareCommandEnvelope ToEnvelope() => new(CommandId, DeviceId, Capability, CreatedAt, ExpiresAt, Payload);
+    public HardwareCommandStatusResponse ToStatusResponse() => new(CommandId, DeviceId, Capability, Status, ErrorCode, ErrorMessage);
 
     public bool TryClaim(string agentId, DateTimeOffset now, DateTimeOffset leaseExpiresAt)
     {
@@ -132,8 +170,17 @@ public sealed class PendingHardwareCommand(
     {
         lock (_sync)
         {
-            if (!AgentId.Equals(agentId, StringComparison.OrdinalIgnoreCase)
-                || Status is HardwareCommandStatus.Succeeded or HardwareCommandStatus.Timeout or HardwareCommandStatus.Cancelled or HardwareCommandStatus.DeviceUnavailable or HardwareCommandStatus.Busy or HardwareCommandStatus.Failed or HardwareCommandStatus.Expired)
+            if (!AgentId.Equals(agentId, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (Status == HardwareCommandStatus.Cancelled && request.Status == HardwareOperationStatus.Cancelled)
+            {
+                ApplyError(request.Error);
+                Result.TrySetResult(request);
+                return true;
+            }
+
+            if (Status is HardwareCommandStatus.Succeeded or HardwareCommandStatus.Timeout or HardwareCommandStatus.Cancelled or HardwareCommandStatus.DeviceUnavailable or HardwareCommandStatus.Busy or HardwareCommandStatus.Failed or HardwareCommandStatus.Expired)
                 return false;
 
             Status = request.Status switch
@@ -147,6 +194,7 @@ public sealed class PendingHardwareCommand(
                 _ => HardwareCommandStatus.Failed
             };
 
+            ApplyError(request.Error);
             Result.TrySetResult(request);
             return true;
         }
@@ -160,6 +208,8 @@ public sealed class PendingHardwareCommand(
                 return false;
 
             Status = HardwareCommandStatus.Expired;
+            ErrorCode = "expired";
+            ErrorMessage = "Hardware command expired before it was claimed.";
             Result.TrySetResult(new PostHardwareCommandResultRequest(
                 HardwareOperationStatus.Timeout,
                 null,
@@ -177,7 +227,28 @@ public sealed class PendingHardwareCommand(
                 return;
 
             Status = HardwareCommandStatus.Timeout;
+            ApplyError(result.Error);
             Result.TrySetResult(result);
         }
+    }
+
+    public bool TryCancel(PostHardwareCommandResultRequest result)
+    {
+        lock (_sync)
+        {
+            if (Result.Task.IsCompleted)
+                return false;
+
+            Status = HardwareCommandStatus.Cancelled;
+            ApplyError(result.Error);
+            Result.TrySetResult(result);
+            return true;
+        }
+    }
+
+    private void ApplyError(HardwareErrorResponse? error)
+    {
+        ErrorCode = error?.Code;
+        ErrorMessage = error?.Message;
     }
 }

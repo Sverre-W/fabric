@@ -16,6 +16,21 @@ public abstract record KioskInstruction(
     public abstract KioskInstructionResult CreateResult(IReadOnlyDictionary<string, string> values);
 }
 
+public sealed record KioskMessageInstruction(
+    string InstructionId,
+    int Version,
+    string Type,
+    string LanguageCode,
+    KioskInstructionLayout Layout,
+    KioskInstructionContent Content)
+    : KioskInstruction(InstructionId, Version, Type, LanguageCode, Layout, Content)
+{
+    public override KioskInstructionActivityKind Kind => KioskInstructionActivityKind.Message;
+
+    public override KioskInstructionResult CreateResult(IReadOnlyDictionary<string, string> values) =>
+        throw new InvalidOperationException("Message instructions do not accept responses.");
+}
+
 public sealed record KioskChoiceInstruction(
     string InstructionId,
     int Version,
@@ -66,6 +81,7 @@ public static class KioskInstructionJsonSerializer
 {
     public static string Serialize(KioskInstruction instruction) => instruction switch
     {
+        KioskMessageInstruction message => JsonSerializer.Serialize(message, KioskJsonSerializerContext.Default.KioskMessageInstruction),
         KioskChoiceInstruction choice => JsonSerializer.Serialize(choice, KioskJsonSerializerContext.Default.KioskChoiceInstruction),
         KioskFormInstruction form => JsonSerializer.Serialize(form, KioskJsonSerializerContext.Default.KioskFormInstruction),
         _ => throw new InvalidOperationException($"Unsupported kiosk instruction type '{instruction.GetType().Name}'.")
@@ -78,6 +94,7 @@ public static class KioskInstructionJsonSerializer
 
         return type switch
         {
+            "display-message" => JsonSerializer.Deserialize(json, KioskJsonSerializerContext.Default.KioskMessageInstruction) ?? throw new InvalidOperationException("Message instruction is invalid."),
             "prompt-choice" => JsonSerializer.Deserialize(json, KioskJsonSerializerContext.Default.KioskChoiceInstruction) ?? throw new InvalidOperationException("Choice instruction is invalid."),
             "display-form" => JsonSerializer.Deserialize(json, KioskJsonSerializerContext.Default.KioskFormInstruction) ?? throw new InvalidOperationException("Form instruction is invalid."),
             _ => throw new InvalidOperationException($"Unsupported kiosk instruction type '{type}'.")

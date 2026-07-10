@@ -5,7 +5,7 @@ import { useBranding } from '@/shared/branding/branding-context';
 
 import type { KioskConfig } from './kiosk-types';
 
-export function KioskLayout({ config, languageCode, onLanguageChange, children }: { readonly config?: KioskConfig | null; readonly languageCode?: string; readonly onLanguageChange?: (languageCode: string) => void; readonly children: ReactNode }) {
+export function KioskLayout({ config, languageCode, onLanguageChange, onHomePress, homeDisabled, children }: { readonly config?: KioskConfig | null; readonly languageCode?: string; readonly onLanguageChange?: (languageCode: string) => void; readonly onHomePress?: () => void; readonly homeDisabled?: boolean; readonly children: ReactNode }) {
   const branding = useBranding();
   const theme = config?.theme ?? {};
   const primaryColor = theme.primaryColor ?? theme.primary ?? undefined;
@@ -16,13 +16,23 @@ export function KioskLayout({ config, languageCode, onLanguageChange, children }
     <div className="min-h-screen text-foreground" style={{ backgroundColor }}>
       <header className="border-b border-border bg-content/90 px-5 py-4 shadow-sm backdrop-blur sm:px-8" style={{ backgroundColor: surfaceColor }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <FabricLogo logoUrl={config?.resolvedWelcome?.logoUrl || branding.logoUrl} />
-            <div>
-              <p className="text-[13px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Kiosk</p>
-              <h1 className="text-[22px] font-semibold tracking-tight sm:text-[28px]">{config?.kiosk.name ?? branding.appName}</h1>
+          {onHomePress ? (
+            <button type="button" className="flex items-center gap-4 text-left transition hover:opacity-90 disabled:cursor-default disabled:opacity-60" onClick={onHomePress} disabled={homeDisabled} aria-label="End session and return home">
+              <FabricLogo logoUrl={config?.resolvedWelcome?.logoUrl || branding.logoUrl} />
+              <div>
+                <p className="text-[13px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Kiosk</p>
+                <h1 className="text-[22px] font-semibold tracking-tight sm:text-[28px]">{config?.kiosk.name ?? branding.appName}</h1>
+              </div>
+            </button>
+          ) : (
+            <div className="flex items-center gap-4 text-left">
+              <FabricLogo logoUrl={config?.resolvedWelcome?.logoUrl || branding.logoUrl} />
+              <div>
+                <p className="text-[13px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Kiosk</p>
+                <h1 className="text-[22px] font-semibold tracking-tight sm:text-[28px]">{config?.kiosk.name ?? branding.appName}</h1>
+              </div>
             </div>
-          </div>
+          )}
 
           {config?.languages.length ? (
             <label className="grid gap-1 text-[13px] font-medium text-muted-foreground">

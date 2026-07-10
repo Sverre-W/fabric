@@ -10,9 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 
-import { encodersQueryKey, printingBatchesQueryKey, transformationsQueryKey, type CreateEncodingBatchRequest, type Encoder, type Transformation } from './card-management-types';
+import { printingBatchesQueryKey, type CreateEncodingBatchRequest, type Encoder, type Transformation } from './card-management-types';
 
 const emptyCsv = 'badgeNumber,facilityCode\n10001,10\n10002,10';
+
+const printBatchCreateEncodersQueryKey = ['card-management', 'printing', 'print-batch-create-page', 'encoders'] as const;
+const printBatchCreateTransformationsQueryKey = ['card-management', 'print-batch-create-page', 'transformations'] as const;
 
 export default function PrintBatchCreatePage() {
   const queryClient = useQueryClient();
@@ -23,29 +26,29 @@ export default function PrintBatchCreatePage() {
   const [priority, setPriority] = useState('0');
 
   const transformationsQuery = useQuery({
-    queryKey: transformationsQueryKey,
+    queryKey: printBatchCreateTransformationsQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/transformations', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
         throw new Error('Could not load transformations.');
       }
-      return data.items ?? [];
+      return data;
     },
   });
 
   const encodersQuery = useQuery({
-    queryKey: encodersQueryKey,
+    queryKey: printBatchCreateEncodersQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/encoders', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
         throw new Error('Could not load encoders.');
       }
-      return data.items ?? [];
+      return data;
     },
   });
 
-  const transformations = transformationsQuery.data ?? [];
-  const encoders = (encodersQuery.data ?? []).filter((encoder) => encoder.enabled && encoder.supportsEncoding);
+  const transformations = transformationsQuery.data?.items ?? [];
+  const encoders = (encodersQuery.data?.items ?? []).filter((encoder) => encoder.enabled && encoder.supportsEncoding);
   const selectedTransformation = transformations.find((transformation) => transformation.id === transformationId);
   const parseResult = parseCsv(csvText);
   const missingHeaders = selectedTransformation ? selectedTransformation.requiredVariables.filter((variable) => !parseResult.headers.includes(variable)) : [];

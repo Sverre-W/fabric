@@ -7,7 +7,7 @@ using Fabric.Server.Hardware.Application;
 
 namespace Fabric.Server.Desfire.Application;
 
-public sealed class HardwareRfidEncoder(HardwareCommandStore commandStore, HardwareAgentConnectionManager connectionManager, HardwareDeviceRef device)
+public sealed class HardwareRfidEncoder(HardwareCommandStore commandStore, HardwareAgentConnectionManager connectionManager, HardwareDeviceRef device, Guid runId, ILogger logger)
     : IRfidEncoder
 {
     private static readonly TimeSpan CommandTimeout = TimeSpan.FromSeconds(30);
@@ -15,10 +15,16 @@ public sealed class HardwareRfidEncoder(HardwareCommandStore commandStore, Hardw
     public async Task<byte[]> Send(byte[] data, CancellationToken cancellationToken = default)
     {
         var payload = new JsonObject { ["commandHex"] = Convert.ToHexString(data) };
-        PendingHardwareCommand command = commandStore.Create(device.AgentId, device.DeviceId, HardwareCapabilities.RfidApduExchange, payload, CommandTimeout);
+        PendingHardwareCommand command = commandStore.Create(device.AgentId, device.DeviceId, HardwareCapabilities.RfidApduExchange, payload, CommandTimeout, runId);
+        logger.DesfireEncodingHardwareCommandQueued(runId, device.AgentId, device.DeviceId, HardwareCapabilities.RfidApduExchange, command.CommandId);
         connectionManager.NotifyCommandAvailable(device.AgentId, command.CommandId);
+        logger.DesfireEncodingHardwareCommandNotified(runId, device.AgentId, device.DeviceId, HardwareCapabilities.RfidApduExchange, command.CommandId);
 
         PostHardwareCommandResultRequest result = await commandStore.WaitForResultAsync(command, cancellationToken);
+        logger.DesfireEncodingHardwareCommandCompleted(runId, device.AgentId, device.DeviceId, HardwareCapabilities.RfidApduExchange, command.CommandId, result.Status);
+        if (result.Status == HardwareOperationStatus.Cancelled)
+            throw new OperationCanceledException(result.Error?.Message ?? "RFID APDU command cancelled.", cancellationToken);
+
         if (result.Status != HardwareOperationStatus.Succeeded)
             throw new InvalidOperationException(result.Error?.Message ?? $"RFID APDU command failed with status {result.Status}.");
 

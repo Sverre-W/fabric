@@ -52,6 +52,26 @@ public sealed class KioskInstructionService(KioskDbContext db, SagasDbContext sa
         sagaTrigger.Notify();
     }
 
+    public async Task ShowMessageAsync(Guid sessionId, KioskInstructionLayout layout, KioskInstructionContent content, CancellationToken cancellationToken)
+    {
+        KioskSession session = await GetRequiredSessionAsync(sessionId, cancellationToken);
+        Domain.Kiosk kiosk = await db.Kiosks.AsNoTracking().SingleAsync(kiosk => kiosk.Id == session.KioskId, cancellationToken);
+        KioskProfile profile = await db.Profiles.AsNoTracking().SingleAsync(profile => profile.Id == kiosk.ProfileId, cancellationToken);
+        Dictionary<string, string> translations = await LoadTranslationsAsync(profile, session.LanguageCode, cancellationToken);
+        string instructionId = Guid.NewGuid().ToString("N");
+        int version = session.CurrentInstructionVersion + 1;
+        KioskInstruction instruction = new KioskMessageInstruction(
+            instructionId,
+            version,
+            "display-message",
+            session.LanguageCode,
+            layout,
+            ResolveContent(content, translations));
+
+        session.SetInstruction(instruction.InstructionId, KioskInstructionJsonSerializer.Serialize(instruction), timeProvider.GetUtcNow());
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task CancelInstructionAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         KioskSession session = await GetRequiredSessionAsync(sessionId, cancellationToken);

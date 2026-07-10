@@ -24,6 +24,7 @@ public sealed class DesfireEncodingService(
     DesfireKeyGroupResolver keyGroupResolver,
     DesfireDeviceLeaseStore leaseStore,
     DesfireVariableResolver variableResolver,
+    DesfireEncodingWakeChannel wakeChannel,
     HardwareCommandStore commandStore,
     HardwareAgentConnectionManager connectionManager,
     TimeProvider timeProvider,
@@ -35,6 +36,28 @@ public sealed class DesfireEncodingService(
 
     public async Task<DesfireEncodingResult> CreateAdHocAsync(CreateAdHocEncodingRequest request, CancellationToken ct)
     {
+        DesfireEncodingResult created = await CreateSingleRunAsync(request, ct);
+        if (created.Failure is not null || request.Mode == AdHocEncodingMode.Queued)
+        {
+            if (created.Failure is null && request.Mode == AdHocEncodingMode.Queued)
+                wakeChannel.Signal();
+
+            return created;
+        }
+
+        EncodingRun run = created.Run!;
+        if (string.IsNullOrWhiteSpace(request.AgentId) || string.IsNullOrWhiteSpace(request.DeviceId))
+        {
+            run.Fail(EncodingRunStatus.Failed, "Sync ad-hoc encoding requires agentId and deviceId.", "[]", timeProvider.GetUtcNow());
+            await desfireDb.SaveChangesAsync(ct);
+            return new DesfireEncodingResult(run, Results.Problem(run.ErrorMessage, statusCode: StatusCodes.Status400BadRequest));
+        }
+
+        return await ExecuteRunAsync(run.Id, request.AgentId, request.DeviceId, requeueOnTransientFailure: false, ct);
+    }
+
+    public async Task<DesfireEncodingResult> CreateSingleRunAsync(CreateAdHocEncodingRequest request, CancellationToken ct)
+    {
         Transformation? transformation = await desfireDb.Transformations.SingleOrDefaultAsync(candidate => candidate.Id == request.TransformationId, ct);
         if (transformation is null)
             return DesfireEncodingResult.NotFound;
@@ -44,7 +67,9 @@ public sealed class DesfireEncodingService(
             request.TransformationId,
             null,
             null,
-            EncodingRunKind.AdHoc,
+            request.KioskSessionId,
+            EncodingRunKind.Single,
+            request.Source,
             JsonSerializer.Serialize(request.UserVariables, DesfireJson.Options),
             transformation.VariableConfigsJson,
             request.AgentId,
@@ -53,18 +78,7 @@ public sealed class DesfireEncodingService(
             now);
         desfireDb.EncodingRuns.Add(run);
         await desfireDb.SaveChangesAsync(ct);
-
-        if (request.Mode == AdHocEncodingMode.Queued)
-            return new DesfireEncodingResult(run, null);
-
-        if (string.IsNullOrWhiteSpace(request.AgentId) || string.IsNullOrWhiteSpace(request.DeviceId))
-        {
-            run.Fail(EncodingRunStatus.Failed, "Sync ad-hoc encoding requires agentId and deviceId.", "[]", timeProvider.GetUtcNow());
-            await desfireDb.SaveChangesAsync(ct);
-            return new DesfireEncodingResult(run, Results.Problem(run.ErrorMessage, statusCode: StatusCodes.Status400BadRequest));
-        }
-
-        return await ExecuteRunAsync(run.Id, request.AgentId, request.DeviceId, requeueOnTransientFailure: false, ct);
+        return new DesfireEncodingResult(run, null);
     }
 
     public async Task<EncodingRun?> TryClaimNextRunForDeviceAsync(string agentId, string deviceId, string workerId, CancellationToken ct)
@@ -85,7 +99,10 @@ public sealed class DesfireEncodingService(
             .FirstOrDefaultAsync(ct);
 
         if (runId is null)
+        {
+            logger.DesfireEncodingNoClaimableRun(normalizedAgentId, normalizedDeviceId, workerId);
             return null;
+        }
 
         DateTimeOffset expiresAt = now.Add(ClaimDuration);
         int updated = await desfireDb.EncodingRuns
@@ -101,27 +118,41 @@ public sealed class DesfireEncodingService(
                 .SetProperty(candidate => candidate.AttemptCount, candidate => candidate.AttemptCount + 1), ct);
 
         if (updated == 0)
+        {
+            logger.DesfireEncodingClaimLost(runId.Value, normalizedAgentId, normalizedDeviceId, workerId);
             return null;
+        }
+
+        logger.DesfireEncodingRunClaimed(runId.Value, normalizedAgentId, normalizedDeviceId, workerId, expiresAt);
 
         return await desfireDb.EncodingRuns.AsNoTracking().SingleAsync(candidate => candidate.Id == runId, ct);
     }
 
     public async Task<DesfireEncodingResult> ExecuteRunAsync(Guid runId, string agentId, string deviceId, bool requeueOnTransientFailure, CancellationToken ct)
+        => await ExecuteRunAsync(runId, agentId, deviceId, requeueOnTransientFailure, onPhaseChanged: null, ct);
+
+    public async Task<DesfireEncodingResult> ExecuteRunAsync(Guid runId, string agentId, string deviceId, bool requeueOnTransientFailure, Func<DesfireEncodingPhase, CancellationToken, Task>? onPhaseChanged, CancellationToken ct)
     {
         EncodingRun? run = await desfireDb.EncodingRuns.SingleOrDefaultAsync(candidate => candidate.Id == runId, ct);
         if (run is null)
             return DesfireEncodingResult.NotFound;
+
+        if (run.Status == EncodingRunStatus.Cancelled)
+            return new DesfireEncodingResult(run, Results.Problem(run.ErrorMessage, statusCode: StatusCodes.Status409Conflict));
 
         IResult? deviceFailure = await ValidateDeviceAsync(agentId, deviceId, ct);
         if (deviceFailure is not null)
         {
             if (requeueOnTransientFailure)
             {
+                logger.DesfireEncodingRunRequeued(run.Id, agentId, deviceId, "device_unavailable_or_offline");
                 run.Requeue("Hardware device is unavailable or not ready.", timeProvider.GetUtcNow());
                 await desfireDb.SaveChangesAsync(ct);
+                wakeChannel.Signal();
                 return new DesfireEncodingResult(run, deviceFailure);
             }
 
+            logger.DesfireEncodingRunDeviceUnavailable(run.Id, agentId, deviceId, "device_unavailable_or_offline");
             run.Fail(EncodingRunStatus.DeviceUnavailable, "Hardware device is unavailable or not ready.", "[]", timeProvider.GetUtcNow());
             await desfireDb.SaveChangesAsync(ct);
             return new DesfireEncodingResult(run, deviceFailure);
@@ -132,11 +163,14 @@ public sealed class DesfireEncodingService(
         {
             if (requeueOnTransientFailure)
             {
+                logger.DesfireEncodingRunRequeued(run.Id, agentId, deviceId, "device_busy");
                 run.Requeue("Hardware device is busy.", timeProvider.GetUtcNow());
                 await desfireDb.SaveChangesAsync(ct);
+                wakeChannel.Signal();
                 return new DesfireEncodingResult(run, Results.Problem("Hardware device is busy.", statusCode: StatusCodes.Status409Conflict));
             }
 
+            logger.DesfireEncodingRunDeviceUnavailable(run.Id, agentId, deviceId, "device_busy");
             run.Fail(EncodingRunStatus.DeviceUnavailable, "Hardware device is busy.", "[]", timeProvider.GetUtcNow());
             await desfireDb.SaveChangesAsync(ct);
             return new DesfireEncodingResult(run, Results.Problem("Hardware device is busy.", statusCode: StatusCodes.Status409Conflict));
@@ -144,6 +178,7 @@ public sealed class DesfireEncodingService(
 
         try
         {
+            logger.DesfireEncodingRunStarting(run.Id, agentId, deviceId);
             run.Start(agentId, deviceId, timeProvider.GetUtcNow());
             await desfireDb.SaveChangesAsync(ct);
 
@@ -165,7 +200,11 @@ public sealed class DesfireEncodingService(
             IReadOnlyList<TransformationVariableConfigRequest> variableConfigs = EnsureVariableConfigs(plan.RequiredProviders, JsonSerializer.Deserialize<TransformationVariableConfigRequest[]>(run.VariableConfigJson, DesfireJson.Options) ?? []);
             ResolvedDesfireVariables resolvedVariables = await variableResolver.ResolveAsync(plan.RequiredProviders, variableConfigs, run.InputJson, ct);
             List<CommandAuditItem> audit = [];
-            PostHardwareCommandResultRequest presentResult = await ExecuteHardwareCommandAsync(agentId, deviceId, HardwareCapabilities.CardPresent, payload: null, ct);
+            await NotifyPhaseChangedAsync(onPhaseChanged, DesfireEncodingPhase.WaitingForCard, ct);
+            PostHardwareCommandResultRequest presentResult = await ExecuteHardwareCommandAsync(run.Id, agentId, deviceId, HardwareCapabilities.CardPresent, payload: null, ct);
+            if (presentResult.Status == HardwareOperationStatus.Cancelled)
+                return await CancelRunAsync(run, "Encoding cancelled while waiting for card.", JsonSerializer.Serialize(audit, DesfireJson.Options), ct);
+
             AddHardwareAuditItem(audit, HardwareCapabilities.CardPresent, presentResult);
             if (presentResult.Status != HardwareOperationStatus.Succeeded)
             {
@@ -174,31 +213,40 @@ public sealed class DesfireEncodingService(
                 return new DesfireEncodingResult(run, Results.Problem(run.ErrorMessage, statusCode: StatusCodes.Status409Conflict));
             }
 
+            await NotifyPhaseChangedAsync(onPhaseChanged, DesfireEncodingPhase.Encoding, ct);
             plan.OnCommandExecuted += (_, args) => audit.Add(new CommandAuditItem(args.Index, args.Operation.ToString() ?? args.Operation.GetType().Name, args.Response.IsSuccess, args.Response.StatusCode.ToString(), args.CardUid));
-            using HardwareRfidEncoder encoder = new(commandStore, connectionManager, new HardwareDeviceRef(agentId, deviceId));
+            using HardwareRfidEncoder encoder = new(commandStore, connectionManager, new HardwareDeviceRef(agentId, deviceId), run.Id, logger);
             ExecutedEncodingPlan executed = await plan.Execute(logger, resolvedVariables.Variables, encoder, ct);
             string auditJson = JsonSerializer.Serialize(audit, DesfireJson.Options);
 
+            await NotifyPhaseChangedAsync(onPhaseChanged, DesfireEncodingPhase.WaitingForRemoval, ct);
+
             if (!executed.IsSuccess)
             {
-                PostHardwareCommandResultRequest ejectAfterFailure = await ExecuteHardwareCommandAsync(agentId, deviceId, HardwareCapabilities.CardEject, payload: null, ct);
+                PostHardwareCommandResultRequest ejectAfterFailure = await ExecuteHardwareCommandAsync(run.Id, agentId, deviceId, HardwareCapabilities.CardEject, payload: null, ct);
+                if (ejectAfterFailure.Status == HardwareOperationStatus.Cancelled)
+                    return await CancelRunAsync(run, "Encoding cancelled during failure cleanup.", JsonSerializer.Serialize(audit, DesfireJson.Options), ct);
+
                 AddHardwareAuditItem(audit, HardwareCapabilities.CardEject, ejectAfterFailure);
                 auditJson = JsonSerializer.Serialize(audit, DesfireJson.Options);
                 string errorMessage = executed.ErrorMessage ?? "Encoding failed.";
                 if (ejectAfterFailure.Status != HardwareOperationStatus.Succeeded)
                     errorMessage = $"{errorMessage} Card eject failed: {ejectAfterFailure.Error?.Message ?? ejectAfterFailure.Status.ToString()}.";
 
-                run.Fail(EncodingRunStatus.Failed, errorMessage, auditJson, timeProvider.GetUtcNow());
+                run.Fail(EncodingRunStatus.Failed, errorMessage, auditJson, timeProvider.GetUtcNow(), executed.CardUid);
                 await desfireDb.SaveChangesAsync(ct);
                 return new DesfireEncodingResult(run, Results.Problem(run.ErrorMessage, statusCode: StatusCodes.Status409Conflict));
             }
 
-            PostHardwareCommandResultRequest ejectResult = await ExecuteHardwareCommandAsync(agentId, deviceId, HardwareCapabilities.CardEject, payload: null, ct);
+            PostHardwareCommandResultRequest ejectResult = await ExecuteHardwareCommandAsync(run.Id, agentId, deviceId, HardwareCapabilities.CardEject, payload: null, ct);
+            if (ejectResult.Status == HardwareOperationStatus.Cancelled)
+                return await CancelRunAsync(run, "Encoding cancelled while waiting for card removal.", JsonSerializer.Serialize(audit, DesfireJson.Options), ct);
+
             AddHardwareAuditItem(audit, HardwareCapabilities.CardEject, ejectResult);
             auditJson = JsonSerializer.Serialize(audit, DesfireJson.Options);
             if (ejectResult.Status != HardwareOperationStatus.Succeeded)
             {
-                run.Fail(EncodingRunStatus.Failed, ejectResult.Error?.Message ?? "Card eject operation failed.", auditJson, timeProvider.GetUtcNow());
+                run.Fail(EncodingRunStatus.Failed, ejectResult.Error?.Message ?? "Card eject operation failed.", auditJson, timeProvider.GetUtcNow(), executed.CardUid);
                 await desfireDb.SaveChangesAsync(ct);
                 return new DesfireEncodingResult(run, Results.Problem(run.ErrorMessage, statusCode: StatusCodes.Status409Conflict));
             }
@@ -210,10 +258,22 @@ public sealed class DesfireEncodingService(
                 auditJson,
                 timeProvider.GetUtcNow());
             await desfireDb.SaveChangesAsync(ct);
+            logger.DesfireEncodingRunCompleted(run.Id, agentId, deviceId, executed.CardUid);
             return new DesfireEncodingResult(run, null);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            logger.DesfireEncodingRunCancelled(run.Id, agentId, deviceId);
+            return await CancelRunAsync(run, "Encoding run cancelled.", run.CommandAuditJson, CancellationToken.None);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            logger.DesfireEncodingRunCancelled(run.Id, agentId, deviceId);
+            return await CancelRunAsync(run, "Encoding run cancelled.", run.CommandAuditJson, CancellationToken.None);
         }
         catch (Exception ex) when (ex is InvalidOperationException or FormatException)
         {
+            logger.DesfireEncodingRunFailed(run.Id, agentId, deviceId, ex);
             run.Fail(EncodingRunStatus.Failed, ex.Message, "[]", timeProvider.GetUtcNow());
             await desfireDb.SaveChangesAsync(ct);
             return new DesfireEncodingResult(run, Results.Problem(ex.Message, statusCode: StatusCodes.Status409Conflict));
@@ -224,12 +284,12 @@ public sealed class DesfireEncodingService(
         }
     }
 
-    public async Task<List<HardwareDevice>> GetReadyEncodingDevicesAsync(CancellationToken ct)
+    public async Task<List<HardwareDevice>> GetSchedulableEncodingDevicesAsync(CancellationToken ct)
     {
         DateTimeOffset now = timeProvider.GetUtcNow();
         List<HardwareDevice> devices = await hardwareDb.Devices
             .AsNoTracking()
-            .Where(device => device.Enabled && device.State.ToLower() == "ready")
+            .Where(device => device.Enabled)
             .ToListAsync(ct);
 
         List<DesfireDeviceLease> activeLeases = await desfireDb.DeviceLeases
@@ -237,8 +297,32 @@ public sealed class DesfireEncodingService(
             .Where(lease => lease.ReleasedAt == null && lease.ExpiresAt > now)
             .ToListAsync(ct);
 
-        return [.. devices.Where(device => SupportsFullEncodingWorkflow(device.Capabilities)
-            && !activeLeases.Any(lease => lease.AgentId == device.AgentId && lease.DeviceId == device.DeviceId))];
+        List<HardwareDevice> schedulableDevices = [];
+        foreach (HardwareDevice device in devices)
+        {
+            if (!string.Equals(device.State, "online", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.DesfireEncodingDeviceSkippedState(device.AgentId, device.DeviceId, device.State);
+                continue;
+            }
+
+            if (!SupportsFullEncodingWorkflow(device.Capabilities))
+            {
+                logger.DesfireEncodingDeviceSkippedCapabilities(device.AgentId, device.DeviceId);
+                continue;
+            }
+
+            if (activeLeases.Any(lease => lease.AgentId == device.AgentId && lease.DeviceId == device.DeviceId))
+            {
+                logger.DesfireEncodingDeviceSkippedBusy(device.AgentId, device.DeviceId);
+                continue;
+            }
+
+            schedulableDevices.Add(device);
+        }
+
+        logger.DesfireEncodingSchedulableDevices(devices.Count, activeLeases.Count, schedulableDevices.Count);
+        return schedulableDevices;
     }
 
     private async Task<TemplateSpecification> ResolveSourceAsync(Transformation transformation, CancellationToken ct)
@@ -276,8 +360,11 @@ public sealed class DesfireEncodingService(
         if (!SupportsFullEncodingWorkflow(device.Capabilities))
             return Results.Problem("Hardware device does not support full RFID encoding workflow.", statusCode: StatusCodes.Status409Conflict);
 
-        if (!string.Equals(device.State, "ready", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(device.State, "online", StringComparison.OrdinalIgnoreCase))
+        {
+            logger.DesfireEncodingDeviceValidationFailed(normalizedAgentId, normalizedDeviceId, device.State, device.Enabled);
             return Results.Problem("Hardware device is not ready.", statusCode: StatusCodes.Status409Conflict);
+        }
 
         return null;
     }
@@ -292,11 +379,53 @@ public sealed class DesfireEncodingService(
         return [.. requiredVariables.Select(variable => configsByName.GetValueOrDefault(variable) ?? new TransformationVariableConfigRequest(variable, TransformationVariableKind.UserProvided, new VariableFormatRequest(DesfireVariableFormatKind.Hex), Field: variable))];
     }
 
-    private async Task<PostHardwareCommandResultRequest> ExecuteHardwareCommandAsync(string agentId, string deviceId, string capability, JsonObject? payload, CancellationToken cancellationToken)
+    private static async Task NotifyPhaseChangedAsync(Func<DesfireEncodingPhase, CancellationToken, Task>? onPhaseChanged, DesfireEncodingPhase phase, CancellationToken cancellationToken)
     {
-        PendingHardwareCommand command = commandStore.Create(agentId, deviceId, capability, payload, CardWorkflowCommandTimeout);
+        if (onPhaseChanged is null)
+            return;
+
+        await onPhaseChanged(phase, cancellationToken);
+    }
+
+    private async Task<PostHardwareCommandResultRequest> ExecuteHardwareCommandAsync(Guid runId, string agentId, string deviceId, string capability, JsonObject? payload, CancellationToken cancellationToken)
+    {
+        PendingHardwareCommand command = commandStore.Create(agentId, deviceId, capability, payload, CardWorkflowCommandTimeout, runId);
+        logger.DesfireEncodingHardwareCommandQueued(runId, agentId, deviceId, capability, command.CommandId);
         connectionManager.NotifyCommandAvailable(agentId, command.CommandId);
-        return await commandStore.WaitForResultAsync(command, cancellationToken);
+        logger.DesfireEncodingHardwareCommandNotified(runId, agentId, deviceId, capability, command.CommandId);
+        PostHardwareCommandResultRequest result = await commandStore.WaitForResultAsync(command, cancellationToken);
+        logger.DesfireEncodingHardwareCommandCompleted(runId, agentId, deviceId, capability, command.CommandId, result.Status);
+        return result;
+    }
+
+    public async Task<int> CancelRunsForKioskSessionAsync(Guid kioskSessionId, CancellationToken ct)
+    {
+        EncodingRun[] runs = await desfireDb.EncodingRuns
+            .Where(run => run.KioskSessionId == kioskSessionId && (run.Status == EncodingRunStatus.Pending || run.Status == EncodingRunStatus.Claimed || run.Status == EncodingRunStatus.Running))
+            .ToArrayAsync(ct);
+
+        if (runs.Length == 0)
+            return 0;
+
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        foreach (EncodingRun run in runs)
+        {
+            if (run.Status == EncodingRunStatus.Running)
+                commandStore.CancelByOwner(run.Id, "Encoding run cancelled.");
+
+            if (run.Status != EncodingRunStatus.Running)
+                run.Cancel("Encoding run cancelled.", run.CommandAuditJson, now);
+        }
+
+        await desfireDb.SaveChangesAsync(ct);
+        return runs.Length;
+    }
+
+    private async Task<DesfireEncodingResult> CancelRunAsync(EncodingRun run, string message, string commandAuditJson, CancellationToken ct)
+    {
+        run.Cancel(message, commandAuditJson, timeProvider.GetUtcNow());
+        await desfireDb.SaveChangesAsync(ct);
+        return new DesfireEncodingResult(run, Results.Problem(run.ErrorMessage, statusCode: StatusCodes.Status409Conflict));
     }
 
     private static void AddHardwareAuditItem(List<CommandAuditItem> audit, string operation, PostHardwareCommandResultRequest result)
@@ -311,9 +440,70 @@ public sealed class DesfireEncodingService(
         && capabilities.Contains(HardwareCapabilities.CardEject, StringComparer.OrdinalIgnoreCase);
 }
 
+internal static partial class DesfireEncodingServiceLog
+{
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding found no claimable run for device {AgentId}/{DeviceId} on worker {WorkerId}")]
+    public static partial void DesfireEncodingNoClaimableRun(this ILogger logger, string agentId, string deviceId, string workerId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding lost claim for run {RunId} on device {AgentId}/{DeviceId} for worker {WorkerId}")]
+    public static partial void DesfireEncodingClaimLost(this ILogger logger, Guid runId, string agentId, string deviceId, string workerId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Desfire encoding claimed run {RunId} on device {AgentId}/{DeviceId} for worker {WorkerId} until {ExpiresAt}")]
+    public static partial void DesfireEncodingRunClaimed(this ILogger logger, Guid runId, string agentId, string deviceId, string workerId, DateTimeOffset expiresAt);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding skipped device {AgentId}/{DeviceId} because state is {State}")]
+    public static partial void DesfireEncodingDeviceSkippedState(this ILogger logger, string agentId, string deviceId, string state);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding skipped device {AgentId}/{DeviceId} because required capabilities are missing")]
+    public static partial void DesfireEncodingDeviceSkippedCapabilities(this ILogger logger, string agentId, string deviceId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding skipped device {AgentId}/{DeviceId} because an active lease exists")]
+    public static partial void DesfireEncodingDeviceSkippedBusy(this ILogger logger, string agentId, string deviceId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding evaluated {DeviceCount} enabled devices, {LeaseCount} active leases, {SchedulableDeviceCount} schedulable devices")]
+    public static partial void DesfireEncodingSchedulableDevices(this ILogger logger, int deviceCount, int leaseCount, int schedulableDeviceCount);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Desfire encoding validation failed for device {AgentId}/{DeviceId}: enabled={Enabled}, state={State}")]
+    public static partial void DesfireEncodingDeviceValidationFailed(this ILogger logger, string agentId, string deviceId, string state, bool enabled);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Desfire encoding requeued run {RunId} on device {AgentId}/{DeviceId} because {Reason}")]
+    public static partial void DesfireEncodingRunRequeued(this ILogger logger, Guid runId, string agentId, string deviceId, string reason);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Desfire encoding marked run {RunId} device-unavailable on device {AgentId}/{DeviceId} because {Reason}")]
+    public static partial void DesfireEncodingRunDeviceUnavailable(this ILogger logger, Guid runId, string agentId, string deviceId, string reason);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Desfire encoding starting run {RunId} on device {AgentId}/{DeviceId}")]
+    public static partial void DesfireEncodingRunStarting(this ILogger logger, Guid runId, string agentId, string deviceId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Desfire encoding completed run {RunId} on device {AgentId}/{DeviceId} with card {CardUid}")]
+    public static partial void DesfireEncodingRunCompleted(this ILogger logger, Guid runId, string agentId, string deviceId, string? cardUid);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Desfire encoding cancelled run {RunId} on device {AgentId}/{DeviceId}")]
+    public static partial void DesfireEncodingRunCancelled(this ILogger logger, Guid runId, string agentId, string deviceId);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Desfire encoding failed run {RunId} on device {AgentId}/{DeviceId}")]
+    public static partial void DesfireEncodingRunFailed(this ILogger logger, Guid runId, string agentId, string deviceId, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding queued hardware command {CommandId} for run {RunId} on device {AgentId}/{DeviceId} with capability {Capability}")]
+    public static partial void DesfireEncodingHardwareCommandQueued(this ILogger logger, Guid runId, string agentId, string deviceId, string capability, Guid commandId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Desfire encoding notified agent for hardware command {CommandId} for run {RunId} on device {AgentId}/{DeviceId} with capability {Capability}")]
+    public static partial void DesfireEncodingHardwareCommandNotified(this ILogger logger, Guid runId, string agentId, string deviceId, string capability, Guid commandId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Desfire encoding hardware command {CommandId} for run {RunId} on device {AgentId}/{DeviceId} with capability {Capability} completed with status {Status}")]
+    public static partial void DesfireEncodingHardwareCommandCompleted(this ILogger logger, Guid runId, string agentId, string deviceId, string capability, Guid commandId, HardwareOperationStatus status);
+}
+
 public sealed record DesfireEncodingResult(EncodingRun? Run, IResult? Failure)
 {
     public static DesfireEncodingResult NotFound => new(null, Results.NotFound());
+}
+
+public enum DesfireEncodingPhase
+{
+    WaitingForCard,
+    Encoding,
+    WaitingForRemoval
 }
 
 public sealed record CommandAuditItem(int Index, string Operation, bool Success, string StatusCode, string? CardUid);

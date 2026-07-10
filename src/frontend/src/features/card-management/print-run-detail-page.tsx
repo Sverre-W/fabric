@@ -5,8 +5,11 @@ import { ArrowLeft } from 'lucide-react';
 import { api } from '@/shared/api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 
-import { encodersQueryKey, formatDateTime, printingRunsQueryKey, transformationsQueryKey } from './card-management-types';
+import { formatDateTime, printingRunsQueryKey } from './card-management-types';
 import { JsonDetails, StatusBadge } from './printing-page';
+
+const printRunDetailEncodersQueryKey = ['card-management', 'printing', 'print-run-detail-page', 'encoders'] as const;
+const printRunDetailTransformationsQueryKey = ['card-management', 'print-run-detail-page', 'transformations'] as const;
 
 export default function PrintRunDetailPage() {
   const { runId } = useParams({ from: '/main/card-management/printing/runs/$runId' });
@@ -23,30 +26,30 @@ export default function PrintRunDetailPage() {
   });
 
   const transformationsQuery = useQuery({
-    queryKey: transformationsQueryKey,
+    queryKey: printRunDetailTransformationsQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/transformations', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
         throw new Error('Could not load transformations.');
       }
-      return data.items ?? [];
+      return data;
     },
   });
 
   const encodersQuery = useQuery({
-    queryKey: encodersQueryKey,
+    queryKey: printRunDetailEncodersQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/encoders', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
         throw new Error('Could not load encoders.');
       }
-      return data.items ?? [];
+      return data;
     },
   });
 
   const run = runQuery.data;
-  const transformation = (transformationsQuery.data ?? []).find((item) => item.id === run?.transformationId);
-  const encoder = (encodersQuery.data ?? []).find((item) => item.id === run?.encoderId);
+  const transformation = (transformationsQuery.data?.items ?? []).find((item) => item.id === run?.transformationId);
+  const encoder = (encodersQuery.data?.items ?? []).find((item) => item.id === run?.encoderId);
 
   if (runQuery.isLoading) {
     return <p className="rounded-structural border border-border bg-content p-6 text-[14px] text-muted-foreground">Loading print run...</p>;
@@ -79,6 +82,7 @@ export default function PrintRunDetailPage() {
             <Info label="Started" value={run.startedAt ? formatDateTime(run.startedAt) : 'Not started'} />
             <Info label="Completed" value={run.completedAt ? formatDateTime(run.completedAt) : 'Not completed'} />
             <Info label="Kind" value={run.kind} />
+            <Info label="Source" value={run.source ?? 'Unknown'} />
           </div>
         </CardContent>
       </Card>

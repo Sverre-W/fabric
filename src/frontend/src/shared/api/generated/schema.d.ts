@@ -9135,7 +9135,7 @@ export interface components {
         /** @enum {unknown} */
         EncodingBatchStatus: "Pending" | "Running" | "Completed" | "Failed" | "Cancelled";
         /** @enum {unknown} */
-        EncodingRunKind: "AdHoc" | "BatchItem";
+        EncodingRunKind: "Single" | "Batch";
         EncodingRunResponse: {
             /** Format: uuid */
             id: string;
@@ -9146,6 +9146,7 @@ export interface components {
             /** Format: uuid */
             encoderId: null | string;
             kind: components["schemas"]["EncodingRunKind"];
+            source: null | string;
             status: components["schemas"]["EncodingRunStatus"];
             input: components["schemas"]["JsonElement"];
             resolvedVariables: components["schemas"]["JsonElement"];
@@ -9502,7 +9503,7 @@ export interface components {
             sortOrder: number | string;
         };
         /** @enum {unknown} */
-        KioskDeviceType: "QrReader" | "RfidReader" | "Dispenser" | "Collector" | "EidReader" | "PassportReader" | "LabelPrinter";
+        KioskDeviceType: "QrReader" | "RfidReader" | "Dispenser" | "Collector" | "Encoder" | "EidReader" | "PassportReader" | "LabelPrinter";
         KioskHardwareBindingResponse: {
             /** Format: uuid */
             id: string;

@@ -13,7 +13,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "react-oidc-context";
 import { toast } from "sonner";
 
-import { api, apiBaseUrl } from "@/shared/api/client";
+import { allWorkflowDefinitionsQueryKey } from './workflow-query-keys';
+import { api, apiBaseUrl } from '@/shared/api/client';
 import type { components } from "@/shared/api/generated/schema";
 import { Badge, type BadgeVariant } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -70,16 +71,12 @@ const hardwareAgentsQueryKey = [
   "kiosk",
   "hardware-agents",
 ] as const;
-const workflowDefinitionsQueryKey = [
-  "automation",
-  "workflow",
-  "definitions",
-] as const;
 const deviceTypes: readonly KioskDeviceType[] = [
   "QrReader",
   "RfidReader",
   "Dispenser",
   "Collector",
+  "Encoder",
   "EidReader",
   "PassportReader",
   "LabelPrinter",
@@ -88,7 +85,8 @@ const capabilityByType: Record<KioskDeviceType, string> = {
   QrReader: "qr.scan",
   RfidReader: "rfid.read",
   Dispenser: "card.dispense",
-  Collector: "card.collect",
+  Collector: "card.present, card.collect, card.eject",
+  Encoder: "card.present, rfid.apdu.exchange, card.eject",
   EidReader: "eid.read",
   PassportReader: "passport.scan",
   LabelPrinter: "label.print",
@@ -169,13 +167,13 @@ export default function KioskEditPage() {
       ).flat(),
   });
   const workflowDefinitionsQuery = useQuery({
-    queryKey: workflowDefinitionsQueryKey,
+    queryKey: allWorkflowDefinitionsQueryKey,
     queryFn: () => fetchElsaWorkflowDefinitions(auth.user?.access_token),
   });
 
   const kiosk = kioskQuery.data as KioskWithSession | undefined;
   const profiles = profilesQuery.data ?? [];
-  const workflowDefinitions = workflowDefinitionsQuery.data ?? [];
+  const workflowDefinitions = workflowDefinitionsQuery.data?.items ?? [];
   const selectedWorkflowDefinition = getSelectedWorkflowDefinition(
     workflowDefinitions,
     form.workflowDefinitionId,
@@ -784,9 +782,7 @@ async function fetchElsaWorkflowDefinitions(accessToken: string | undefined) {
     throw new Error(`Elsa API request failed with status ${response.status}.`);
   }
 
-  const data =
-    (await response.json()) as components["schemas"]["PagedListResponseOfLinkedWorkflowDefinitionSummary"];
-  return data.items ?? [];
+  return (await response.json()) as components["schemas"]["PagedListResponseOfLinkedWorkflowDefinitionSummary"];
 }
 function getWorkflowDefinitionLabel(definition: WorkflowDefinition | null) {
   return definition?.name || definition?.definitionId || "Untitled workflow";

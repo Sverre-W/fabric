@@ -3,7 +3,7 @@ using Fabric.Hardware.Contracts.Capabilities;
 using Fabric.Hardware.Contracts.Inventory;
 namespace Fabric.Hardware.Agent.Devices;
 
-public sealed class HumanAssistedPcscEncoderDevice(HumanAssistedEncoderOptions options) : PcscEncoderDeviceBase(options.Reader, options.Implementation)
+public sealed class HumanAssistedPcscEncoderDevice(HumanAssistedEncoderOptions options, ILogger<HumanAssistedPcscEncoderDevice> logger) : PcscEncoderDeviceBase(options.Reader, options.Implementation)
 {
     public override string DeviceId => options.DeviceId;
 
@@ -22,7 +22,7 @@ public sealed class HumanAssistedPcscEncoderDevice(HumanAssistedEncoderOptions o
 
     public override async Task WaitForCardPresentAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("Put card on encoder");
+        logger.EncoderWaitingForCardPresent(options.DeviceId);
 
         try
         {
@@ -35,6 +35,7 @@ public sealed class HumanAssistedPcscEncoderDevice(HumanAssistedEncoderOptions o
 
                 if (IsCardPresent())
                 {
+                    logger.EncoderCardPresentDetected(options.DeviceId);
                     EnsureSession();
                     return;
                 }
@@ -50,7 +51,7 @@ public sealed class HumanAssistedPcscEncoderDevice(HumanAssistedEncoderOptions o
 
     public override async Task WaitForCardRemovalAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("Remove card of encoder");
+        logger.EncoderWaitingForCardRemoval(options.DeviceId);
 
         try
         {
@@ -60,6 +61,7 @@ public sealed class HumanAssistedPcscEncoderDevice(HumanAssistedEncoderOptions o
 
                 if (!ReaderExists() || !IsCardPresent())
                 {
+                    logger.EncoderCardRemovalDetected(options.DeviceId);
                     DisposeSession();
                     return;
                 }

@@ -1,4 +1,6 @@
 using Fabric.Server.Core;
+using Fabric.Server.Hardware.Domain;
+using Fabric.Server.Hardware.Persistence;
 using Fabric.Server.Kiosk.Application;
 using Fabric.Server.Kiosk.Contracts;
 using Fabric.Server.Kiosk.Domain;
@@ -117,7 +119,7 @@ public static class KioskEndpoints
         return Results.Ok(kiosk.ToResponse());
     }
 
-    private static async Task<IResult> SetKioskMaintenance(Guid id, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskSagaService kioskSagaService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> SetKioskMaintenance(Guid id, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskSessionCancellationService cancellationService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         Domain.Kiosk? kiosk = await db.Kiosks.SingleOrDefaultAsync(kiosk => kiosk.Id == id, cancellationToken);
         if (kiosk is null)
@@ -125,13 +127,13 @@ public static class KioskEndpoints
 
         DateTimeOffset now = timeProvider.GetUtcNow();
         kiosk.SetMaintenance(now);
-        await CancelActiveSessionsAsync(id, db, kioskSagaService, cancellationToken);
+        await CancelActiveSessionsAsync(id, db, cancellationService, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await cleanupService.CleanupAsync(id, cancellationToken);
         return Results.Ok(kiosk.ToResponse());
     }
 
-    private static async Task<IResult> DisableKiosk(Guid id, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskSagaService kioskSagaService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> DisableKiosk(Guid id, KioskDbContext db, KioskSessionCleanupService cleanupService, KioskSessionCancellationService cancellationService, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         Domain.Kiosk? kiosk = await db.Kiosks.SingleOrDefaultAsync(kiosk => kiosk.Id == id, cancellationToken);
         if (kiosk is null)
@@ -139,23 +141,22 @@ public static class KioskEndpoints
 
         DateTimeOffset now = timeProvider.GetUtcNow();
         kiosk.Disable(now);
-        await CancelActiveSessionsAsync(id, db, kioskSagaService, cancellationToken);
+        await CancelActiveSessionsAsync(id, db, cancellationService, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await cleanupService.CleanupAsync(id, cancellationToken);
         return Results.Ok(kiosk.ToResponse());
     }
 
-    private static async Task<IResult> CancelKioskSession(Guid id, KioskDbContext db, KioskSagaService kioskSagaService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CancelKioskSession(Guid id, KioskDbContext db, KioskSessionCancellationService cancellationService, CancellationToken cancellationToken = default)
     {
         Domain.Kiosk? kiosk = await db.Kiosks.AsNoTracking().SingleOrDefaultAsync(kiosk => kiosk.Id == id, cancellationToken);
         if (kiosk is null)
             return Results.NotFound();
 
-        KioskSession? session = await GetActiveSessionAsync(id, db, cancellationToken);
+        KioskSession? session = await cancellationService.CancelActiveSessionAsync(id, cancellationToken);
         if (session is null)
             return Results.Problem("Kiosk has no active session.", statusCode: StatusCodes.Status409Conflict);
 
-        await kioskSagaService.CancelSessionAsync(session.Id, cancellationToken);
         return Results.Ok(kiosk.ToResponse());
     }
 
@@ -191,7 +192,7 @@ public static class KioskEndpoints
         return Results.Ok(assignments.Select(assignment => assignment.ToResponse()).ToArray());
     }
 
-    private static async Task<IResult> UpsertKioskDevices(Guid id, [FromBody] UpsertKioskDevicesRequest request, KioskDbContext db, CancellationToken cancellationToken = default)
+    private static async Task<IResult> UpsertKioskDevices(Guid id, [FromBody] UpsertKioskDevicesRequest request, KioskDbContext db, HardwareDbContext hardwareDb, CancellationToken cancellationToken = default)
     {
         if (!await db.Kiosks.AnyAsync(kiosk => kiosk.Id == id, cancellationToken))
             return Results.NotFound();
@@ -201,6 +202,18 @@ public static class KioskEndpoints
 
         if (request.Devices.GroupBy(device => new { device.Type, device.SlotNumber }).Any(group => group.Count() > 1))
             return Results.Problem("Kiosk device slots must be unique per type.", statusCode: StatusCodes.Status409Conflict);
+
+        foreach (UpsertKioskDeviceRequest device in request.Devices)
+        {
+            if (string.IsNullOrWhiteSpace(device.AgentId) || string.IsNullOrWhiteSpace(device.DeviceId))
+                return Results.Problem($"Kiosk device {device.Type} slot {device.SlotNumber} must include both agentId and deviceId.", statusCode: StatusCodes.Status409Conflict);
+
+            string agentId = HardwareAgent.NormalizeId(device.AgentId);
+            string deviceId = HardwareDevice.NormalizeDeviceId(device.DeviceId);
+            bool exists = await hardwareDb.Devices.AsNoTracking().AnyAsync(candidate => candidate.AgentId == agentId && candidate.DeviceId == deviceId, cancellationToken);
+            if (!exists)
+                return Results.Problem($"Mapped hardware device {agentId}/{deviceId} does not exist for kiosk device {device.Type} slot {device.SlotNumber}.", statusCode: StatusCodes.Status409Conflict);
+        }
 
         await db.Devices.Where(device => device.KioskId == id).ExecuteDeleteAsync(cancellationToken);
         KioskDevice[] devices = request.Devices.Select(device => KioskDevice.Create(id, device.Name, device.Type, device.SlotNumber, device.AgentId, device.DeviceId, device.Enabled, device.CleanupOnSessionEnd, device.SortOrder)).ToArray();
@@ -218,11 +231,11 @@ public static class KioskEndpoints
         return Results.Ok(devices.Select(device => device.ToResponse()).ToArray());
     }
 
-    private static async Task CancelActiveSessionsAsync(Guid kioskId, KioskDbContext db, KioskSagaService kioskSagaService, CancellationToken cancellationToken)
+    private static async Task CancelActiveSessionsAsync(Guid kioskId, KioskDbContext db, KioskSessionCancellationService cancellationService, CancellationToken cancellationToken)
     {
         KioskSession[] sessions = await db.Sessions.Where(session => session.KioskId == kioskId && (session.Status == KioskSessionStatus.Starting || session.Status == KioskSessionStatus.Running)).ToArrayAsync(cancellationToken);
         foreach (KioskSession session in sessions)
-            await kioskSagaService.CancelSessionAsync(session.Id, cancellationToken);
+            await cancellationService.CancelSessionAsync(session.Id, cancellationToken);
     }
 
     private static async Task<KioskSession?> GetActiveSessionAsync(Guid kioskId, KioskDbContext db, CancellationToken cancellationToken) =>

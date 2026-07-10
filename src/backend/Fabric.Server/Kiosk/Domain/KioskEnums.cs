@@ -31,6 +31,7 @@ public enum KioskDeviceType
     RfidReader,
     Dispenser,
     Collector,
+    Encoder,
     EidReader,
     PassportReader,
     LabelPrinter

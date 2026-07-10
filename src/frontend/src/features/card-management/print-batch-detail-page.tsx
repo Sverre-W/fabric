@@ -6,8 +6,11 @@ import { api } from '@/shared/api/client';
 import { buttonVariants } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 
-import { encodersQueryKey, formatDateTime, printingBatchesQueryKey, printingRunsQueryKey, transformationsQueryKey, type Encoder, type EncodingRun, type Transformation } from './card-management-types';
+import { formatDateTime, printingBatchesQueryKey, printingRunsQueryKey, type Encoder, type EncodingRun, type Transformation } from './card-management-types';
 import { JsonDetails, StatusBadge } from './printing-page';
+
+const printBatchDetailEncodersQueryKey = ['card-management', 'printing', 'print-batch-detail-page', 'encoders'] as const;
+const printBatchDetailTransformationsQueryKey = ['card-management', 'print-batch-detail-page', 'transformations'] as const;
 
 export default function PrintBatchDetailPage() {
   const { batchId } = useParams({ from: '/main/card-management/printing/$batchId' });
@@ -35,30 +38,30 @@ export default function PrintBatchDetailPage() {
   });
 
   const transformationsQuery = useQuery({
-    queryKey: transformationsQueryKey,
+    queryKey: printBatchDetailTransformationsQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/transformations', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
         throw new Error('Could not load transformations.');
       }
-      return data.items ?? [];
+      return data;
     },
   });
 
   const encodersQuery = useQuery({
-    queryKey: encodersQueryKey,
+    queryKey: printBatchDetailEncodersQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/encoders', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
         throw new Error('Could not load encoders.');
       }
-      return data.items ?? [];
+      return data;
     },
   });
 
   const batch = batchQuery.data;
-  const transformation = (transformationsQuery.data ?? []).find((item) => item.id === batch?.transformationId);
-  const encoder = (encodersQuery.data ?? []).find((item) => item.id === batch?.encoderId);
+  const transformation = (transformationsQuery.data?.items ?? []).find((item) => item.id === batch?.transformationId);
+  const encoder = (encodersQuery.data?.items ?? []).find((item) => item.id === batch?.encoderId);
   const runs = runsQuery.data ?? [];
 
   if (batchQuery.isLoading) {
@@ -91,7 +94,7 @@ export default function PrintBatchDetailPage() {
             <Info label="Encoder" value={encoder?.name ?? batch.encoderId ?? 'Unknown'} />
           </div>
           <JsonDetails title="Original input" value={batch.originalInput} />
-          <JsonDetails title="Normalized rows" value={batch.normalizedRows} />
+          <NormalizedRowsTable rows={Array.isArray(batch.normalizedRows) ? (batch.normalizedRows as Record<string, string>[]) : []} />
         </CardContent>
       </Card>
 
@@ -103,7 +106,7 @@ export default function PrintBatchDetailPage() {
         <CardContent>
           {runsQuery.isError ? <PanelError>Could not load print runs.</PanelError> : null}
           {runsQuery.isLoading ? <p className="text-[14px] text-muted-foreground">Loading print runs...</p> : null}
-          {runs.length > 0 ? <RunsTable runs={runs} transformation={transformation} encoders={encodersQuery.data ?? []} /> : null}
+          {runs.length > 0 ? <RunsTable runs={runs} transformation={transformation} encoders={encodersQuery.data?.items ?? []} /> : null}
         </CardContent>
       </Card>
     </section>
@@ -151,6 +154,27 @@ function summarizeInput(input: unknown, transformation?: Transformation) {
 
 function Info({ label, value }: { readonly label: string; readonly value: string }) {
   return <div className="rounded-interactive border border-border p-3"><div className="text-[12px] uppercase text-muted-foreground">{label}</div><div className="mt-1 text-[14px] font-medium text-foreground">{value}</div></div>;
+}
+
+function NormalizedRowsTable({ rows }: { readonly rows: Record<string, string>[] }) {
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+  return (
+    <details className="rounded-structural border border-border bg-content p-4">
+      <summary className="cursor-pointer text-[14px] font-semibold text-foreground">Normalized rows</summary>
+      <div className="mt-3 overflow-x-auto rounded-interactive border border-border">
+        <table className="w-full min-w-[36rem] border-collapse text-left text-[13px]">
+          <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground">
+            <tr>{headers.map((header) => <th key={header} className="px-3 py-2 font-semibold">{header}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.map((row, index) => (
+              <tr key={index}>{headers.map((header) => <td key={header} className="px-3 py-2 text-muted-foreground">{row[header]}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
 }
 
 function PanelError({ children }: { readonly children: React.ReactNode }) {

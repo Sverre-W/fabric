@@ -83,10 +83,12 @@ builder.Services.AddSingleton<IReadOnlyList<IEncoderDevice>>(serviceProvider =>
 {
     IReadOnlyList<EncoderOptions> options = serviceProvider.GetRequiredService<IReadOnlyList<EncoderOptions>>();
     ILogger<Fabric.Hardware.Dispenser.DispenserSerialPort> dispenserLogger = serviceProvider.GetRequiredService<ILogger<Fabric.Hardware.Dispenser.DispenserSerialPort>>();
+    ILogger<HumanAssistedPcscEncoderDevice> humanAssistedLogger = serviceProvider.GetRequiredService<ILogger<HumanAssistedPcscEncoderDevice>>();
+    ILogger<DispenserEncoderDevice> dispenserEncoderLogger = serviceProvider.GetRequiredService<ILogger<DispenserEncoderDevice>>();
     return options.Select(encoder => (IEncoderDevice)(encoder switch
     {
-        HumanAssistedEncoderOptions humanAssistedEncoder => new HumanAssistedPcscEncoderDevice(humanAssistedEncoder),
-        DispenserEncoderOptions dispenserEncoder => new DispenserEncoderDevice(dispenserEncoder, dispenserLogger),
+        HumanAssistedEncoderOptions humanAssistedEncoder => new HumanAssistedPcscEncoderDevice(humanAssistedEncoder, humanAssistedLogger),
+        DispenserEncoderOptions dispenserEncoder => new DispenserEncoderDevice(dispenserEncoder, dispenserLogger, dispenserEncoderLogger),
         _ => throw new InvalidOperationException($"Unsupported encoder option type '{encoder.GetType().Name}'.")
     })).ToArray();
 });

@@ -107,8 +107,23 @@ public sealed class KioskSagaService(
 
         try
         {
-            KioskSaga saga = await db.KioskSagas.SingleAsync(x => x.Id == sagaEvent.SagaId, cancellationToken);
-            KioskSession session = await kioskDb.Sessions.SingleAsync(x => x.Id == saga.SessionId, cancellationToken);
+            KioskSaga? saga = await db.KioskSagas.SingleOrDefaultAsync(x => x.Id == sagaEvent.SagaId, cancellationToken);
+            if (saga is null)
+            {
+                sagaEvent.MarkProcessed(timeProvider.GetUtcNow());
+                await db.SaveChangesAsync(cancellationToken);
+                KioskSagaServiceLog.StaleEventIgnored(logger, sagaEvent.Id, sagaEvent.SagaId, "saga");
+                return;
+            }
+
+            KioskSession? session = await kioskDb.Sessions.SingleOrDefaultAsync(x => x.Id == saga.SessionId, cancellationToken);
+            if (session is null)
+            {
+                sagaEvent.MarkProcessed(timeProvider.GetUtcNow());
+                await db.SaveChangesAsync(cancellationToken);
+                KioskSagaServiceLog.StaleEventIgnored(logger, sagaEvent.Id, saga.Id, "session");
+                return;
+            }
 
             switch (sagaEvent.Type)
             {
@@ -223,6 +238,9 @@ public sealed class KioskSagaService(
 
 internal static partial class KioskSagaServiceLog
 {
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Ignoring stale kiosk saga event {EventId} because {MissingEntity} no longer exists for saga {SagaId}")]
+    public static partial void StaleEventIgnored(this ILogger logger, Guid eventId, Guid sagaId, string missingEntity);
+
     [LoggerMessage(Level = LogLevel.Warning, Message = "Could not cancel workflow instance {WorkflowInstanceId} for kiosk session {SessionId}")]
     public static partial void WorkflowCancelFailed(this ILogger logger, Exception exception, string workflowInstanceId, Guid sessionId);
 }

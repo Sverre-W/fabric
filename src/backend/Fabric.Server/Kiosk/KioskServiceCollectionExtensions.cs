@@ -24,6 +24,7 @@ public static class KioskServiceCollectionExtensions
         collection.AddScoped<KioskDeviceResolver>();
         collection.AddScoped<KioskInstructionService>();
         collection.AddScoped<KioskSessionCleanupService>();
+        collection.AddScoped<KioskSessionCancellationService>();
         return collection;
     }
 }

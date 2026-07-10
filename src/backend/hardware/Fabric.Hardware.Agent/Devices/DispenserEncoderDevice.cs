@@ -5,7 +5,7 @@ using Fabric.Hardware.Dispenser;
 
 namespace Fabric.Hardware.Agent.Devices;
 
-public sealed class DispenserEncoderDevice(DispenserEncoderOptions options, ILogger<DispenserSerialPort> dispenserLogger) : PcscEncoderDeviceBase(options.Reader, options.Implementation)
+public sealed class DispenserEncoderDevice(DispenserEncoderOptions options, ILogger<DispenserSerialPort> dispenserLogger, ILogger<DispenserEncoderDevice> logger) : PcscEncoderDeviceBase(options.Reader, options.Implementation)
 {
     private readonly object _gate = new();
     private DispenserSerialPort? _dispenser;
@@ -31,6 +31,7 @@ public sealed class DispenserEncoderDevice(DispenserEncoderOptions options, ILog
             EnsureReaderAvailable();
 
             DispenserSerialPort dispenser = EnsureDispenserOpen();
+            logger.EncoderWaitingForCardPresent(options.DeviceId);
             bool dispensed = await dispenser.Dispense(cancellationToken);
             if (!dispensed)
                 throw new InvalidOperationException("Dispenser did not confirm card dispense.");
@@ -43,6 +44,7 @@ public sealed class DispenserEncoderDevice(DispenserEncoderOptions options, ILog
 
                 if (IsCardPresent())
                 {
+                    logger.EncoderCardPresentDetected(options.DeviceId);
                     EnsureSession();
                     return;
                 }
@@ -61,6 +63,7 @@ public sealed class DispenserEncoderDevice(DispenserEncoderOptions options, ILog
         try
         {
             DispenserSerialPort dispenser = EnsureDispenserOpen();
+            logger.EncoderWaitingForCardRemoval(options.DeviceId);
             bool dropped = await dispenser.Drop(cancellationToken);
             if (!dropped)
                 throw new InvalidOperationException("Dispenser did not confirm card drop.");
@@ -71,6 +74,7 @@ public sealed class DispenserEncoderDevice(DispenserEncoderOptions options, ILog
 
                 if (!ReaderExists() || !IsCardPresent())
                 {
+                    logger.EncoderCardRemovalDetected(options.DeviceId);
                     DisposeSession();
                     return;
                 }

@@ -7,7 +7,9 @@ using Elsa.Persistence.EFCore.Modules.Management;
 using Elsa.Persistence.EFCore.Modules.Runtime;
 using Elsa.Tenants;
 using Elsa.Tenants.Extensions;
+using Elsa.Workflows;
 using Fabric.Server.Automation.Kiosk;
+using Fabric.Server.Automation.Kiosk.Providers;
 using Fabric.Server.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 
@@ -26,6 +28,9 @@ public static class AutomationServiceCollectionExtensions
         services.AddScoped<KioskWorkflowResumer>();
 
         services.AddNotificationHandlersFrom<Program>();
+
+        //Setup providers:
+        services.AddScoped<IPropertyUIHandler, EncodingTransformationProvider>();
 
 
         services.AddElsa(elsa =>

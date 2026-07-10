@@ -2,8 +2,14 @@ namespace Fabric.Server.Desfire.Domain;
 
 public enum EncodingRunKind
 {
-    AdHoc,
-    BatchItem
+    Single,
+    Batch
+}
+
+public static class DesfireEncodingSources
+{
+    public const string Kiosk = "kiosk";
+    public const string PrintBatch = "print-batch";
 }
 
 public enum EncodingRunStatus

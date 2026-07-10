@@ -28,4 +28,12 @@ public class VariableEncodingUtilitiesTests
 
         Convert.ToHexString(encoded).ShouldBe("BFB90000000000");
     }
+
+    [Fact]
+    public void EncodeForFile_should_pad_odd_length_hex_with_leading_zero()
+    {
+        byte[] encoded = VariableEncodingUtilities.EncodeForFile(System.Text.Encoding.UTF8.GetBytes("10001"), "hex");
+
+        Convert.ToHexString(encoded).ShouldBe("010001");
+    }
 }

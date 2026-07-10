@@ -72,9 +72,9 @@ public sealed record EncodingBatchRunSummary(Guid BatchId, int TotalRuns, int Pe
     };
 }
 
-public sealed record EncodingRunResponse(Guid Id, Guid TransformationId, Guid? BatchId, Guid? EncoderId, EncodingRunKind Kind, EncodingRunStatus Status, JsonElement Input, JsonElement ResolvedVariables, JsonElement PlanSummary, JsonElement CommandAudit, string? CardUid, string? HardwareAgentId, string? DeviceId, string? ErrorMessage, DateTimeOffset RequestedAt, DateTimeOffset? StartedAt, DateTimeOffset? CompletedAt);
+public sealed record EncodingRunResponse(Guid Id, Guid TransformationId, Guid? BatchId, Guid? EncoderId, EncodingRunKind Kind, string? Source, EncodingRunStatus Status, JsonElement Input, JsonElement ResolvedVariables, JsonElement PlanSummary, JsonElement CommandAudit, string? CardUid, string? HardwareAgentId, string? DeviceId, string? ErrorMessage, DateTimeOffset RequestedAt, DateTimeOffset? StartedAt, DateTimeOffset? CompletedAt);
 
-public sealed record CreateAdHocEncodingRequest(Guid TransformationId, string? AgentId, string? DeviceId, JsonElement UserVariables, AdHocEncodingMode Mode = AdHocEncodingMode.Sync, int Priority = 0);
+public sealed record CreateAdHocEncodingRequest(Guid TransformationId, string? AgentId, string? DeviceId, JsonElement UserVariables, AdHocEncodingMode Mode = AdHocEncodingMode.Sync, int Priority = 0, string? Source = null, Guid? KioskSessionId = null);
 
 public sealed record EncodingVariableRequest(string Name, VariableProviderRequest Provider, VariableFormatRequest Format);
 
@@ -177,6 +177,7 @@ public static class DesfireMapper
         run.BatchId,
         run.EncoderId,
         run.Kind,
+        run.Source,
         run.Status,
         JsonSerializer.Deserialize<JsonElement>(run.InputJson, DesfireJson.Options),
         JsonSerializer.Deserialize<JsonElement>(run.ResolvedVariablesJson, DesfireJson.Options),

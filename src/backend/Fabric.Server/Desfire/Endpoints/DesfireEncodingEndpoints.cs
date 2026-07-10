@@ -34,7 +34,7 @@ public static class DesfireEncodingEndpoints
         return Results.Ok(result.Map(batch => batch.ToResponse(summaries.GetValueOrDefault(batch.Id))));
     }
 
-    private static async Task<IResult> CreateBatch([FromBody] CreateEncodingBatchRequest request, DesfireDbContext db, TimeProvider timeProvider, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CreateBatch([FromBody] CreateEncodingBatchRequest request, DesfireDbContext db, DesfireEncodingWakeChannel wakeChannel, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return Results.Problem("Print batch name is required.", statusCode: StatusCodes.Status400BadRequest);
@@ -69,7 +69,9 @@ public static class DesfireEncodingEndpoints
                 request.TransformationId,
                 batch.Id,
                 encoder.Id,
-                EncodingRunKind.BatchItem,
+                null,
+                EncodingRunKind.Batch,
+                DesfireEncodingSources.PrintBatch,
                 JsonSerializer.Serialize(row, DesfireJson.Options),
                 transformation.VariableConfigsJson,
                 encoder.AgentId,
@@ -79,6 +81,7 @@ public static class DesfireEncodingEndpoints
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        wakeChannel.Signal();
         return Results.Created($"/api/desfire/encoding-batches/{batch.Id}", batch.ToResponse());
     }
 
@@ -92,7 +95,7 @@ public static class DesfireEncodingEndpoints
         return Results.Ok(batch.ToResponse(summaries.GetValueOrDefault(batch.Id)));
     }
 
-    private static async Task<IResult> ListRuns([AsParameters] BaseListRequest request, [FromQuery] Guid? transformationId, [FromQuery] Guid? batchId, [FromQuery] string? cardUid, DesfireDbContext db, CancellationToken cancellationToken = default)
+    private static async Task<IResult> ListRuns([AsParameters] BaseListRequest request, [FromQuery] Guid? transformationId, [FromQuery] Guid? batchId, [FromQuery] string? cardUid, [FromQuery] string? source, DesfireDbContext db, CancellationToken cancellationToken = default)
     {
         IQueryable<EncodingRun> query = db.EncodingRuns.AsNoTracking();
         if (transformationId is not null)
@@ -103,6 +106,12 @@ public static class DesfireEncodingEndpoints
 
         if (!string.IsNullOrWhiteSpace(cardUid))
             query = query.Where(run => run.CardUid == cardUid);
+
+        if (!string.IsNullOrWhiteSpace(source))
+        {
+            string normalizedSource = source.Trim().ToLowerInvariant();
+            query = query.Where(run => run.Source == normalizedSource);
+        }
 
         IPaged<EncodingRun> result = await query.OrderByDescending(run => run.RequestedAt).GetPageAsync(request.Page, request.PageSize, cancellationToken);
         return Results.Ok(result.Map(run => run.ToResponse()));

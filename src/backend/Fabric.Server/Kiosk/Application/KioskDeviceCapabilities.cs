@@ -5,21 +5,22 @@ namespace Fabric.Server.Kiosk.Application;
 
 public static class KioskDeviceCapabilities
 {
-    public static string GetRequiredCapability(KioskDeviceType type) => type switch
+    public static IReadOnlyList<string> GetRequiredCapabilities(KioskDeviceType type) => type switch
     {
-        KioskDeviceType.QrReader => HardwareCapabilities.QrScan,
-        KioskDeviceType.RfidReader => HardwareCapabilities.RfidRead,
-        KioskDeviceType.Dispenser => HardwareCapabilities.CardDispense,
-        KioskDeviceType.Collector => HardwareCapabilities.CardCollect,
-        KioskDeviceType.EidReader => "eid.read",
-        KioskDeviceType.PassportReader => HardwareCapabilities.PassportScan,
-        KioskDeviceType.LabelPrinter => HardwareCapabilities.LabelPrint,
+        KioskDeviceType.QrReader => [HardwareCapabilities.QrScan],
+        KioskDeviceType.RfidReader => [HardwareCapabilities.RfidRead],
+        KioskDeviceType.Dispenser => [HardwareCapabilities.CardDispense],
+        KioskDeviceType.Collector => [HardwareCapabilities.CardPresent, HardwareCapabilities.CardCollect, HardwareCapabilities.CardEject],
+        KioskDeviceType.Encoder => [HardwareCapabilities.CardPresent, HardwareCapabilities.RfidApduExchange, HardwareCapabilities.CardEject],
+        KioskDeviceType.EidReader => ["eid.read"],
+        KioskDeviceType.PassportReader => [HardwareCapabilities.PassportScan],
+        KioskDeviceType.LabelPrinter => [HardwareCapabilities.LabelPrint],
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
 
-    public static string GetCleanupCapability(KioskDeviceType type) => type switch
+    public static IReadOnlyList<string> GetCleanupCapabilities(KioskDeviceType type) => type switch
     {
-        KioskDeviceType.Collector => HardwareCapabilities.CardEject,
-        _ => GetRequiredCapability(type)
+        KioskDeviceType.Collector => [HardwareCapabilities.CardEject],
+        _ => GetRequiredCapabilities(type)
     };
 }

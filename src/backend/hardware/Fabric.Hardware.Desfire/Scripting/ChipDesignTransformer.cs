@@ -694,7 +694,9 @@ public class ChipDesignTransformer
 
         foreach (ApplicationSpecification app in addedApplication)
         {
-            PiccSpecification piccForCreateAuth = IsBlankPicc(current.Picc) ? current.Picc : toBe.Picc;
+            PiccSpecification piccForCreateAuth = IsBlankPicc(current.Picc) && IsBlankPicc(toBe.Picc)
+                ? current.Picc
+                : toBe.Picc;
 
             foreach (IDesfireOperation op in CreateApplication(piccForCreateAuth, app))
             {

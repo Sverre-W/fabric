@@ -36,7 +36,9 @@ public sealed class EncodingRun
     public Guid TransformationId { get; private set; }
     public Guid? BatchId { get; private set; }
     public Guid? EncoderId { get; private set; }
+    public Guid? KioskSessionId { get; private set; }
     public EncodingRunKind Kind { get; private set; }
+    public string? Source { get; private set; }
     public EncodingRunStatus Status { get; private set; }
     public string InputJson { get; private set; } = "{}";
     public string ResolvedVariablesJson { get; private set; } = "{}";
@@ -58,13 +60,15 @@ public sealed class EncodingRun
     public DateTimeOffset? StartedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
 
-    public static EncodingRun Create(Guid transformationId, Guid? batchId, Guid? encoderId, EncodingRunKind kind, string inputJson, string variableConfigJson, string? requestedAgentId, string? requestedDeviceId, int priority, DateTimeOffset now) => new()
+    public static EncodingRun Create(Guid transformationId, Guid? batchId, Guid? encoderId, Guid? kioskSessionId, EncodingRunKind kind, string? source, string inputJson, string variableConfigJson, string? requestedAgentId, string? requestedDeviceId, int priority, DateTimeOffset now) => new()
     {
         Id = Guid.NewGuid(),
         TransformationId = transformationId,
         BatchId = batchId,
         EncoderId = encoderId,
+        KioskSessionId = kioskSessionId,
         Kind = kind,
+        Source = NormalizeOptional(source),
         Status = EncodingRunStatus.Pending,
         InputJson = inputJson,
         VariableConfigJson = variableConfigJson,
@@ -95,7 +99,10 @@ public sealed class EncodingRun
 
     public void Complete(string? cardUid, string resolvedVariablesJson, string planSummaryJson, string commandAuditJson, DateTimeOffset now)
     {
-        CardUid = cardUid;
+        if (Status == EncodingRunStatus.Cancelled)
+            return;
+
+        CardUid = NormalizeCardUid(cardUid);
         ResolvedVariablesJson = resolvedVariablesJson;
         PlanSummaryJson = planSummaryJson;
         CommandAuditJson = commandAuditJson;
@@ -104,10 +111,14 @@ public sealed class EncodingRun
         ClaimExpiresAt = null;
     }
 
-    public void Fail(EncodingRunStatus status, string errorMessage, string commandAuditJson, DateTimeOffset now)
+    public void Fail(EncodingRunStatus status, string errorMessage, string commandAuditJson, DateTimeOffset now, string? cardUid = null)
     {
+        if (Status == EncodingRunStatus.Cancelled)
+            return;
+
         Status = status;
         ErrorMessage = errorMessage;
+        CardUid = NormalizeCardUid(cardUid) ?? CardUid;
         CommandAuditJson = commandAuditJson;
         CompletedAt = now;
         ClaimExpiresAt = null;
@@ -115,6 +126,9 @@ public sealed class EncodingRun
 
     public void Requeue(string errorMessage, DateTimeOffset now)
     {
+        if (Status == EncodingRunStatus.Cancelled)
+            return;
+
         Status = EncodingRunStatus.Pending;
         ErrorMessage = errorMessage;
         ClaimedBy = null;
@@ -122,7 +136,25 @@ public sealed class EncodingRun
         CompletedAt = null;
     }
 
+    public void Cancel(string? errorMessage, string commandAuditJson, DateTimeOffset now)
+    {
+        Status = EncodingRunStatus.Cancelled;
+        ErrorMessage = string.IsNullOrWhiteSpace(errorMessage) ? "Encoding run cancelled." : errorMessage.Trim();
+        CommandAuditJson = commandAuditJson;
+        CompletedAt = now;
+        ClaimExpiresAt = null;
+    }
+
     private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
+
+    private static string? NormalizeCardUid(string? cardUid)
+    {
+        if (string.IsNullOrWhiteSpace(cardUid))
+            return null;
+
+        string normalized = cardUid.Trim();
+        return normalized is "Unknown" or "Unkown" ? null : normalized;
+    }
 }
 
 public sealed class DesfireEncoder

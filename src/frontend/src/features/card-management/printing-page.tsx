@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { Eye, Pencil, Plus, Printer, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -9,10 +9,14 @@ import { Button, buttonVariants } from '@/shared/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/components/ui/empty';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 
-import { encodersQueryKey, formatDateTime, printingBatchesQueryKey, transformationsQueryKey, type Encoder, type EncodingBatch, type Transformation } from './card-management-types';
+import { formatDateTime, printingBatchesQueryKey, printingRunsQueryKey, type Encoder, type EncodingBatch, type EncodingRun, type Transformation } from './card-management-types';
+
+const printingPageEncodersQueryKey = ['card-management', 'printing', 'printing-page', 'encoders'] as const;
+const printingPageTransformationsQueryKey = ['card-management', 'printing-page', 'transformations'] as const;
 
 export default function PrintingPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const batchesQuery = useQuery({
     queryKey: printingBatchesQueryKey,
     queryFn: async () => {
@@ -25,18 +29,29 @@ export default function PrintingPage() {
   });
 
   const transformationsQuery = useQuery({
-    queryKey: transformationsQueryKey,
+    queryKey: printingPageTransformationsQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/transformations', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
         throw new Error('Could not load transformations.');
+      }
+      return data;
+    },
+  });
+
+  const runsQuery = useQuery({
+    queryKey: [...printingRunsQueryKey, 'all'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/desfire/encoding-runs', { params: { query: { Page: 0, PageSize: 100 } } });
+      if (error || !data) {
+        throw new Error('Could not load encoding runs.');
       }
       return data.items ?? [];
     },
   });
 
   const encodersQuery = useQuery({
-    queryKey: encodersQueryKey,
+    queryKey: printingPageEncodersQueryKey,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/desfire/encoders', { params: { query: { Page: 0, PageSize: 100 } } });
       if (error || !data) {
@@ -54,7 +69,7 @@ export default function PrintingPage() {
       }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: encodersQueryKey });
+      await queryClient.invalidateQueries({ queryKey: printingPageEncodersQueryKey });
       toast.success('Encoder deleted.');
     },
     onError: () => toast.error('Could not delete encoder. Print history may reference it.'),
@@ -62,7 +77,8 @@ export default function PrintingPage() {
 
   const batches = batchesQuery.data?.items ?? [];
   const encoders = encodersQuery.data?.items ?? [];
-  const transformationById = new Map((transformationsQuery.data ?? []).map((transformation) => [transformation.id, transformation]));
+  const runs = runsQuery.data ?? [];
+  const transformationById = new Map((transformationsQuery.data?.items ?? []).map((transformation) => [transformation.id, transformation]));
 
   return (
     <section className="rounded-structural border border-border bg-content">
@@ -81,6 +97,7 @@ export default function PrintingPage() {
         <Tabs defaultValue="batches">
           <TabsList>
             <TabsTrigger value="batches">Print batches</TabsTrigger>
+            <TabsTrigger value="runs">Runs</TabsTrigger>
             <TabsTrigger value="encoders">Encoders</TabsTrigger>
           </TabsList>
           <TabsContent value="batches">
@@ -88,6 +105,12 @@ export default function PrintingPage() {
             {batchesQuery.isLoading ? <p className="rounded-structural border border-border p-4 text-[14px] text-muted-foreground">Loading print batches...</p> : null}
             {!batchesQuery.isLoading && !batchesQuery.isError && batches.length === 0 ? <Empty><EmptyHeader><EmptyTitle>No print batches yet</EmptyTitle><EmptyDescription>Schedule a print batch from a transformation and CSV rows.</EmptyDescription></EmptyHeader></Empty> : null}
             {batches.length > 0 ? <PrintBatchesTable batches={batches} transformationById={transformationById} /> : null}
+          </TabsContent>
+          <TabsContent value="runs">
+            {runsQuery.isError ? <PanelError>Could not load encoding runs.</PanelError> : null}
+            {runsQuery.isLoading ? <p className="rounded-structural border border-border p-4 text-[14px] text-muted-foreground">Loading encoding runs...</p> : null}
+            {!runsQuery.isLoading && !runsQuery.isError && runs.length === 0 ? <Empty><EmptyHeader><EmptyTitle>No runs yet</EmptyTitle><EmptyDescription>Single kiosk runs and batch item runs will appear here.</EmptyDescription></EmptyHeader></Empty> : null}
+            {runs.length > 0 ? <RunsTable runs={runs} transformationById={transformationById} encoders={encoders} onOpenRun={(runId) => navigate({ to: '/card-management/printing/runs/$runId', params: { runId } })} /> : null}
           </TabsContent>
           <TabsContent value="encoders">
             <EncodersPanel encoders={encoders} isLoading={encodersQuery.isLoading} isError={encodersQuery.isError} isDeleting={deleteEncoder.isPending} onDelete={(encoder) => {
@@ -160,6 +183,42 @@ function PrintBatchesTable({ batches, transformationById }: { readonly batches: 
       </table>
     </div>
   );
+}
+
+function RunsTable({ runs, transformationById, encoders, onOpenRun }: { readonly runs: EncodingRun[]; readonly transformationById: Map<string, Transformation>; readonly encoders: Encoder[]; readonly onOpenRun: (runId: string) => void }) {
+  return (
+    <div className="overflow-x-auto rounded-structural border border-border">
+      <table className="w-full min-w-[84rem] border-collapse text-left text-[14px]">
+        <thead className="bg-hover-gray text-[12px] uppercase text-muted-foreground">
+          <tr><th className="px-4 py-3 font-semibold">Transformation</th><th className="px-4 py-3 font-semibold">Kind</th><th className="px-4 py-3 font-semibold">Source</th><th className="px-4 py-3 font-semibold">Status</th><th className="px-4 py-3 font-semibold">Card UID</th><th className="px-4 py-3 font-semibold">Device</th><th className="px-4 py-3 font-semibold">Requested</th><th className="px-4 py-3 text-right font-semibold">Actions</th></tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {runs.map((run) => (
+            <tr key={run.id} className="cursor-pointer transition hover:bg-hover-gray" onClick={() => onOpenRun(run.id)}>
+              <td className="px-4 py-4 text-muted-foreground">{transformationById.get(run.transformationId)?.name ?? run.transformationId}</td>
+              <td className="px-4 py-4 text-muted-foreground">{run.kind}</td>
+              <td className="px-4 py-4 text-muted-foreground">{formatRunSource(run)}</td>
+              <td className="px-4 py-4"><StatusBadge status={run.status} /></td>
+              <td className="px-4 py-4 text-muted-foreground">{run.cardUid ?? 'Not read'}</td>
+              <td className="px-4 py-4 text-muted-foreground">{formatRunDevice(run, encoders)}</td>
+              <td className="px-4 py-4 text-muted-foreground">{formatDateTime(run.requestedAt)}</td>
+              <td className="px-4 py-4" onClick={(event) => event.stopPropagation()}><div className="flex justify-end"><Link to="/card-management/printing/runs/$runId" params={{ runId: run.id }} className={buttonVariants({ variant: 'outline', size: 'sm' })}><Eye className="size-4" aria-hidden="true" />View</Link></div></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function formatRunDevice(run: EncodingRun, encoders: Encoder[]) {
+  const encoder = encoders.find((item) => item.id === run.encoderId);
+  const hardware = run.hardwareAgentId && run.deviceId ? `${run.hardwareAgentId} / ${run.deviceId}` : 'Unassigned';
+  return encoder ? `${encoder.name} (${hardware})` : hardware;
+}
+
+function formatRunSource(run: EncodingRun) {
+  return run.source ?? '-';
 }
 
 export function StatusBadge({ status }: { readonly status: string }) {

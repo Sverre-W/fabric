@@ -1,4 +1,6 @@
 using System.Threading.Channels;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Fabric.Hardware.Contracts.Agents;
 using Fabric.Hardware.Contracts.Commands;
 using Fabric.Hardware.Contracts.Events;
@@ -14,6 +16,11 @@ namespace Fabric.Server.Hardware.Endpoints;
 
 public static class HardwareAgentEndpoints
 {
+    private static readonly JsonSerializerOptions StreamJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     public static IEndpointRouteBuilder MapHardwareAgentEndpoints(this IEndpointRouteBuilder app)
     {
         RouteGroupBuilder agents = app.MapGroup("/api/hardware-agent")
@@ -32,6 +39,11 @@ public static class HardwareAgentEndpoints
             .WithDescription("Claim a pending hardware command")
             .WithSummary("Claim hardware command")
             .Produces<HardwareCommandClaimResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+        agents.MapGet("/commands/{commandId:guid}/status", GetCommandStatus)
+            .WithDescription("Get hardware command status")
+            .WithSummary("Get hardware command status")
+            .Produces<HardwareCommandStatusResponse>()
             .Produces(StatusCodes.Status404NotFound);
         agents.MapPost("/commands/{commandId:guid}/result", PostCommandResult)
             .WithDescription("Post hardware command result")
@@ -63,7 +75,7 @@ public static class HardwareAgentEndpoints
         string agentId = context.User.GetAgentId();
         context.Response.Headers.ContentType = "text/event-stream";
 
-        ChannelReader<Guid> reader = connectionManager.Connect(agentId);
+        ChannelReader<HardwareCommandStreamEvent> reader = connectionManager.Connect(agentId);
 
         try
         {
@@ -88,9 +100,13 @@ public static class HardwareAgentEndpoints
                 if (!await commandAvailable)
                     break;
 
-                while (reader.TryRead(out Guid commandId))
+                while (reader.TryRead(out HardwareCommandStreamEvent? commandEvent))
                 {
-                    await context.Response.WriteAsync($"event: command-available\ndata: {{ \"commandId\": \"{commandId}\" }}\n\n", cancellationToken);
+                    if (commandEvent is null)
+                        continue;
+
+                    await context.Response.WriteAsync($"event: {ToEventName(commandEvent.Type)}\n", cancellationToken);
+                    await context.Response.WriteAsync($"data: {JsonSerializer.Serialize(commandEvent, StreamJsonOptions)}\n\n", cancellationToken);
                     await context.Response.Body.FlushAsync(cancellationToken);
                 }
             }
@@ -120,6 +136,16 @@ public static class HardwareAgentEndpoints
         return commandStore.TryClaim(commandId, agentId, out HardwareCommandClaimResponse? response)
             ? Results.Ok(response)
             : Results.NotFound();
+    }
+
+    private static IResult GetCommandStatus(
+        Guid commandId,
+        HttpContext context,
+        HardwareCommandStore commandStore)
+    {
+        string agentId = context.User.GetAgentId();
+        HardwareCommandStatusResponse? response = commandStore.GetStatus(commandId, agentId);
+        return response is null ? Results.NotFound() : Results.Ok(response);
     }
 
     private static IResult PostCommandResult(
@@ -240,4 +266,11 @@ public static class HardwareAgentEndpoints
         await db.SaveChangesAsync(cancellationToken);
         return Results.NoContent();
     }
+
+    private static string ToEventName(HardwareCommandEventType eventType) => eventType switch
+    {
+        HardwareCommandEventType.CommandAvailable => "command-available",
+        HardwareCommandEventType.CommandCancelled => "command-cancelled",
+        _ => throw new ArgumentOutOfRangeException(nameof(eventType), eventType, null)
+    };
 }

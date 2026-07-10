@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
 
-import { NoActiveKioskSessionError, changeKioskLanguage, getCurrentInstruction, getKioskConfig, postKioskHeartbeat, startKioskSession, submitInstructionResponse } from './kiosk-api';
+import { NoActiveKioskSessionError, cancelCurrentSession, changeKioskLanguage, getCurrentInstruction, getKioskConfig, postKioskHeartbeat, startKioskSession, submitInstructionResponse } from './kiosk-api';
 import { KioskLayout } from './kiosk-layout';
 import { KioskRenderer } from './kiosk-renderer';
 import { getKioskSettings, hasKioskSettings, saveKioskLanguage } from './kiosk-settings';
@@ -20,6 +20,7 @@ export default function KioskPage() {
   const [instruction, setInstruction] = useState<KioskInstructionResponse | null>(null);
   const [state, setState] = useState<RuntimeState>('loading-config');
   const [error, setError] = useState<string | null>(null);
+  const [isEndingSession, setIsEndingSession] = useState(false);
 
   const parsedInstruction = useMemo(() => parseInstruction(instruction), [instruction]);
   const selectedLanguage = languageCode || config?.profile.defaultLanguageCode || '';
@@ -143,6 +144,27 @@ export default function KioskPage() {
     }
   }
 
+  async function handleHomePress() {
+    if (isEndingSession) return;
+
+    const hasActiveSession = session?.status === 'Starting' || session?.status === 'Running';
+    if (!hasActiveSession) {
+      resetToWelcome();
+      return;
+    }
+
+    setIsEndingSession(true);
+    setError(null);
+    try {
+      await cancelCurrentSession();
+      resetToWelcome();
+    } catch (cancelError) {
+      setError(cancelError instanceof Error ? cancelError.message : 'Could not end session.');
+    } finally {
+      setIsEndingSession(false);
+    }
+  }
+
   function resetToWelcome() {
     setSession(null);
     setInstruction(null);
@@ -151,7 +173,7 @@ export default function KioskPage() {
   }
 
   return (
-    <KioskLayout config={config} languageCode={selectedLanguage} onLanguageChange={handleLanguageChange}>
+    <KioskLayout config={config} languageCode={selectedLanguage} onLanguageChange={handleLanguageChange} onHomePress={handleHomePress} homeDisabled={isEndingSession}>
       {state === 'loading-config' ? <StateCard title="Loading kiosk" message="Preparing kiosk configuration..." loading /> : null}
       {state === 'offline' ? <StateCard title="Kiosk unavailable" message={error ?? 'Could not connect to server.'} actionLabel="Retry" onAction={() => void refreshConfig()} /> : null}
       {config?.kiosk.mode === 'Disabled' ? <StateCard title="Kiosk disabled" message="This kiosk is currently disabled." /> : null}

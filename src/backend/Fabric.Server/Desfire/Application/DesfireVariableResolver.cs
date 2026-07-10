@@ -85,7 +85,7 @@ public sealed class DesfireVariableResolver(DesfireDbContext db, TimeProvider ti
 
     private async Task<byte[]> FormatAsync(string raw, VariableFormatRequest format, JsonElement input, CancellationToken ct) => format.Type switch
     {
-        DesfireVariableFormatKind.Hex => Convert.FromHexString(RemoveHexPrefix(raw)),
+        DesfireVariableFormatKind.Hex => Convert.FromHexString(PadHex(RemoveHexPrefix(raw))),
         DesfireVariableFormatKind.Text => Encoding.UTF8.GetBytes(raw),
         DesfireVariableFormatKind.UInt => FormatUInt(raw, format.Length),
         DesfireVariableFormatKind.PaddedDecimal => Encoding.ASCII.GetBytes(ParseUInt(raw).ToString(CultureInfo.InvariantCulture).PadLeft(format.Length ?? 0, '0')),
@@ -238,6 +238,8 @@ public sealed class DesfireVariableResolver(DesfireDbContext db, TimeProvider ti
     }
 
     private static string RemoveHexPrefix(string raw) => raw.Trim().StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? raw.Trim()[2..] : raw.Trim();
+
+    private static string PadHex(string value) => value.Length % 2 == 0 ? value : $"0{value}";
 
     private static void ValidateRange(int offset, int length, int totalLength, string name)
     {

@@ -14,7 +14,9 @@ public sealed class EncodingRunConfiguration : IEntityTypeConfiguration<Encoding
         builder.Property(run => run.TransformationId).IsRequired();
         builder.Property(run => run.BatchId);
         builder.Property(run => run.EncoderId);
+        builder.Property(run => run.KioskSessionId);
         builder.Property(run => run.Kind).HasConversion<string>().IsRequired().HasMaxLength(50);
+        builder.Property(run => run.Source).HasMaxLength(100);
         builder.Property(run => run.Status).HasConversion<string>().IsRequired().HasMaxLength(50);
         builder.Property(run => run.InputJson).IsRequired().HasColumnType("jsonb");
         builder.Property(run => run.ResolvedVariablesJson).IsRequired().HasColumnType("jsonb");
@@ -36,6 +38,8 @@ public sealed class EncodingRunConfiguration : IEntityTypeConfiguration<Encoding
         builder.HasIndex(run => run.TransformationId);
         builder.HasIndex(run => run.BatchId);
         builder.HasIndex(run => run.EncoderId);
+        builder.HasIndex(run => run.KioskSessionId);
+        builder.HasIndex(run => run.Source);
         builder.HasIndex(run => run.CardUid);
         builder.HasIndex(run => new { run.Status, run.Priority, run.RequestedAt });
         builder.HasIndex(run => new { run.RequestedAgentId, run.RequestedDeviceId });

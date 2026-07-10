@@ -3,6 +3,7 @@ using System;
 using Fabric.Server.Desfire.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.Desfire.Persistence.Migrations
 {
     [DbContext(typeof(DesfireDbContext))]
-    partial class DesfireDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260710083528_AddEncodingRunKioskSession")]
+    partial class AddEncodingRunKioskSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
