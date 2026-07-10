@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, Save, Upload } from 'lucide-react';
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
 import { api } from '@/shared/api/client';
@@ -10,12 +10,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 
-import { printingBatchesQueryKey, type CreateEncodingBatchRequest, type Encoder, type Transformation } from './card-management-types';
+import { printingBatchesQueryKey, type CreateEncodingBatchRequest, type Encoder } from './card-management-types';
 
 const emptyCsv = 'badgeNumber,facilityCode\n10001,10\n10002,10';
 
 const printBatchCreateEncodersQueryKey = ['card-management', 'printing', 'print-batch-create-page', 'encoders'] as const;
 const printBatchCreateTransformationsQueryKey = ['card-management', 'print-batch-create-page', 'transformations'] as const;
+
+type InputMode = 'count' | 'csv';
 
 export default function PrintBatchCreatePage() {
   const queryClient = useQueryClient();
@@ -23,6 +25,8 @@ export default function PrintBatchCreatePage() {
   const [encoderId, setEncoderId] = useState('');
   const [transformationId, setTransformationId] = useState('');
   const [csvText, setCsvText] = useState(emptyCsv);
+  const [badgeCount, setBadgeCount] = useState('1');
+  const [inputMode, setInputMode] = useState<InputMode>('csv');
   const [priority, setPriority] = useState('0');
 
   const transformationsQuery = useQuery({
@@ -50,8 +54,15 @@ export default function PrintBatchCreatePage() {
   const transformations = transformationsQuery.data?.items ?? [];
   const encoders = (encodersQuery.data?.items ?? []).filter((encoder) => encoder.enabled && encoder.supportsEncoding);
   const selectedTransformation = transformations.find((transformation) => transformation.id === transformationId);
+  const userVariables = selectedTransformation?.variables.filter((variable) => variable.kind === 'UserProvided') ?? [];
+  const userVariableFields = [...new Set(userVariables.map((variable) => (variable.field ?? variable.name).trim()).filter(Boolean))];
+  const hasUserVariables = userVariableFields.length > 0;
   const parseResult = parseCsv(csvText);
-  const missingHeaders = selectedTransformation ? selectedTransformation.requiredVariables.filter((variable) => !parseResult.headers.includes(variable)) : [];
+  const missingHeaders = userVariableFields.filter((variable) => !parseResult.headers.includes(variable));
+
+  useEffect(() => {
+    setInputMode(hasUserVariables ? 'csv' : 'count');
+  }, [hasUserVariables, transformationId]);
 
   const createBatch = useMutation({
     mutationFn: async (request: CreateEncodingBatchRequest) => {
@@ -79,6 +90,31 @@ export default function PrintBatchCreatePage() {
       toast.error('Select an encoder.');
       return;
     }
+
+    if (inputMode === 'count') {
+      const parsedBadgeCount = Number(badgeCount);
+      if (hasUserVariables) {
+        toast.error('CSV input is required for this transformation.');
+        return;
+      }
+      if (!Number.isInteger(parsedBadgeCount) || parsedBadgeCount < 1) {
+        toast.error('Number of badges must be at least 1.');
+        return;
+      }
+
+      createBatch.mutate({
+        name: name.trim(),
+        encoderId,
+        transformationId: selectedTransformation.id,
+        originalInput: { format: 'count', count: parsedBadgeCount },
+        normalizedRows: Array.from({ length: parsedBadgeCount }, () => ({})),
+        requestedAgentId: null,
+        requestedDeviceId: null,
+        priority: Number(priority || 0),
+      });
+      return;
+    }
+
     if (parseResult.error) {
       toast.error(parseResult.error);
       return;
@@ -110,7 +146,7 @@ export default function PrintBatchCreatePage() {
       <Card>
         <CardHeader>
           <CardTitle>Schedule Print Batch</CardTitle>
-          <CardDescription>Paste or upload CSV rows. Headers must match transformation user variable names.</CardDescription>
+          <CardDescription>Paste or upload CSV rows when user variables are needed. For system-only transformations, you can schedule by badge count.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="grid gap-5" onSubmit={submit}>
@@ -121,20 +157,36 @@ export default function PrintBatchCreatePage() {
               <label className="grid gap-2 text-[14px] font-medium"><span>Priority</span><Input value={priority} type="number" onChange={(event) => setPriority(event.target.value)} /></label>
             </div>
 
-            {selectedTransformation ? <VariableHint transformation={selectedTransformation} missingHeaders={missingHeaders} /> : null}
+            {selectedTransformation ? <VariableHint userVariableFields={userVariableFields} missingHeaders={missingHeaders} /> : null}
 
-            <label className="grid gap-2 text-[14px] font-medium">
-              <span>CSV rows</span>
-              <Textarea value={csvText} onChange={(event) => setCsvText(event.target.value)} rows={10} />
-            </label>
-            <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-interactive border border-border px-3 py-2 text-[14px] font-medium transition hover:bg-hover-gray">
-              <Upload className="size-4" aria-hidden="true" />
-              Upload CSV
-              <input className="sr-only" type="file" accept=".csv,text/csv" onChange={(event) => void loadCsvFile(event, setCsvText)} />
-            </label>
+            {!hasUserVariables ? (
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant={inputMode === 'count' ? 'default' : 'outline'} onClick={() => setInputMode('count')}>Badge count</Button>
+                <Button type="button" variant={inputMode === 'csv' ? 'default' : 'outline'} onClick={() => setInputMode('csv')}>CSV input</Button>
+              </div>
+            ) : null}
 
-            {parseResult.error ? <PanelError>{parseResult.error}</PanelError> : null}
-            {parseResult.rows.length > 0 ? <CsvPreview headers={parseResult.headers} rows={parseResult.rows.slice(0, 5)} totalRows={parseResult.rows.length} /> : null}
+            {inputMode === 'count' ? (
+              <label className="grid gap-2 text-[14px] font-medium">
+                <span>Number of badges</span>
+                <Input value={badgeCount} type="number" min={1} onChange={(event) => setBadgeCount(event.target.value)} />
+              </label>
+            ) : (
+              <>
+                <label className="grid gap-2 text-[14px] font-medium">
+                  <span>CSV rows</span>
+                  <Textarea value={csvText} onChange={(event) => setCsvText(event.target.value)} rows={10} />
+                </label>
+                <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-interactive border border-border px-3 py-2 text-[14px] font-medium transition hover:bg-hover-gray">
+                  <Upload className="size-4" aria-hidden="true" />
+                  Upload CSV
+                  <input className="sr-only" type="file" accept=".csv,text/csv" onChange={(event) => void loadCsvFile(event, setCsvText)} />
+                </label>
+
+                {parseResult.error ? <PanelError>{parseResult.error}</PanelError> : null}
+                {parseResult.rows.length > 0 ? <CsvPreview headers={parseResult.headers} rows={parseResult.rows.slice(0, 5)} totalRows={parseResult.rows.length} /> : null}
+              </>
+            )}
 
             <div className="flex justify-end gap-2">
               <Button type="submit" disabled={createBatch.isPending}><Save className="size-4" aria-hidden="true" />Schedule print batch</Button>
@@ -150,8 +202,12 @@ function EncoderSelect({ value, encoders, onChange }: { readonly value: string; 
   return <select className="h-9 rounded-interactive border border-border bg-content px-3 text-[14px] outline-none transition focus:border-primary" value={value} onChange={(event) => onChange(event.target.value)} required><option value="">Select encoder</option>{encoders.map((encoder) => <option key={encoder.id} value={encoder.id}>{encoder.name} ({encoder.agentId} / {encoder.deviceId})</option>)}</select>;
 }
 
-function VariableHint({ transformation, missingHeaders }: { readonly transformation: Transformation; readonly missingHeaders: string[] }) {
-  return <div className="rounded-structural border border-border bg-hover-gray p-4 text-[14px]"><div className="font-medium text-foreground">Required CSV headers</div><div className="mt-2 flex flex-wrap gap-2">{transformation.requiredVariables.map((variable) => <span key={variable} className={missingHeaders.includes(variable) ? 'rounded-full bg-error-background px-3 py-1 text-error' : 'rounded-full bg-content px-3 py-1 text-muted-foreground'}>{variable}</span>)}</div></div>;
+function VariableHint({ userVariableFields, missingHeaders }: { readonly userVariableFields: string[]; readonly missingHeaders: string[] }) {
+  if (userVariableFields.length === 0) {
+    return <div className="rounded-structural border border-border bg-hover-gray p-4 text-[14px] text-muted-foreground">No user variables required. Enter badge count or switch to CSV input.</div>;
+  }
+
+  return <div className="rounded-structural border border-border bg-hover-gray p-4 text-[14px]"><div className="font-medium text-foreground">Required CSV headers</div><div className="mt-2 flex flex-wrap gap-2">{userVariableFields.map((variable) => <span key={variable} className={missingHeaders.includes(variable) ? 'rounded-full bg-error-background px-3 py-1 text-error' : 'rounded-full bg-content px-3 py-1 text-muted-foreground'}>{variable}</span>)}</div></div>;
 }
 
 function CsvPreview({ headers, rows, totalRows }: { readonly headers: string[]; readonly rows: Record<string, string>[]; readonly totalRows: number }) {
