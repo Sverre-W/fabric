@@ -1,5 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { useAuth } from 'react-oidc-context';
 
 import { FabricLogo } from '@/shared/branding/fabric-logo';
@@ -16,6 +16,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const branding = useBranding();
   const isFullscreenElsaRoute = isElsaStudioFullscreenRoute(location.pathname);
   const activeModule = auth.isAuthenticated ? getModuleByPathname(location.pathname) : undefined;
+
+  useEffect(() => {
+    document.body.classList.toggle('fabric-app-body', !isFullscreenElsaRoute);
+
+    return () => {
+      document.body.classList.add('fabric-app-body');
+    };
+  }, [isFullscreenElsaRoute]);
 
   return (
     <SidebarProvider>

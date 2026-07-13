@@ -63,6 +63,7 @@ public static class HardwareManagementEndpoints
 
     private static async Task<IResult> ListHardwareAgents(
         [AsParameters] BaseListRequest request,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         HardwareDbContext db,
         CancellationToken cancellationToken = default)
     {
@@ -71,11 +72,12 @@ public static class HardwareManagementEndpoints
             .OrderBy(agent => agent.Name)
             .GetPageAsync(request.Page, request.PageSize, cancellationToken);
 
-        return Results.Ok(result.Map(agent => agent.ToResponse()));
+        return Results.Ok(result.Map(agent => agent.ToResponse(connectionStatusResolver.GetStatus(agent.LastSeenAt))));
     }
 
     private static async Task<IResult> GetHardwareAgent(
         string agentId,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         HardwareDbContext db,
         CancellationToken cancellationToken = default)
     {
@@ -84,7 +86,7 @@ public static class HardwareManagementEndpoints
             .AsNoTracking()
             .SingleOrDefaultAsync(agent => agent.Id == normalizedAgentId, cancellationToken);
 
-        return agent is null ? Results.NotFound() : Results.Ok(agent.ToResponse());
+        return agent is null ? Results.NotFound() : Results.Ok(agent.ToResponse(connectionStatusResolver.GetStatus(agent.LastSeenAt)));
     }
 
     private static async Task<IResult> CreateHardwareAgent(
@@ -104,7 +106,7 @@ public static class HardwareManagementEndpoints
         db.Agents.Add(agent);
         await db.SaveChangesAsync(cancellationToken);
 
-        return Results.Created($"/api/hardware/agents/{agent.Id}", new HardwareAgentKeyResponse(agent.ToResponse(), key.Key));
+        return Results.Created($"/api/hardware/agents/{agent.Id}", new HardwareAgentKeyResponse(agent.ToResponse(HardwareConnectionStatus.Offline), key.Key));
     }
 
     private static async Task<IResult> UpdateHardwareAgent(
@@ -121,7 +123,7 @@ public static class HardwareManagementEndpoints
         agent.Update(request.Name, request.Enabled);
         await db.SaveChangesAsync(cancellationToken);
 
-        return Results.Ok(agent.ToResponse());
+        return Results.Ok(agent.ToResponse(HardwareConnectionStatus.Offline));
     }
 
     private static async Task<IResult> RotateHardwareAgentKey(
@@ -139,7 +141,7 @@ public static class HardwareManagementEndpoints
         agent.RotateKey(key.Hash, key.Salt);
         await db.SaveChangesAsync(cancellationToken);
 
-        return Results.Ok(new HardwareAgentKeyResponse(agent.ToResponse(), key.Key));
+        return Results.Ok(new HardwareAgentKeyResponse(agent.ToResponse(HardwareConnectionStatus.Offline), key.Key));
     }
 
     private static async Task<IResult> DeleteHardwareAgent(
@@ -162,37 +164,65 @@ public static class HardwareManagementEndpoints
 
     private static async Task<IResult> ListHardwareDevices(
         string agentId,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         HardwareDbContext db,
         CancellationToken cancellationToken = default)
     {
         string normalizedAgentId = HardwareAgent.NormalizeId(agentId);
+        HardwareAgent? agent = await db.Agents
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.Id == normalizedAgentId, cancellationToken);
+        HardwareConnectionStatus connectionStatus = connectionStatusResolver.GetStatus(agent?.LastSeenAt);
         HardwareDevice[] devices = await db.Devices
             .AsNoTracking()
             .Where(device => device.AgentId == normalizedAgentId)
             .OrderBy(device => device.DeviceId)
             .ToArrayAsync(cancellationToken);
 
-        return Results.Ok(devices.Select(device => device.ToResponse()).ToArray());
+        return Results.Ok(devices.Select(device => device.ToResponse(connectionStatus, connectionStatusResolver.IsDeviceAvailable(device), connectionStatusResolver.GetDeviceAvailabilityReason(device))).ToArray());
     }
 
     private static async Task<IResult> GetHardwareDevice(
         string agentId,
         string deviceId,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         HardwareDbContext db,
         CancellationToken cancellationToken = default)
     {
         HardwareDevice? device = await GetDeviceAsync(agentId, deviceId, db, cancellationToken);
-        return device is null ? Results.NotFound() : Results.Ok(device.ToResponse());
+        if (device is null)
+            return Results.NotFound();
+
+        HardwareAgent? agent = await GetAgentAsync(agentId, db, cancellationToken);
+        HardwareConnectionStatus connectionStatus = connectionStatusResolver.GetStatus(agent?.LastSeenAt);
+        return Results.Ok(device.ToResponse(connectionStatus, connectionStatusResolver.IsDeviceAvailable(device), connectionStatusResolver.GetDeviceAvailabilityReason(device)));
     }
 
     private static async Task<IResult> GetHardwareDeviceHealth(
         string agentId,
         string deviceId,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         HardwareDbContext db,
         CancellationToken cancellationToken = default)
     {
         HardwareDevice? device = await GetDeviceAsync(agentId, deviceId, db, cancellationToken);
-        return device is null ? Results.NotFound() : Results.Ok(device.ToHealthResponse());
+        if (device is null)
+            return Results.NotFound();
+
+        HardwareAgent? agent = await GetAgentAsync(agentId, db, cancellationToken);
+        HardwareConnectionStatus connectionStatus = connectionStatusResolver.GetStatus(agent?.LastSeenAt);
+        return Results.Ok(device.ToHealthResponse(connectionStatus, connectionStatusResolver.IsDeviceAvailable(device), connectionStatusResolver.GetDeviceAvailabilityReason(device)));
+    }
+
+    private static async Task<HardwareAgent?> GetAgentAsync(
+        string agentId,
+        HardwareDbContext db,
+        CancellationToken cancellationToken)
+    {
+        string normalizedAgentId = HardwareAgent.NormalizeId(agentId);
+        return await db.Agents
+            .AsNoTracking()
+            .SingleOrDefaultAsync(agent => agent.Id == normalizedAgentId, cancellationToken);
     }
 
     private static async Task<HardwareDevice?> GetDeviceAsync(

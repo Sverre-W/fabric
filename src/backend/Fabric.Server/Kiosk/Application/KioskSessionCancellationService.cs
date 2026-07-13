@@ -13,7 +13,7 @@ public sealed class KioskSessionCancellationService(
     DesfireEncodingService desfireEncodingService,
     ILogger<KioskSessionCancellationService> logger)
 {
-    public async Task<KioskSession?> CancelActiveSessionAsync(Guid kioskId, CancellationToken cancellationToken)
+    public async Task<KioskSession?> CancelActiveSessionAsync(Guid kioskId, KioskSessionCancellationSource source, CancellationToken cancellationToken)
     {
         KioskSession? session = await db.Sessions
             .Where(candidate => candidate.KioskId == kioskId && (candidate.Status == KioskSessionStatus.Starting || candidate.Status == KioskSessionStatus.Running))
@@ -23,16 +23,16 @@ public sealed class KioskSessionCancellationService(
         if (session is null)
             return null;
 
-        return await CancelSessionAsync(session.Id, cancellationToken);
+        return await CancelSessionAsync(session.Id, source, cancellationToken);
     }
 
-    public async Task<KioskSession?> CancelSessionAsync(Guid sessionId, CancellationToken cancellationToken)
+    public async Task<KioskSession?> CancelSessionAsync(Guid sessionId, KioskSessionCancellationSource source, CancellationToken cancellationToken)
     {
         KioskSession? session = await db.Sessions.SingleOrDefaultAsync(candidate => candidate.Id == sessionId, cancellationToken);
         if (session is null)
             return null;
 
-        KioskSession cancelledSession = await kioskSagaService.CancelSessionAsync(session.Id, cancellationToken);
+        KioskSession cancelledSession = await kioskSagaService.CancelSessionAsync(session.Id, source, cancellationToken);
         int cancelledRunCount = await desfireEncodingService.CancelRunsForKioskSessionAsync(session.Id, cancellationToken);
         await cleanupService.CleanupAsync(cancelledSession.KioskId, cancellationToken);
         logger.KioskSessionCancelled(cancelledSession.KioskId, cancelledSession.Id, cancelledRunCount);

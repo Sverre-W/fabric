@@ -16,6 +16,7 @@ public sealed class KioskConfiguration : IEntityTypeConfiguration<Domain.Kiosk>
         builder.Property(kiosk => kiosk.Mode).HasColumnName("mode").HasConversion<string>().IsRequired().HasMaxLength(40);
         builder.Property(kiosk => kiosk.ApiKeyHash).HasColumnName("api_key_hash").IsRequired().HasMaxLength(200);
         builder.Property(kiosk => kiosk.ApiKeySalt).HasColumnName("api_key_salt").IsRequired().HasMaxLength(200);
+        builder.Property(kiosk => kiosk.ShowDetailedErrors).HasColumnName("show_detailed_errors").IsRequired();
         builder.Property(kiosk => kiosk.WorkflowDefinitionId).HasColumnName("workflow_definition_id").HasMaxLength(200);
         builder.Property(kiosk => kiosk.LastSeenAt).HasColumnName("last_seen_at");
         builder.Property(kiosk => kiosk.CreatedAt).HasColumnName("created_at").IsRequired();

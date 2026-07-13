@@ -80,6 +80,8 @@ public sealed class KioskSessionConfiguration : IEntityTypeConfiguration<KioskSe
         builder.Property(session => session.CurrentInstructionJson).HasColumnName("current_instruction_json").HasColumnType("jsonb");
         builder.Property(session => session.CurrentInstructionVersion).HasColumnName("current_instruction_version").IsRequired();
         builder.Property(session => session.CurrentInstructionId).HasColumnName("current_instruction_id").HasMaxLength(100);
+        builder.Property(session => session.TerminalTitle).HasColumnName("terminal_title").HasMaxLength(200);
+        builder.Property(session => session.TerminalMessage).HasColumnName("terminal_message").HasMaxLength(4000);
         builder.Property(session => session.StartedAt).HasColumnName("started_at").IsRequired();
         builder.Property(session => session.LastInteractionAt).HasColumnName("last_interaction_at").IsRequired();
         builder.Property(session => session.CompletedAt).HasColumnName("completed_at");

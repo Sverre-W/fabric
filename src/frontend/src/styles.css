@@ -107,7 +107,7 @@
   --fabric-success-background: #e6faeb;
 }
 
-body {
+body.fabric-app-body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
@@ -118,6 +118,8 @@ body {
 html.elsa-studio-fullscreen,
 body.elsa-studio-fullscreen {
   overflow: hidden;
+  min-height: 0;
+  height: 100%;
 }
 
 .fabric-elsa-studio-root {

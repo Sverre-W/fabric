@@ -23,7 +23,7 @@ public static class KioskRuntimeEndpoints
         kiosk.MapPost("/heartbeat", PostKioskHeartbeat).Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
         kiosk.MapPost("/language", ChangeKioskLanguage).Produces<KioskSessionResponse>().Produces(StatusCodes.Status404NotFound);
         kiosk.MapPost("/sessions", StartKioskSession).Produces<KioskSessionResponse>().Produces(StatusCodes.Status409Conflict);
-        kiosk.MapGet("/sessions/current/instruction", GetCurrentInstruction).Produces<KioskInstructionResponse>().Produces(StatusCodes.Status404NotFound);
+        kiosk.MapGet("/runtime-state", GetRuntimeState).Produces<KioskInstructionResponse>().Produces(StatusCodes.Status404NotFound);
         kiosk.MapPost("/sessions/current/instructions/{instructionId}/response", SubmitInstructionResponse).Produces<KioskSessionResponse>().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
         kiosk.MapPost("/sessions/current/cancel", CancelCurrentSession).Produces<KioskSessionResponse>().Produces(StatusCodes.Status404NotFound);
         kiosk.MapGet("/assets/{assetName}", GetKioskAsset).Produces(StatusCodes.Status404NotFound);
@@ -155,7 +155,7 @@ public static class KioskRuntimeEndpoints
 
     private static async Task<IResult> ChangeKioskLanguage([FromBody] ChangeKioskLanguageRequest request, HttpContext context, KioskDbContext db, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
-        KioskSession? session = await GetCurrentSessionAsync(context.User.GetKioskId(), db, cancellationToken);
+        KioskSession? session = await GetActiveSessionAsync(context.User.GetKioskId(), db, cancellationToken);
         if (session is null)
             return Results.NotFound();
 
@@ -164,10 +164,10 @@ public static class KioskRuntimeEndpoints
         return Results.Ok(session.ToResponse());
     }
 
-    private static async Task<IResult> GetCurrentInstruction([FromQuery] int? sinceVersion, HttpContext context, KioskDbContext db, CancellationToken cancellationToken = default)
+    private static async Task<IResult> GetRuntimeState([FromQuery] int? sinceVersion, HttpContext context, KioskDbContext db, CancellationToken cancellationToken = default)
     {
         Guid kioskId = context.User.GetKioskId();
-        KioskSession? session = await GetCurrentSessionAsync(kioskId, db, cancellationToken);
+        KioskSession? session = await GetLatestSessionAsync(kioskId, db, cancellationToken);
         if (session is null)
             return Results.NotFound();
 
@@ -184,12 +184,12 @@ public static class KioskRuntimeEndpoints
             }
         }
 
-        return Results.Ok(new KioskInstructionResponse(session.Id, session.Status, session.CurrentInstructionVersion, session.CurrentInstructionId, session.CurrentInstructionJson));
+        return Results.Ok(new KioskInstructionResponse(session.Id, session.Status, session.CurrentInstructionVersion, session.CurrentInstructionId, session.CurrentInstructionJson, session.TerminalTitle, session.TerminalMessage));
     }
 
     private static async Task<IResult> SubmitInstructionResponse(string instructionId, [FromBody] SubmitKioskInstructionResponseRequest request, HttpContext context, KioskDbContext db, KioskInstructionService instructionService, CancellationToken cancellationToken = default)
     {
-        KioskSession? session = await GetCurrentSessionAsync(context.User.GetKioskId(), db, cancellationToken);
+        KioskSession? session = await GetActiveSessionAsync(context.User.GetKioskId(), db, cancellationToken);
         if (session is null)
             return Results.NotFound();
 
@@ -206,10 +206,11 @@ public static class KioskRuntimeEndpoints
         return Results.Ok(session.ToResponse());
     }
 
-    private static async Task<IResult> CancelCurrentSession(HttpContext context, KioskSessionCancellationService cancellationService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CancelCurrentSession([FromBody] CancelCurrentKioskSessionRequest? request, HttpContext context, KioskSessionCancellationService cancellationService, CancellationToken cancellationToken = default)
     {
         Guid kioskId = context.User.GetKioskId();
-        KioskSession? session = await cancellationService.CancelActiveSessionAsync(kioskId, cancellationToken);
+        KioskSessionCancellationSource source = request?.Source ?? KioskSessionCancellationSource.UserHome;
+        KioskSession? session = await cancellationService.CancelActiveSessionAsync(kioskId, source, cancellationToken);
         if (session is null)
             return Results.NotFound();
         return Results.Ok(session.ToResponse());
@@ -239,8 +240,14 @@ public static class KioskRuntimeEndpoints
     private static async Task<Domain.Kiosk?> GetAuthenticatedKioskAsync(HttpContext context, KioskDbContext db, CancellationToken cancellationToken) =>
         await db.Kiosks.SingleOrDefaultAsync(kiosk => kiosk.Id == context.User.GetKioskId(), cancellationToken);
 
-    private static async Task<KioskSession?> GetCurrentSessionAsync(Guid kioskId, KioskDbContext db, CancellationToken cancellationToken) =>
+    private static async Task<KioskSession?> GetActiveSessionAsync(Guid kioskId, KioskDbContext db, CancellationToken cancellationToken) =>
         await db.Sessions.Where(session => session.KioskId == kioskId && (session.Status == KioskSessionStatus.Starting || session.Status == KioskSessionStatus.Running)).OrderByDescending(session => session.StartedAt).FirstOrDefaultAsync(cancellationToken);
+
+    private static async Task<KioskSession?> GetLatestSessionAsync(Guid kioskId, KioskDbContext db, CancellationToken cancellationToken) =>
+        await db.Sessions
+            .Where(session => session.KioskId == kioskId)
+            .OrderByDescending(session => session.StartedAt)
+            .FirstOrDefaultAsync(cancellationToken);
 
     private static Guid GetKioskId(this ClaimsPrincipal principal) => Guid.Parse(principal.FindFirstValue(KioskAuthenticationDefaults.KioskIdClaim)!);
 }

@@ -17,7 +17,7 @@ type Kiosk = components['schemas']['KioskResponse'] & { readonly activeSessionId
 
 type Tab = 'kiosks' | 'profiles';
 type ProfileForm = { readonly name: string; readonly defaultLanguageCode: string };
-type KioskForm = { readonly name: string; readonly profileId: string };
+type KioskForm = { readonly name: string; readonly profileId: string; readonly showDetailedErrors: boolean };
 
 const pageSize = 100;
 const profilesQueryKey = ['automation', 'kiosk', 'profiles'] as const;
@@ -29,7 +29,7 @@ export default function KioskAdminPage() {
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
   const [isKioskFormOpen, setIsKioskFormOpen] = useState(false);
   const [profileForm, setProfileForm] = useState<ProfileForm>({ name: '', defaultLanguageCode: 'en' });
-  const [kioskForm, setKioskForm] = useState<KioskForm>({ name: '', profileId: '' });
+  const [kioskForm, setKioskForm] = useState<KioskForm>({ name: '', profileId: '', showDetailedErrors: false });
 
   const profilesQuery = useQuery({
     queryKey: profilesQueryKey,
@@ -85,7 +85,7 @@ export default function KioskAdminPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: kiosksQueryKey });
-      setKioskForm({ name: '', profileId: profiles[0]?.id ?? '' });
+      setKioskForm({ name: '', profileId: profiles[0]?.id ?? '', showDetailedErrors: false });
       setIsKioskFormOpen(false);
       toast.success('Kiosk created.');
     },

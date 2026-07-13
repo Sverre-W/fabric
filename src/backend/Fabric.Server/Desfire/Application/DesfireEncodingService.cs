@@ -11,6 +11,7 @@ using Fabric.Server.Desfire.Contracts;
 using Fabric.Server.Desfire.Domain;
 using Fabric.Server.Desfire.Persistence;
 using Fabric.Server.Hardware.Application;
+using Fabric.Server.Hardware.Contracts;
 using Fabric.Server.Hardware.Domain;
 using Fabric.Server.Hardware.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ public sealed class DesfireEncodingService(
     DesfireEncodingWakeChannel wakeChannel,
     HardwareCommandStore commandStore,
     HardwareAgentConnectionManager connectionManager,
+    HardwareConnectionStatusResolver connectionStatusResolver,
     TimeProvider timeProvider,
     ILogger<DesfireEncodingService> logger)
 {
@@ -291,6 +293,9 @@ public sealed class DesfireEncodingService(
             .AsNoTracking()
             .Where(device => device.Enabled)
             .ToListAsync(ct);
+        Dictionary<string, HardwareAgent> agentsById = await hardwareDb.Agents
+            .AsNoTracking()
+            .ToDictionaryAsync(agent => agent.Id, StringComparer.OrdinalIgnoreCase, ct);
 
         List<DesfireDeviceLease> activeLeases = await desfireDb.DeviceLeases
             .AsNoTracking()
@@ -300,6 +305,10 @@ public sealed class DesfireEncodingService(
         List<HardwareDevice> schedulableDevices = [];
         foreach (HardwareDevice device in devices)
         {
+            agentsById.TryGetValue(device.AgentId, out HardwareAgent? agent);
+            if (connectionStatusResolver.GetStatus(agent?.LastSeenAt) == HardwareConnectionStatus.Offline)
+                continue;
+
             if (!string.Equals(device.State, "online", StringComparison.OrdinalIgnoreCase))
             {
                 logger.DesfireEncodingDeviceSkippedState(device.AgentId, device.DeviceId, device.State);
@@ -350,6 +359,13 @@ public sealed class DesfireEncodingService(
     {
         string normalizedAgentId = HardwareAgent.NormalizeId(agentId);
         string normalizedDeviceId = HardwareDevice.NormalizeDeviceId(deviceId);
+        HardwareAgent? agent = await hardwareDb.Agents.AsNoTracking().SingleOrDefaultAsync(candidate => candidate.Id == normalizedAgentId, ct);
+        if (agent is null)
+            return Results.NotFound();
+
+        if (connectionStatusResolver.GetStatus(agent.LastSeenAt) == HardwareConnectionStatus.Offline)
+            return Results.Problem("Hardware agent is offline.", statusCode: StatusCodes.Status409Conflict);
+
         HardwareDevice? device = await hardwareDb.Devices.AsNoTracking().SingleOrDefaultAsync(candidate => candidate.AgentId == normalizedAgentId && candidate.DeviceId == normalizedDeviceId, ct);
         if (device is null)
             return Results.NotFound();

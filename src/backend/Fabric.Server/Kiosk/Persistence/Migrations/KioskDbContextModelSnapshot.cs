@@ -65,6 +65,10 @@ namespace Fabric.Server.Kiosk.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("profile_id");
 
+                    b.Property<bool>("ShowDetailedErrors")
+                        .HasColumnType("boolean")
+                        .HasColumnName("show_detailed_errors");
+
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -501,6 +505,16 @@ namespace Fabric.Server.Kiosk.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("tenant_id");
+
+                    b.Property<string>("TerminalMessage")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("terminal_message");
+
+                    b.Property<string>("TerminalTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("terminal_title");
 
                     b.Property<string>("WorkflowInstanceId")
                         .HasMaxLength(200)

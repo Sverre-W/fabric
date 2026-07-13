@@ -1,5 +1,4 @@
 using Fabric.Server.Hardware.Domain;
-using Riok.Mapperly.Abstractions;
 
 namespace Fabric.Server.Hardware.Contracts;
 
@@ -8,7 +7,15 @@ public sealed record HardwareAgentResponse(
     string Name,
     bool Enabled,
     DateTimeOffset? LastSeenAt,
-    DateTimeOffset? LastInventoryAt);
+    DateTimeOffset? LastInventoryAt,
+    HardwareConnectionStatus ConnectionStatus);
+
+public enum HardwareConnectionStatus
+{
+    Online,
+    Stale,
+    Offline
+}
 
 public sealed record CreateHardwareAgentRequest(
     string Id,
@@ -22,10 +29,13 @@ public sealed record HardwareAgentKeyResponse(
     HardwareAgentResponse Agent,
     string ApiKey);
 
-[Mapper]
-public static partial class HardwareAgentMapper
+public static class HardwareAgentMapper
 {
-    [MapperIgnoreSource(nameof(HardwareAgent.ApiKeyHash))]
-    [MapperIgnoreSource(nameof(HardwareAgent.ApiKeySalt))]
-    public static partial HardwareAgentResponse ToResponse(this HardwareAgent agent);
+    public static HardwareAgentResponse ToResponse(this HardwareAgent agent, HardwareConnectionStatus connectionStatus) => new(
+        agent.Id,
+        agent.Name,
+        agent.Enabled,
+        agent.LastSeenAt,
+        agent.LastInventoryAt,
+        connectionStatus);
 }

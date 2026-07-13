@@ -16,9 +16,13 @@ using Fabric.Server.Kiosk.Domain;
 namespace Fabric.Server.Automation.Kiosk.Activities;
 
 [Activity("Fabric", "Kiosk", "Encode a card using a kiosk-bound encoder and DESFire transformation.", DisplayName = "Encode Card")]
-[FlowNode("Done")]
+[FlowNode(SucceededOutcome, EncoderUnavailableOutcome, EncodingFailedOutcome)]
 public sealed class EncodeCardActivity : Activity<EncodeCardResult>
 {
+    public const string SucceededOutcome = "Succeeded";
+    public const string EncoderUnavailableOutcome = "EncoderUnavailable";
+    public const string EncodingFailedOutcome = "EncodingFailed";
+
     [Input(DisplayName = "Encoder slot number")]
     public Input<int> SlotNumber { get; set; } = default!;
 
@@ -104,7 +108,7 @@ public sealed class EncodeCardActivity : Activity<EncodeCardResult>
             run.CardUid,
             run.Status,
             run.ErrorMessage));
-        await context.CompleteActivityWithOutcomesAsync("Done");
+        await context.CompleteActivityWithOutcomesAsync(GetOutcome(run.Status));
 
         async Task ShowPhaseMessageAsync(KioskInstructionService service, Guid sessionId, DesfireEncodingPhase phase, CancellationToken cancellationToken)
         {
@@ -130,6 +134,13 @@ public sealed class EncodeCardActivity : Activity<EncodeCardResult>
                 cancellationToken);
         }
     }
+
+    private static string GetOutcome(EncodingRunStatus status) => status switch
+    {
+        EncodingRunStatus.Succeeded => SucceededOutcome,
+        EncodingRunStatus.DeviceUnavailable or EncodingRunStatus.Timeout => EncoderUnavailableOutcome,
+        _ => EncodingFailedOutcome
+    };
 }
 
 public sealed record EncodeCardResult(bool Success, Guid RunId, string? CardUid, EncodingRunStatus Status, string? ErrorMessage);

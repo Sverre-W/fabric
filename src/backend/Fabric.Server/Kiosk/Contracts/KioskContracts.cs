@@ -8,11 +8,11 @@ public sealed record CreateKioskProfileRequest(string Name, string DefaultLangua
 
 public sealed record UpdateKioskProfileRequest(string Name, string DefaultLanguageCode);
 
-public sealed record KioskResponse(Guid Id, Guid ProfileId, string Name, KioskMode Mode, string? WorkflowDefinitionId, Guid? ActiveSessionId, KioskSessionStatus? ActiveSessionStatus, DateTimeOffset? ActiveSessionStartedAt, DateTimeOffset? LastSeenAt, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
+public sealed record KioskResponse(Guid Id, Guid ProfileId, string Name, KioskMode Mode, bool ShowDetailedErrors, string? WorkflowDefinitionId, Guid? ActiveSessionId, KioskSessionStatus? ActiveSessionStatus, DateTimeOffset? ActiveSessionStartedAt, DateTimeOffset? LastSeenAt, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
 
-public sealed record CreateKioskRequest(string Name, Guid ProfileId);
+public sealed record CreateKioskRequest(string Name, Guid ProfileId, bool ShowDetailedErrors = false);
 
-public sealed record UpdateKioskRequest(string Name, Guid ProfileId);
+public sealed record UpdateKioskRequest(string Name, Guid ProfileId, bool ShowDetailedErrors = false);
 
 public sealed record KioskKeyResponse(KioskResponse Kiosk, string ApiKey);
 
@@ -62,7 +62,7 @@ public sealed record KioskAssetResponse(Guid Id, Guid ProfileId, string Name, st
 
 public sealed record CreateKioskAssetRequest(string Name, string? LanguageCode, KioskAssetKind Kind, string? AltTextKey);
 
-public sealed record KioskSessionResponse(Guid Id, Guid KioskId, KioskSessionStatus Status, string LanguageCode, int CurrentInstructionVersion, string? CurrentInstructionId, DateTimeOffset StartedAt, DateTimeOffset LastInteractionAt, DateTimeOffset? CompletedAt);
+public sealed record KioskSessionResponse(Guid Id, Guid KioskId, KioskSessionStatus Status, string LanguageCode, int CurrentInstructionVersion, string? CurrentInstructionId, string? TerminalTitle, string? TerminalMessage, DateTimeOffset StartedAt, DateTimeOffset LastInteractionAt, DateTimeOffset? CompletedAt);
 
 public sealed record KioskConfigResponse(KioskResponse Kiosk, KioskProfileResponse Profile, IReadOnlyList<KioskProfileLanguageResponse> Languages, KioskWelcomeSettingsResponse? Welcome, ResolvedKioskWelcomeResponse? ResolvedWelcome, IReadOnlyDictionary<string, string> Theme);
 
@@ -74,7 +74,9 @@ public sealed record ChangeKioskLanguageRequest(string LanguageCode);
 
 public sealed record KioskHeartbeatRequest(DateTimeOffset ReportedAt);
 
-public sealed record KioskInstructionResponse(Guid SessionId, KioskSessionStatus Status, int Version, string? InstructionId, string? InstructionJson);
+public sealed record KioskInstructionResponse(Guid SessionId, KioskSessionStatus Status, int Version, string? InstructionId, string? InstructionJson, string? TerminalTitle, string? TerminalMessage);
+
+public sealed record CancelCurrentKioskSessionRequest(KioskSessionCancellationSource Source);
 
 public sealed record SubmitKioskInstructionResponseRequest(Dictionary<string, string> Values);
 
@@ -82,7 +84,7 @@ public static class KioskMapper
 {
     public static KioskProfileResponse ToResponse(this KioskProfile profile) => new(profile.Id, profile.Name, profile.DefaultLanguageCode, profile.CreatedAt, profile.UpdatedAt);
 
-    public static KioskResponse ToResponse(this Domain.Kiosk kiosk, KioskSession? activeSession = null) => new(kiosk.Id, kiosk.ProfileId, kiosk.Name, kiosk.Mode, kiosk.WorkflowDefinitionId, activeSession?.Id, activeSession?.Status, activeSession?.StartedAt, kiosk.LastSeenAt, kiosk.CreatedAt, kiosk.UpdatedAt);
+    public static KioskResponse ToResponse(this Domain.Kiosk kiosk, KioskSession? activeSession = null) => new(kiosk.Id, kiosk.ProfileId, kiosk.Name, kiosk.Mode, kiosk.ShowDetailedErrors, kiosk.WorkflowDefinitionId, activeSession?.Id, activeSession?.Status, activeSession?.StartedAt, kiosk.LastSeenAt, kiosk.CreatedAt, kiosk.UpdatedAt);
 
     public static KioskProfileLanguageResponse ToResponse(this KioskProfileLanguage language) => new(language.Id, language.ProfileId, language.LanguageCode, language.DisplayName, language.IsDefault, language.SortOrder);
 
@@ -100,5 +102,5 @@ public static class KioskMapper
 
     public static KioskAssetResponse ToResponse(this KioskAsset asset) => new(asset.Id, asset.ProfileId, asset.Name, asset.LanguageCode, asset.Kind, asset.FileName, asset.ContentType, asset.Size, asset.AltTextKey, asset.CreatedAt);
 
-    public static KioskSessionResponse ToResponse(this KioskSession session) => new(session.Id, session.KioskId, session.Status, session.LanguageCode, session.CurrentInstructionVersion, session.CurrentInstructionId, session.StartedAt, session.LastInteractionAt, session.CompletedAt);
+    public static KioskSessionResponse ToResponse(this KioskSession session) => new(session.Id, session.KioskId, session.Status, session.LanguageCode, session.CurrentInstructionVersion, session.CurrentInstructionId, session.TerminalTitle, session.TerminalMessage, session.StartedAt, session.LastInteractionAt, session.CompletedAt);
 }

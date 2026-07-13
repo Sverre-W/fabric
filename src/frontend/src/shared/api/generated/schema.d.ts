@@ -1273,22 +1273,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/elsa/api/activity-executions/{id}/call-stack": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ElsaWorkflowsApiEndpointsActivityExecutionsGetCallStackEndpoint"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/elsa/api/activity-executions/{id}": {
         parameters: {
             query?: never;
@@ -4418,6 +4402,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/hardware-agent/commands/{commandId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get hardware command status
+         * @description Get hardware command status
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    commandId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HardwareCommandStatusResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/hardware-agent/commands/{commandId}/result": {
         parameters: {
             query?: never;
@@ -5700,6 +5732,7 @@ export interface paths {
                     transformationId?: string;
                     batchId?: string;
                     cardUid?: string;
+                    source?: string;
                 };
                 header?: never;
                 path?: never;
@@ -6871,6 +6904,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kiosks/{id}/cancel-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KioskResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/kiosks/{id}/workflow": {
         parameters: {
             query?: never;
@@ -7251,7 +7335,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/kiosk/sessions/current/instruction": {
+    "/api/kiosk/runtime-state": {
         parameters: {
             query?: never;
             header?: never;
@@ -7366,7 +7450,11 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["CancelCurrentKioskSessionRequest"];
+                };
+            };
             responses: {
                 /** @description OK */
                 200: {
@@ -8591,8 +8679,6 @@ export interface components {
         };
         ActivityExecutionContextState: {
             id?: string;
-            /** Format: int32 */
-            callStackDepth?: number | string;
             parentContextId?: null | string;
             scheduledActivityNodeId?: string;
             ownerActivityNodeId?: null | string;
@@ -8632,11 +8718,6 @@ export interface components {
             aggregateFaultCount?: number | string;
             /** Format: date-time */
             completedAt?: null | string;
-            schedulingActivityExecutionId?: null | string;
-            schedulingActivityId?: null | string;
-            schedulingWorkflowInstanceId?: null | string;
-            /** Format: int32 */
-            callStackDepth?: null | number | string;
             id?: string;
             tenantId?: null | string;
         };
@@ -8855,6 +8936,9 @@ export interface components {
             name: string;
             address: null | string;
         };
+        CancelCurrentKioskSessionRequest: {
+            source: components["schemas"]["KioskSessionCancellationSource"];
+        };
         ChangeKioskLanguageRequest: {
             languageCode: string;
         };
@@ -8965,6 +9049,9 @@ export interface components {
              * @default 0
              */
             priority: number | string;
+            source?: null | string;
+            /** Format: uuid */
+            kioskSessionId?: null | string;
         };
         CreateChipDesignRequest: {
             name: string;
@@ -9036,6 +9123,8 @@ export interface components {
             name: string;
             /** Format: uuid */
             profileId: string;
+            /** @default false */
+            showDetailedErrors: boolean;
         };
         CreateReceptionKioskRequest: {
             name: string;
@@ -9242,7 +9331,12 @@ export interface components {
             lastSeenAt: null | string;
             /** Format: date-time */
             lastInventoryAt: null | string;
+            connectionStatus: components["schemas"]["HardwareConnectionStatus"];
         };
+        /** @enum {unknown} */
+        HardwareConnectionStatus: "Online" | "Stale" | "Offline";
+        /** @enum {unknown} */
+        HardwareDeviceAvailabilityReason: "DeviceDisabled" | "DeviceOffline";
         HardwareCommandClaimResponse: {
             command: components["schemas"]["HardwareCommandEnvelope"];
             /** Format: date-time */
@@ -9259,6 +9353,17 @@ export interface components {
             expiresAt: string;
             payload: null | components["schemas"]["JsonObject"];
         };
+        /** @enum {unknown} */
+        HardwareCommandStatus: "Pending" | "Claimed" | "Running" | "Succeeded" | "Timeout" | "Cancelled" | "DeviceUnavailable" | "Busy" | "Failed" | "Expired";
+        HardwareCommandStatusResponse: {
+            /** Format: uuid */
+            commandId: string;
+            deviceId: string;
+            capability: string;
+            status: components["schemas"]["HardwareCommandStatus"];
+            errorCode: null | string;
+            errorMessage: null | string;
+        };
         HardwareDeviceDiagnostics: {
             connection: null | string;
             configured: boolean;
@@ -9273,6 +9378,9 @@ export interface components {
             /** Format: date-time */
             lastSeenAt: string;
             diagnosticsJson: string;
+            connectionStatus: components["schemas"]["HardwareConnectionStatus"];
+            isAvailable: boolean;
+            availabilityReason: null | components["schemas"]["HardwareDeviceAvailabilityReason"];
         };
         HardwareDeviceInventoryItem: {
             deviceId: string;
@@ -9292,6 +9400,9 @@ export interface components {
             enabled: boolean;
             /** Format: date-time */
             lastSeenAt: string;
+            connectionStatus: components["schemas"]["HardwareConnectionStatus"];
+            isAvailable: boolean;
+            availabilityReason: null | components["schemas"]["HardwareDeviceAvailabilityReason"];
         };
         HardwareErrorResponse: {
             code: string;
@@ -9529,6 +9640,8 @@ export interface components {
             version: number | string;
             instructionId: null | string;
             instructionJson: null | string;
+            terminalTitle: null | string;
+            terminalMessage: null | string;
         };
         KioskKeyResponse: {
             kiosk: components["schemas"]["KioskResponse"];
@@ -9564,7 +9677,13 @@ export interface components {
             profileId: string;
             name: string;
             mode: components["schemas"]["KioskMode"];
+            showDetailedErrors: boolean;
             workflowDefinitionId: null | string;
+            /** Format: uuid */
+            activeSessionId: null | string;
+            activeSessionStatus: null | components["schemas"]["KioskSessionStatus"];
+            /** Format: date-time */
+            activeSessionStartedAt: null | string;
             /** Format: date-time */
             lastSeenAt: null | string;
             /** Format: date-time */
@@ -9572,6 +9691,8 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        /** @enum {unknown} */
+        KioskSessionCancellationSource: "UserHome" | "Guard" | "Maintenance" | "Disabled" | "WorkflowCancelled";
         KioskSessionResponse: {
             /** Format: uuid */
             id: string;
@@ -9582,6 +9703,8 @@ export interface components {
             /** Format: int32 */
             currentInstructionVersion: number | string;
             currentInstructionId: null | string;
+            terminalTitle: null | string;
+            terminalMessage: null | string;
             /** Format: date-time */
             startedAt: string;
             /** Format: date-time */
@@ -9590,7 +9713,7 @@ export interface components {
             completedAt: null | string;
         };
         /** @enum {unknown} */
-        KioskSessionStatus: "Running" | "Completed" | "Cancelled" | "Failed" | "TimedOut";
+        KioskSessionStatus: "Starting" | "Running" | "Completed" | "Cancelled" | "Failed" | "TimedOut" | null;
         KioskThemeTokenResponse: {
             /** Format: uuid */
             id: string;
@@ -9676,7 +9799,6 @@ export interface components {
         };
         LinkedWorkflowDefinitionSummary: {
             links?: null | components["schemas"]["Link"][];
-            isMaterializerAvailable?: boolean;
             id?: string;
             definitionId?: string;
             name?: null | string;
@@ -10486,6 +10608,8 @@ export interface components {
             name: string;
             /** Format: uuid */
             profileId: string;
+            /** @default false */
+            showDetailedErrors: boolean;
         };
         UpdateLenelConfigRequest: {
             endpoint: string;
@@ -13699,45 +13823,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ListResponseOfActivityExecutionRecord"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ElsaWorkflowsApiEndpointsActivityExecutionsGetCallStackEndpoint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "*/*": components["schemas"]["Request"];
-                "application/json": components["schemas"]["Request"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Response"];
                 };
             };
             /** @description Unauthorized */

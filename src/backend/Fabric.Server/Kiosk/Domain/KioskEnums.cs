@@ -17,6 +17,15 @@ public enum KioskSessionStatus
     TimedOut
 }
 
+public enum KioskSessionCancellationSource
+{
+    UserHome,
+    Guard,
+    Maintenance,
+    Disabled,
+    WorkflowCancelled
+}
+
 public enum KioskAssetKind
 {
     Image,

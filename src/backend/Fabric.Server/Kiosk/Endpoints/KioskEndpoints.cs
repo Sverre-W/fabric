@@ -51,7 +51,7 @@ public static class KioskEndpoints
             return Results.Problem("Kiosk profile does not exist.", statusCode: StatusCodes.Status409Conflict);
 
         KioskKey key = keyHasher.CreateKey();
-        Domain.Kiosk kiosk = Domain.Kiosk.Create(request.Name, request.ProfileId, key.Hash, key.Salt, timeProvider.GetUtcNow());
+        Domain.Kiosk kiosk = Domain.Kiosk.Create(request.Name, request.ProfileId, key.Hash, key.Salt, request.ShowDetailedErrors, timeProvider.GetUtcNow());
         db.Kiosks.Add(kiosk);
         await db.SaveChangesAsync(cancellationToken);
         return Results.Created($"/api/kiosks/{kiosk.Id}", new KioskKeyResponse(kiosk.ToResponse(), key.Key));
@@ -76,7 +76,7 @@ public static class KioskEndpoints
         if (!await db.Profiles.AnyAsync(profile => profile.Id == request.ProfileId, cancellationToken))
             return Results.Problem("Kiosk profile does not exist.", statusCode: StatusCodes.Status409Conflict);
 
-        kiosk.Update(request.Name, request.ProfileId, timeProvider.GetUtcNow());
+        kiosk.Update(request.Name, request.ProfileId, request.ShowDetailedErrors, timeProvider.GetUtcNow());
         await db.SaveChangesAsync(cancellationToken);
         KioskSession? activeSession = await GetActiveSessionAsync(id, db, cancellationToken);
         return Results.Ok(kiosk.ToResponse(activeSession));
@@ -127,7 +127,7 @@ public static class KioskEndpoints
 
         DateTimeOffset now = timeProvider.GetUtcNow();
         kiosk.SetMaintenance(now);
-        await CancelActiveSessionsAsync(id, db, cancellationService, cancellationToken);
+        await CancelActiveSessionsAsync(id, db, cancellationService, KioskSessionCancellationSource.Maintenance, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await cleanupService.CleanupAsync(id, cancellationToken);
         return Results.Ok(kiosk.ToResponse());
@@ -141,7 +141,7 @@ public static class KioskEndpoints
 
         DateTimeOffset now = timeProvider.GetUtcNow();
         kiosk.Disable(now);
-        await CancelActiveSessionsAsync(id, db, cancellationService, cancellationToken);
+        await CancelActiveSessionsAsync(id, db, cancellationService, KioskSessionCancellationSource.Disabled, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await cleanupService.CleanupAsync(id, cancellationToken);
         return Results.Ok(kiosk.ToResponse());
@@ -153,7 +153,7 @@ public static class KioskEndpoints
         if (kiosk is null)
             return Results.NotFound();
 
-        KioskSession? session = await cancellationService.CancelActiveSessionAsync(id, cancellationToken);
+        KioskSession? session = await cancellationService.CancelActiveSessionAsync(id, KioskSessionCancellationSource.Guard, cancellationToken);
         if (session is null)
             return Results.Problem("Kiosk has no active session.", statusCode: StatusCodes.Status409Conflict);
 
@@ -231,11 +231,11 @@ public static class KioskEndpoints
         return Results.Ok(devices.Select(device => device.ToResponse()).ToArray());
     }
 
-    private static async Task CancelActiveSessionsAsync(Guid kioskId, KioskDbContext db, KioskSessionCancellationService cancellationService, CancellationToken cancellationToken)
+    private static async Task CancelActiveSessionsAsync(Guid kioskId, KioskDbContext db, KioskSessionCancellationService cancellationService, KioskSessionCancellationSource source, CancellationToken cancellationToken)
     {
         KioskSession[] sessions = await db.Sessions.Where(session => session.KioskId == kioskId && (session.Status == KioskSessionStatus.Starting || session.Status == KioskSessionStatus.Running)).ToArrayAsync(cancellationToken);
         foreach (KioskSession session in sessions)
-            await cancellationService.CancelSessionAsync(session.Id, cancellationToken);
+            await cancellationService.CancelSessionAsync(session.Id, source, cancellationToken);
     }
 
     private static async Task<KioskSession?> GetActiveSessionAsync(Guid kioskId, KioskDbContext db, CancellationToken cancellationToken) =>

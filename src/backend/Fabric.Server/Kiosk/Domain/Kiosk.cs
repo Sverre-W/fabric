@@ -10,12 +10,13 @@ public sealed class Kiosk
     public KioskMode Mode { get; private set; }
     public string ApiKeyHash { get; private set; } = default!;
     public string ApiKeySalt { get; private set; } = default!;
+    public bool ShowDetailedErrors { get; private set; }
     public string? WorkflowDefinitionId { get; private set; }
     public DateTimeOffset? LastSeenAt { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    public static Kiosk Create(string name, Guid profileId, string apiKeyHash, string apiKeySalt, DateTimeOffset now) => new()
+    public static Kiosk Create(string name, Guid profileId, string apiKeyHash, string apiKeySalt, bool showDetailedErrors, DateTimeOffset now) => new()
     {
         Id = Guid.NewGuid(),
         Name = name.Trim(),
@@ -23,14 +24,16 @@ public sealed class Kiosk
         Mode = KioskMode.Disabled,
         ApiKeyHash = apiKeyHash,
         ApiKeySalt = apiKeySalt,
+        ShowDetailedErrors = showDetailedErrors,
         CreatedAt = now,
         UpdatedAt = now
     };
 
-    public void Update(string name, Guid profileId, DateTimeOffset now)
+    public void Update(string name, Guid profileId, bool showDetailedErrors, DateTimeOffset now)
     {
         Name = name.Trim();
         ProfileId = profileId;
+        ShowDetailedErrors = showDetailedErrors;
         UpdatedAt = now;
     }
 

@@ -3,6 +3,7 @@ using Fabric.Hardware.Contracts.Capabilities;
 using Fabric.Hardware.Contracts.Labels;
 using Fabric.Hardware.Contracts.Qr;
 using Fabric.Server.Hardware.Application;
+using Fabric.Server.Hardware.Contracts;
 using Fabric.Server.Hardware.Domain;
 using Fabric.Server.Hardware.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -36,10 +37,11 @@ public static class HardwareOperationEndpoints
         string agentId,
         string deviceId,
         HardwareDbContext db,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         IQrScanner qrScanner,
         CancellationToken cancellationToken = default)
     {
-        IResult? validationFailure = await ValidateDeviceAsync(agentId, deviceId, HardwareCapabilities.QrScan, db, cancellationToken);
+        IResult? validationFailure = await ValidateDeviceAsync(agentId, deviceId, HardwareCapabilities.QrScan, db, connectionStatusResolver, cancellationToken);
         if (validationFailure is not null)
             return validationFailure;
 
@@ -52,10 +54,11 @@ public static class HardwareOperationEndpoints
         string deviceId,
         [FromBody] PrintLabelRequest request,
         HardwareDbContext db,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         ILabelPrinter labelPrinter,
         CancellationToken cancellationToken = default)
     {
-        IResult? validationFailure = await ValidateDeviceAsync(agentId, deviceId, HardwareCapabilities.LabelPrint, db, cancellationToken);
+        IResult? validationFailure = await ValidateDeviceAsync(agentId, deviceId, HardwareCapabilities.LabelPrint, db, connectionStatusResolver, cancellationToken);
         if (validationFailure is not null)
             return validationFailure;
 
@@ -68,10 +71,19 @@ public static class HardwareOperationEndpoints
         string deviceId,
         string capability,
         HardwareDbContext db,
+        HardwareConnectionStatusResolver connectionStatusResolver,
         CancellationToken cancellationToken)
     {
         string normalizedAgentId = HardwareAgent.NormalizeId(agentId);
         string normalizedDeviceId = HardwareDevice.NormalizeDeviceId(deviceId);
+        HardwareAgent? agent = await db.Agents
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.Id == normalizedAgentId, cancellationToken);
+        if (agent is null)
+            return Results.NotFound();
+
+        if (connectionStatusResolver.GetStatus(agent.LastSeenAt) == HardwareConnectionStatus.Offline)
+            return Results.Problem("Hardware agent is offline.", statusCode: StatusCodes.Status409Conflict);
 
         HardwareDevice? device = await db.Devices
             .AsNoTracking()
@@ -84,6 +96,9 @@ public static class HardwareOperationEndpoints
 
         if (!device.Enabled)
             return Results.Problem("Hardware device is disabled.", statusCode: StatusCodes.Status409Conflict);
+
+        if (!string.Equals(device.State, "online", StringComparison.OrdinalIgnoreCase))
+            return Results.Problem("Hardware device is not ready.", statusCode: StatusCodes.Status409Conflict);
 
         if (!device.Capabilities.Contains(capability, StringComparer.OrdinalIgnoreCase))
             return Results.Problem("Hardware device does not support requested capability.", statusCode: StatusCodes.Status409Conflict);

@@ -1,16 +1,17 @@
 import { Navigate } from '@tanstack/react-router';
 import { Loader2, Settings } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
 
-import { NoActiveKioskSessionError, cancelCurrentSession, changeKioskLanguage, getCurrentInstruction, getKioskConfig, postKioskHeartbeat, startKioskSession, submitInstructionResponse } from './kiosk-api';
+import { NoKioskSessionError, cancelCurrentSession, changeKioskLanguage, getKioskConfig, getRuntimeState, postKioskHeartbeat, startKioskSession, submitInstructionResponse } from './kiosk-api';
 import { KioskLayout } from './kiosk-layout';
 import { KioskRenderer } from './kiosk-renderer';
 import { getKioskSettings, hasKioskSettings, saveKioskLanguage } from './kiosk-settings';
 import type { KioskConfig, KioskInstructionEnvelope, KioskInstructionResponse, KioskSession } from './kiosk-types';
 
 type RuntimeState = 'loading-config' | 'welcome' | 'starting' | 'polling' | 'offline' | 'error';
+type TerminalScreen = { readonly status: 'Cancelled' | 'Failed' | 'TimedOut'; readonly title: string; readonly message: string };
 
 export default function KioskPage() {
   const settings = getKioskSettings();
@@ -21,6 +22,8 @@ export default function KioskPage() {
   const [state, setState] = useState<RuntimeState>('loading-config');
   const [error, setError] = useState<string | null>(null);
   const [isEndingSession, setIsEndingSession] = useState(false);
+  const [terminalScreen, setTerminalScreen] = useState<TerminalScreen | null>(null);
+  const suppressCancelledTerminalRef = useRef(false);
 
   const parsedInstruction = useMemo(() => parseInstruction(instruction), [instruction]);
   const selectedLanguage = languageCode || config?.profile.defaultLanguageCode || '';
@@ -40,6 +43,44 @@ export default function KioskPage() {
         const nextLanguage = selectedLanguage || nextConfig.profile.defaultLanguageCode;
         setLanguageCode(nextLanguage);
         saveKioskLanguage(nextLanguage);
+
+        try {
+          const runtimeState = await getRuntimeState();
+          if (disposed) return;
+
+          if (runtimeState.status === 'Starting' || runtimeState.status === 'Running') {
+            setSession({
+              id: runtimeState.sessionId,
+              kioskId: nextConfig.kiosk.id,
+              status: runtimeState.status,
+              languageCode: nextLanguage,
+              currentInstructionVersion: runtimeState.version,
+              currentInstructionId: runtimeState.instructionId,
+              terminalTitle: runtimeState.terminalTitle,
+              terminalMessage: runtimeState.terminalMessage,
+              startedAt: new Date().toISOString(),
+              lastInteractionAt: new Date().toISOString(),
+              completedAt: null,
+            });
+            setInstruction(runtimeState);
+            setTerminalScreen(null);
+            setState('polling');
+            return;
+          }
+
+          if (runtimeState.status === 'Cancelled' || runtimeState.status === 'Failed' || runtimeState.status === 'TimedOut') {
+            setSession(null);
+            setInstruction(null);
+            await handleTerminalStatus(runtimeState.status, runtimeState.terminalTitle, runtimeState.terminalMessage);
+            return;
+          }
+        } catch (runtimeError) {
+          if (disposed) return;
+          if (!(runtimeError instanceof NoKioskSessionError)) {
+            throw runtimeError;
+          }
+        }
+
         setState('welcome');
       } catch (loadError) {
         if (disposed) return;
@@ -63,6 +104,24 @@ export default function KioskPage() {
   }, [settings]);
 
   useEffect(() => {
+    if (!terminalScreen) return;
+
+    const timeout = window.setTimeout(() => resetToWelcome(), 10_000);
+    return () => window.clearTimeout(timeout);
+  }, [terminalScreen]);
+
+  useEffect(() => {
+    if (!settings) return;
+    if (session?.status === 'Starting' || session?.status === 'Running') return;
+
+    const interval = window.setInterval(() => {
+      void syncModeState().catch(() => undefined);
+    }, 5_000);
+
+    return () => window.clearInterval(interval);
+  }, [selectedLanguage, session?.status, settings]);
+
+  useEffect(() => {
     if (!session || (session.status !== 'Starting' && session.status !== 'Running')) return;
 
     let disposed = false;
@@ -71,20 +130,25 @@ export default function KioskPage() {
       while (!disposed) {
         try {
           setState('polling');
-          const nextInstruction = await getCurrentInstruction(sinceVersion);
+          const nextInstruction = await getRuntimeState(sinceVersion);
           if (disposed) return;
           setInstruction(nextInstruction);
           sinceVersion = Number(nextInstruction.version ?? sinceVersion);
           if (nextInstruction.status !== 'Starting' && nextInstruction.status !== 'Running') {
-            resetToWelcome();
+            await handleTerminalStatus(nextInstruction.status, nextInstruction.terminalTitle, nextInstruction.terminalMessage);
             return;
           }
 
           setSession((current) => current ? { ...current, status: nextInstruction.status } : current);
         } catch (pollError) {
           if (disposed) return;
-          if (pollError instanceof NoActiveKioskSessionError) {
-            resetToWelcome();
+          if (pollError instanceof NoKioskSessionError) {
+            try {
+              await syncModeState();
+            } catch (syncError) {
+              setState('offline');
+              setError(syncError instanceof Error ? syncError.message : 'Connection lost. Retrying...');
+            }
             return;
           }
 
@@ -104,6 +168,16 @@ export default function KioskPage() {
   async function refreshConfig(nextLanguage = selectedLanguage) {
     const nextConfig = await getKioskConfig(nextLanguage || undefined);
     setConfig(nextConfig);
+    return nextConfig;
+  }
+
+  async function syncModeState(nextLanguage = selectedLanguage) {
+    const nextConfig = await refreshConfig(nextLanguage);
+    if (nextConfig.kiosk.mode !== 'Active') {
+      clearRuntimeState();
+    }
+
+    return nextConfig;
   }
 
   async function handleLanguageChange(nextLanguage: string) {
@@ -120,6 +194,8 @@ export default function KioskPage() {
   async function start() {
     setState('starting');
     setError(null);
+    setTerminalScreen(null);
+    suppressCancelledTerminalRef.current = false;
     try {
       const nextSession = await startKioskSession(selectedLanguage || undefined);
       setSession(nextSession);
@@ -134,7 +210,7 @@ export default function KioskPage() {
     try {
       const nextSession = await submitInstructionResponse(instruction.instructionId, values);
       if (nextSession.status !== 'Starting' && nextSession.status !== 'Running') {
-        resetToWelcome();
+        await handleTerminalStatus(nextSession.status, nextSession.terminalTitle, nextSession.terminalMessage);
         return;
       }
 
@@ -155,10 +231,12 @@ export default function KioskPage() {
 
     setIsEndingSession(true);
     setError(null);
+    suppressCancelledTerminalRef.current = true;
     try {
       await cancelCurrentSession();
       resetToWelcome();
     } catch (cancelError) {
+      suppressCancelledTerminalRef.current = false;
       setError(cancelError instanceof Error ? cancelError.message : 'Could not end session.');
     } finally {
       setIsEndingSession(false);
@@ -166,8 +244,45 @@ export default function KioskPage() {
   }
 
   function resetToWelcome() {
+    suppressCancelledTerminalRef.current = false;
+    clearRuntimeState();
+  }
+
+  function clearRuntimeState() {
     setSession(null);
     setInstruction(null);
+    setTerminalScreen(null);
+    setState('welcome');
+    setError(null);
+  }
+
+  async function handleTerminalStatus(status: KioskSession['status'], terminalTitle: string | null | undefined, terminalMessage: string | null | undefined) {
+    if (status === 'Completed') {
+      await syncModeState();
+      return;
+    }
+
+    if (status === 'Cancelled' && suppressCancelledTerminalRef.current) {
+      await syncModeState();
+      return;
+    }
+
+    const resolved = resolveTerminalScreen(status, terminalTitle, terminalMessage);
+    if (!resolved) {
+      await syncModeState();
+      return;
+    }
+
+    const nextConfig = await refreshConfig();
+    if (nextConfig.kiosk.mode !== 'Active') {
+      clearRuntimeState();
+      return;
+    }
+
+    suppressCancelledTerminalRef.current = false;
+    setSession((current) => current ? { ...current, status } : current);
+    setInstruction(null);
+    setTerminalScreen(resolved);
     setState('welcome');
     setError(null);
   }
@@ -178,7 +293,8 @@ export default function KioskPage() {
       {state === 'offline' ? <StateCard title="Kiosk unavailable" message={error ?? 'Could not connect to server.'} actionLabel="Retry" onAction={() => void refreshConfig()} /> : null}
       {config?.kiosk.mode === 'Disabled' ? <StateCard title="Kiosk disabled" message="This kiosk is currently disabled." /> : null}
       {config?.kiosk.mode === 'Maintenance' ? <StateCard title="Maintenance" message="This kiosk is temporarily unavailable." /> : null}
-      {config?.kiosk.mode === 'Active' && !session && state !== 'loading-config' && state !== 'offline' ? <Welcome config={config} onStart={start} busy={state === 'starting'} /> : null}
+      {config?.kiosk.mode === 'Active' && terminalScreen ? <StateCard title={terminalScreen.title} message={terminalScreen.message} actionLabel="Home" onAction={resetToWelcome} tone={terminalScreen.status === 'Cancelled' ? 'default' : 'error'} /> : null}
+      {config?.kiosk.mode === 'Active' && !session && !terminalScreen && state !== 'loading-config' && state !== 'offline' ? <Welcome config={config} onStart={start} busy={state === 'starting'} /> : null}
       {config?.kiosk.mode === 'Active' && (session?.status === 'Starting' || session?.status === 'Running') && parsedInstruction ? <InstructionBackdrop instruction={parsedInstruction} config={config}><KioskRenderer instruction={parsedInstruction} onSubmit={submit} /></InstructionBackdrop> : null}
       {config?.kiosk.mode === 'Active' && (session?.status === 'Starting' || session?.status === 'Running') && !parsedInstruction ? <StateCard title={session.status === 'Starting' ? 'Starting session' : 'Please wait'} message={session.status === 'Starting' ? 'Launching workflow and waiting for first instruction...' : 'Waiting for next instruction...'} loading /> : null}
       {error && state !== 'offline' ? <p className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-interactive border border-error bg-error-background px-4 py-3 text-[15px] font-medium text-error shadow-sm">{error}</p> : null}
@@ -199,8 +315,15 @@ function InstructionBackdrop({ instruction, config, backgroundUrl, children }: {
   return <div className="flex min-h-[calc(100vh-161px)] w-full items-center justify-center rounded-[2rem] bg-cover bg-center p-0" style={resolvedBackground ? { backgroundImage: `linear-gradient(rgba(0,0,0,.08), rgba(0,0,0,.08)), url(${resolvedBackground})` } : undefined}>{children}</div>;
 }
 
-function StateCard({ title, message, loading, actionLabel, onAction }: { readonly title: string; readonly message: string; readonly loading?: boolean; readonly actionLabel?: string; readonly onAction?: () => void }) {
-  return <section className="w-full max-w-3xl rounded-[2rem] border border-border bg-content p-8 text-center shadow-sm sm:p-12">{loading ? <Loader2 className="mx-auto size-12 animate-spin text-primary" aria-hidden="true" /> : null}<h2 className="mt-4 text-[34px] font-semibold tracking-tight sm:text-[48px]">{title}</h2><p className="mx-auto mt-4 max-w-2xl text-[18px] leading-8 text-muted-foreground">{message}</p>{actionLabel ? <Button type="button" className="mt-8 h-14 rounded-xl px-8 text-[18px]" onClick={onAction}>{actionLabel}</Button> : null}</section>;
+function StateCard({ title, message, loading, actionLabel, onAction, tone = 'default' }: { readonly title: string; readonly message: string; readonly loading?: boolean; readonly actionLabel?: string; readonly onAction?: () => void; readonly tone?: 'default' | 'error' }) {
+  return <section className={`w-full max-w-3xl rounded-[2rem] border bg-content p-8 text-center shadow-sm sm:p-12 ${tone === 'error' ? 'border-error/40' : 'border-border'}`}>{loading ? <Loader2 className="mx-auto size-12 animate-spin text-primary" aria-hidden="true" /> : null}<h2 className="mt-4 text-[34px] font-semibold tracking-tight sm:text-[48px]">{title}</h2><p className="mx-auto mt-4 max-w-2xl text-[18px] leading-8 text-muted-foreground">{message}</p>{actionLabel ? <Button type="button" className="mt-8 h-14 rounded-xl px-8 text-[18px]" onClick={onAction}>{actionLabel}</Button> : null}</section>;
+}
+
+function resolveTerminalScreen(status: KioskSession['status'], title: string | null | undefined, message: string | null | undefined): TerminalScreen | null {
+  if (status === 'Cancelled') return { status, title: title ?? 'Session cancelled', message: message ?? 'Session was cancelled.' };
+  if (status === 'Failed') return { status, title: title ?? 'Session error', message: message ?? 'Something went wrong. Please contact guard.' };
+  if (status === 'TimedOut') return { status, title: title ?? 'Session timed out', message: message ?? 'Session timed out. Please return home and try again.' };
+  return null;
 }
 
 function parseInstruction(instruction: KioskInstructionResponse | null): KioskInstructionEnvelope | null {

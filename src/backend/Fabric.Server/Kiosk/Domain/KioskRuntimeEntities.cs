@@ -98,6 +98,8 @@ public sealed class KioskSession
     public string? CurrentInstructionJson { get; private set; }
     public int CurrentInstructionVersion { get; private set; }
     public string? CurrentInstructionId { get; private set; }
+    public string? TerminalTitle { get; private set; }
+    public string? TerminalMessage { get; private set; }
     public DateTimeOffset StartedAt { get; private set; }
     public DateTimeOffset LastInteractionAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
@@ -148,14 +150,16 @@ public sealed class KioskSession
         LastInteractionAt = now;
     }
 
-    public void MarkCompleted(DateTimeOffset now) => SetTerminalStatus(KioskSessionStatus.Completed, now);
-    public void Cancel(DateTimeOffset now) => SetTerminalStatus(KioskSessionStatus.Cancelled, now);
-    public void Fail(DateTimeOffset now) => SetTerminalStatus(KioskSessionStatus.Failed, now);
-    public void Timeout(DateTimeOffset now) => SetTerminalStatus(KioskSessionStatus.TimedOut, now);
+    public void MarkCompleted(DateTimeOffset now, string? terminalTitle = null, string? terminalMessage = null) => SetTerminalStatus(KioskSessionStatus.Completed, now, terminalTitle, terminalMessage);
+    public void Cancel(DateTimeOffset now, string? terminalTitle = null, string? terminalMessage = null) => SetTerminalStatus(KioskSessionStatus.Cancelled, now, terminalTitle, terminalMessage);
+    public void Fail(DateTimeOffset now, string? terminalTitle = null, string? terminalMessage = null) => SetTerminalStatus(KioskSessionStatus.Failed, now, terminalTitle, terminalMessage);
+    public void Timeout(DateTimeOffset now, string? terminalTitle = null, string? terminalMessage = null) => SetTerminalStatus(KioskSessionStatus.TimedOut, now, terminalTitle, terminalMessage);
 
-    private void SetTerminalStatus(KioskSessionStatus status, DateTimeOffset now)
+    private void SetTerminalStatus(KioskSessionStatus status, DateTimeOffset now, string? terminalTitle, string? terminalMessage)
     {
         Status = status;
+        TerminalTitle = string.IsNullOrWhiteSpace(terminalTitle) ? null : terminalTitle.Trim();
+        TerminalMessage = string.IsNullOrWhiteSpace(terminalMessage) ? null : terminalMessage.Trim();
         LastInteractionAt = now;
         CompletedAt = now;
     }

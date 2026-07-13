@@ -9,7 +9,7 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "react-oidc-context";
 import { toast } from "sonner";
 
@@ -34,6 +34,7 @@ import {
   ComboboxList,
 } from "@/shared/components/ui/combobox";
 import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
 
 type Kiosk = components["schemas"]["KioskResponse"];
 type KioskWithSession = Kiosk & { readonly activeSessionId?: string | null; readonly activeSessionStatus?: string | null };
@@ -50,6 +51,7 @@ type WorkflowDefinition =
 type KioskForm = {
   readonly name: string;
   readonly profileId: string;
+  readonly showDetailedErrors: boolean;
   readonly workflowDefinitionId: string;
 };
 type DeviceRow = {
@@ -101,10 +103,14 @@ export default function KioskEditPage() {
   const [form, setForm] = useState<KioskForm>({
     name: "",
     profileId: "",
+    showDetailedErrors: false,
     workflowDefinitionId: "",
   });
   const [latestKey, setLatestKey] = useState<KioskKeyResponse | null>(null);
   const [devices, setDevices] = useState<DeviceRow[]>([]);
+  const nameId = useId();
+  const profileId = useId();
+  const workflowDefinitionId = useId();
 
   const kioskQuery = useQuery({
     queryKey: [...kiosksQueryKey, kioskId],
@@ -184,6 +190,7 @@ export default function KioskEditPage() {
       setForm({
         name: kiosk.name,
         profileId: kiosk.profileId,
+        showDetailedErrors: kiosk.showDetailedErrors,
         workflowDefinitionId: kiosk.workflowDefinitionId ?? "",
       });
   }, [kiosk]);
@@ -208,7 +215,7 @@ export default function KioskEditPage() {
     mutationFn: async () => {
       const { error } = await api.PUT("/api/kiosks/{id}", {
         params: { path: { id: kioskId } },
-        body: { name: form.name, profileId: form.profileId },
+        body: { name: form.name, profileId: form.profileId, showDetailedErrors: form.showDetailedErrors },
       });
       if (error) throw new Error("Could not save kiosk.");
       const workflow = await api.PUT("/api/kiosks/{id}/workflow", {
@@ -339,29 +346,42 @@ export default function KioskEditPage() {
         <CardContent className="grid gap-4">
           <form className="grid gap-4" onSubmit={submit}>
             <div className="grid gap-3 md:grid-cols-3">
-              <Input
-                value={form.name}
-                onChange={(event) =>
-                  setForm({ ...form, name: event.target.value })
-                }
-                placeholder="Kiosk name"
-                required
-              />
-              <select
-                className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
-                value={form.profileId}
-                onChange={(event) =>
-                  setForm({ ...form, profileId: event.target.value })
-                }
-                required
-              >
-                {profiles.map((profile) => (
-                  <option key={profile.id} value={profile.id}>
-                    {profile.name}
-                  </option>
-                ))}
-              </select>
+              <div className="grid gap-2">
+                <Label htmlFor={nameId} className="text-[14px] font-medium">
+                  Kiosk name
+                </Label>
+                <Input
+                  id={nameId}
+                  value={form.name}
+                  onChange={(event) =>
+                    setForm({ ...form, name: event.target.value })
+                  }
+                  placeholder="Kiosk name"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor={profileId} className="text-[14px] font-medium">
+                  Profile
+                </Label>
+                <select
+                  id={profileId}
+                  className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
+                  value={form.profileId}
+                  onChange={(event) =>
+                    setForm({ ...form, profileId: event.target.value })
+                  }
+                  required
+                >
+                  {profiles.map((profile) => (
+                    <option key={profile.id} value={profile.id}>
+                      {profile.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <WorkflowDefinitionAutocomplete
+                inputId={workflowDefinitionId}
                 definitions={workflowDefinitions}
                 selectedDefinition={selectedWorkflowDefinition}
                 unavailableDefinitionId={
@@ -382,6 +402,16 @@ export default function KioskEditPage() {
                 }
               />
             </div>
+            <label className="flex items-center gap-3 rounded-interactive border border-border px-3 py-2 text-[14px] font-medium text-foreground">
+              <input
+                type="checkbox"
+                checked={form.showDetailedErrors}
+                onChange={(event) =>
+                  setForm({ ...form, showDetailedErrors: event.target.checked })
+                }
+              />
+              Show detailed errors on kiosk
+            </label>
             {workflowDefinitionsQuery.isError ? (
               <p className="text-[12px] text-error">
                 Could not load workflow definitions.
@@ -494,12 +524,14 @@ export default function KioskEditPage() {
 }
 
 function WorkflowDefinitionAutocomplete({
+  inputId,
   definitions,
   selectedDefinition,
   unavailableDefinitionId,
   disabled,
   onChange,
 }: {
+  readonly inputId: string;
   readonly definitions: WorkflowDefinition[];
   readonly selectedDefinition: WorkflowDefinition | null;
   readonly unavailableDefinitionId: string | null;
@@ -509,7 +541,10 @@ function WorkflowDefinitionAutocomplete({
   const anchorRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <div className="grid gap-1">
+    <div className="grid gap-2">
+      <Label htmlFor={inputId} className="text-[14px] font-medium">
+        Workflow definition
+      </Label>
       <div ref={anchorRef}>
         <Combobox
           value={selectedDefinition}
@@ -518,6 +553,7 @@ function WorkflowDefinitionAutocomplete({
           itemToStringLabel={getWorkflowDefinitionLabel}
         >
           <ComboboxInput
+            id={inputId}
             placeholder={
               disabled
                 ? "Workflow definitions unavailable"
@@ -579,6 +615,11 @@ function DeviceRowEditor({
   readonly onChange: (row: DeviceRow) => void;
   readonly onRemove: () => void;
 }) {
+  const nameId = useId();
+  const typeId = useId();
+  const slotNumberId = useId();
+  const agentId = useId();
+  const deviceId = useId();
   const agentDevices = hardwareDevices.filter(
     (device) => !row.agentId || device.agentId === row.agentId,
   );
@@ -597,74 +638,97 @@ function DeviceRowEditor({
           {row.type} slot {row.slotNumber || "?"}
         </code>
       </div>
-      <div className="grid gap-3 md:grid-cols-4">
-        <Input
-          value={row.name}
-          onChange={(event) => onChange({ ...row, name: event.target.value })}
-          placeholder="Display name"
-        />
-        <select
-          className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
-          value={row.type}
-          onChange={(event) =>
-            onChange({ ...row, type: event.target.value as KioskDeviceType })
-          }
-        >
-          {deviceTypes.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-        <Input
-          type="number"
-          min={1}
-          value={row.slotNumber}
-          onChange={(event) =>
-            onChange({ ...row, slotNumber: event.target.value })
-          }
-          placeholder="Slot"
-        />
-        <Input
-          value={row.sortOrder}
-          onChange={(event) =>
-            onChange({ ...row, sortOrder: event.target.value })
-          }
-          placeholder="Sort"
-        />
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-2">
+          <Label htmlFor={nameId} className="text-[14px] font-medium">
+            Display name
+          </Label>
+          <Input
+            id={nameId}
+            value={row.name}
+            onChange={(event) => onChange({ ...row, name: event.target.value })}
+            placeholder="Display name"
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor={typeId} className="text-[14px] font-medium">
+            Device type
+          </Label>
+          <select
+            id={typeId}
+            className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
+            value={row.type}
+            onChange={(event) =>
+              onChange({ ...row, type: event.target.value as KioskDeviceType })
+            }
+          >
+            {deviceTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor={slotNumberId} className="text-[14px] font-medium">
+            Slot number
+          </Label>
+          <Input
+            id={slotNumberId}
+            type="number"
+            min={1}
+            value={row.slotNumber}
+            onChange={(event) =>
+              onChange({ ...row, slotNumber: event.target.value })
+            }
+            placeholder="Slot"
+          />
+        </div>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <select
-          className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
-          value={row.agentId}
-          onChange={(event) =>
-            onChange({ ...row, agentId: event.target.value, deviceId: "" })
-          }
-        >
-          <option value="">Agent</option>
-          {agents.map((agent) => (
-            <option key={agent.id} value={agent.id}>
-              {agent.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
-          value={row.deviceId}
-          onChange={(event) =>
-            onChange({ ...row, deviceId: event.target.value })
-          }
-        >
-          <option value="">Device</option>
-          {agentDevices.map((device) => (
-            <option
-              key={`${device.agentId}:${device.deviceId}`}
-              value={device.deviceId}
-            >
-              {device.deviceId} ({device.kind})
-            </option>
-          ))}
-        </select>
+        <div className="grid gap-2">
+          <Label htmlFor={agentId} className="text-[14px] font-medium">
+            Hardware agent
+          </Label>
+          <select
+            id={agentId}
+            className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
+            value={row.agentId}
+            onChange={(event) =>
+              onChange({ ...row, agentId: event.target.value, deviceId: "" })
+            }
+          >
+            <option value="">Select agent</option>
+            {agents.map((agent) => (
+              <option key={agent.id} value={agent.id}>
+                {agent.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor={deviceId} className="text-[14px] font-medium">
+            Hardware device
+          </Label>
+          <select
+            id={deviceId}
+            className="rounded-interactive border border-border bg-content px-3 py-2 text-[14px]"
+            value={row.deviceId}
+            onChange={(event) =>
+              onChange({ ...row, deviceId: event.target.value })
+            }
+          >
+            <option value="">Select device</option>
+            {agentDevices.map((device) => (
+              <option
+                key={`${device.agentId}:${device.deviceId}`}
+                value={device.deviceId}
+              >
+                {device.deviceId} ({device.kind})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-3">
@@ -771,7 +835,7 @@ function nextSlotNumber(devices: DeviceRow[], type: KioskDeviceType) {
   );
 }
 async function fetchElsaWorkflowDefinitions(accessToken: string | undefined) {
-  const response = await fetch(`${apiBaseUrl}/elsa/api/workflow-definitions`, {
+  const response = await fetch(`${apiBaseUrl}/elsa/api/workflow-definitions?versionOptions=Published`, {
     headers: {
       Accept: "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),

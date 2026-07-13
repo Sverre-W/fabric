@@ -10,7 +10,10 @@ public sealed record HardwareDeviceResponse(
     IReadOnlyList<string> Capabilities,
     string State,
     bool Enabled,
-    DateTimeOffset LastSeenAt);
+    DateTimeOffset LastSeenAt,
+    HardwareConnectionStatus ConnectionStatus,
+    bool IsAvailable,
+    HardwareDeviceAvailabilityReason? AvailabilityReason);
 
 public sealed record HardwareDeviceHealthResponse(
     string AgentId,
@@ -18,11 +21,20 @@ public sealed record HardwareDeviceHealthResponse(
     string State,
     bool Enabled,
     DateTimeOffset LastSeenAt,
-    string DiagnosticsJson);
+    string DiagnosticsJson,
+    HardwareConnectionStatus ConnectionStatus,
+    bool IsAvailable,
+    HardwareDeviceAvailabilityReason? AvailabilityReason);
+
+public enum HardwareDeviceAvailabilityReason
+{
+    DeviceDisabled,
+    DeviceOffline
+}
 
 public static class HardwareDeviceMapper
 {
-    public static HardwareDeviceResponse ToResponse(this HardwareDevice device) => new(
+    public static HardwareDeviceResponse ToResponse(this HardwareDevice device, HardwareConnectionStatus connectionStatus, bool isAvailable, HardwareDeviceAvailabilityReason? availabilityReason) => new(
         device.AgentId,
         device.DeviceId,
         device.Kind,
@@ -30,13 +42,19 @@ public static class HardwareDeviceMapper
         device.Capabilities,
         device.State,
         device.Enabled,
-        device.LastSeenAt);
+        device.LastSeenAt,
+        connectionStatus,
+        isAvailable,
+        availabilityReason);
 
-    public static HardwareDeviceHealthResponse ToHealthResponse(this HardwareDevice device) => new(
+    public static HardwareDeviceHealthResponse ToHealthResponse(this HardwareDevice device, HardwareConnectionStatus connectionStatus, bool isAvailable, HardwareDeviceAvailabilityReason? availabilityReason) => new(
         device.AgentId,
         device.DeviceId,
         device.State,
         device.Enabled,
         device.LastSeenAt,
-        device.DiagnosticsJson);
+        device.DiagnosticsJson,
+        connectionStatus,
+        isAvailable,
+        availabilityReason);
 }

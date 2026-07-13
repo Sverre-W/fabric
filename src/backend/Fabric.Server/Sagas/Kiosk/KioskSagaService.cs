@@ -39,14 +39,15 @@ public sealed class KioskSagaService(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<KioskSession> CancelSessionAsync(Guid sessionId, CancellationToken cancellationToken = default)
+    public async Task<KioskSession> CancelSessionAsync(Guid sessionId, KioskSessionCancellationSource source, CancellationToken cancellationToken = default)
     {
         KioskSession session = await kioskDb.Sessions.SingleAsync(x => x.Id == sessionId, cancellationToken);
         if (session.Status is KioskSessionStatus.Cancelled or KioskSessionStatus.Completed or KioskSessionStatus.Failed or KioskSessionStatus.TimedOut)
             return session;
 
         DateTimeOffset now = timeProvider.GetUtcNow();
-        session.Cancel(now);
+        TerminalDisplay terminalDisplay = GetCancellationTerminalDisplay(source);
+        session.Cancel(now, terminalDisplay.Title, terminalDisplay.Message);
         session.ClearInstruction(now);
         await kioskDb.SaveChangesAsync(cancellationToken);
         await CleanupAsync(session.Id, cancellationToken);
@@ -69,9 +70,17 @@ public sealed class KioskSagaService(
 
     public async Task HandleWorkflowFinishedAsync(Guid sessionId, CancellationToken cancellationToken = default) => await SetSessionTerminalStateAsync(sessionId, KioskSessionStatus.Completed, cancellationToken);
 
-    public async Task HandleWorkflowCancelledAsync(Guid sessionId, CancellationToken cancellationToken = default) => await SetSessionTerminalStateAsync(sessionId, KioskSessionStatus.Cancelled, cancellationToken);
+    public async Task HandleWorkflowCancelledAsync(Guid sessionId, CancellationToken cancellationToken = default) => await SetSessionTerminalStateAsync(sessionId, KioskSessionStatus.Cancelled, GetCancellationTerminalDisplay(KioskSessionCancellationSource.WorkflowCancelled), cancellationToken);
 
-    public async Task HandleWorkflowFaultedAsync(Guid sessionId, CancellationToken cancellationToken = default) => await SetSessionTerminalStateAsync(sessionId, KioskSessionStatus.Failed, cancellationToken);
+    public async Task HandleWorkflowFaultedAsync(Guid sessionId, string? detail, CancellationToken cancellationToken = default)
+    {
+        KioskSession? session = await kioskDb.Sessions.SingleOrDefaultAsync(x => x.Id == sessionId, cancellationToken);
+        if (session is null)
+            return;
+
+        TerminalDisplay terminalDisplay = await BuildFailureTerminalDisplayAsync(session, "Workflow error", detail, cancellationToken);
+        await SetSessionTerminalStateAsync(session, KioskSessionStatus.Failed, terminalDisplay, cancellationToken);
+    }
 
     public async Task<KioskInstructionBookmark> ScheduleInstructionAsync(Guid sessionId, string workflowInstanceId, KioskInstructionDefinition definition, CancellationToken cancellationToken)
     {
@@ -208,6 +217,22 @@ public sealed class KioskSagaService(
         if (session is null)
             return;
 
+        await SetSessionTerminalStateAsync(session, status, null, cancellationToken);
+    }
+
+    private async Task SetSessionTerminalStateAsync(Guid sessionId, KioskSessionStatus status, TerminalDisplay terminalDisplay, CancellationToken cancellationToken)
+    {
+        KioskSession? session = await kioskDb.Sessions.SingleOrDefaultAsync(x => x.Id == sessionId, cancellationToken);
+        if (session is null)
+            return;
+
+        await SetSessionTerminalStateAsync(session, status, terminalDisplay, cancellationToken);
+    }
+
+    private async Task SetSessionTerminalStateAsync(KioskSession session, KioskSessionStatus status, TerminalDisplay? terminalDisplay, CancellationToken cancellationToken)
+    {
+        Guid sessionId = session.Id;
+
         if (session.Status is KioskSessionStatus.Cancelled or KioskSessionStatus.Completed or KioskSessionStatus.Failed or KioskSessionStatus.TimedOut)
         {
             await CleanupAsync(sessionId, cancellationToken);
@@ -218,13 +243,16 @@ public sealed class KioskSagaService(
         switch (status)
         {
             case KioskSessionStatus.Completed:
-                session.MarkCompleted(now);
+                session.MarkCompleted(now, terminalDisplay?.Title, terminalDisplay?.Message);
                 break;
             case KioskSessionStatus.Cancelled:
-                session.Cancel(now);
+                session.Cancel(now, terminalDisplay?.Title, terminalDisplay?.Message);
                 break;
             case KioskSessionStatus.Failed:
-                session.Fail(now);
+                session.Fail(now, terminalDisplay?.Title, terminalDisplay?.Message);
+                break;
+            case KioskSessionStatus.TimedOut:
+                session.Timeout(now, terminalDisplay?.Title, terminalDisplay?.Message);
                 break;
             default:
                 throw new InvalidOperationException($"Unsupported terminal kiosk session status '{status}'.");
@@ -234,6 +262,27 @@ public sealed class KioskSagaService(
         await kioskDb.SaveChangesAsync(cancellationToken);
         await CleanupAsync(sessionId, cancellationToken);
     }
+
+    private async Task<TerminalDisplay> BuildFailureTerminalDisplayAsync(KioskSession session, string title, string? detail, CancellationToken cancellationToken)
+    {
+        global::Fabric.Server.Kiosk.Domain.Kiosk kiosk = await kioskDb.Kiosks.AsNoTracking().SingleAsync(x => x.Id == session.KioskId, cancellationToken);
+        string message = kiosk.ShowDetailedErrors && !string.IsNullOrWhiteSpace(detail)
+            ? detail!.Trim()
+            : "Something went wrong. Please contact guard.";
+        return new TerminalDisplay(title, message);
+    }
+
+    private static TerminalDisplay GetCancellationTerminalDisplay(KioskSessionCancellationSource source) => source switch
+    {
+        KioskSessionCancellationSource.UserHome => new(null, null),
+        KioskSessionCancellationSource.Guard => new("Session cancelled", "Session was cancelled by guard."),
+        KioskSessionCancellationSource.Maintenance => new("Session cancelled", "Kiosk is temporarily unavailable."),
+        KioskSessionCancellationSource.Disabled => new("Session cancelled", "Kiosk is unavailable."),
+        KioskSessionCancellationSource.WorkflowCancelled => new("Session cancelled", "Session was cancelled."),
+        _ => new("Session cancelled", "Session was cancelled.")
+    };
+
+    private sealed record TerminalDisplay(string? Title, string? Message);
 }
 
 internal static partial class KioskSagaServiceLog

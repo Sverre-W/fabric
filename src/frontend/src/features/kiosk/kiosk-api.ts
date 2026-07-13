@@ -3,7 +3,7 @@ import { api, apiBaseUrl } from '@/shared/api/client';
 import { getKioskSettings } from './kiosk-settings';
 import type { KioskConfig, KioskInstructionResponse, KioskSession } from './kiosk-types';
 
-export class NoActiveKioskSessionError extends Error {
+export class NoKioskSessionError extends Error {
   constructor() {
     super('Kiosk session has ended.');
   }
@@ -67,13 +67,13 @@ export async function changeKioskLanguage(languageCode: string): Promise<KioskSe
   return data;
 }
 
-export async function getCurrentInstruction(sinceVersion?: number): Promise<KioskInstructionResponse> {
-  const { data, error, response } = await api.GET('/api/kiosk/sessions/current/instruction', {
+export async function getRuntimeState(sinceVersion?: number): Promise<KioskInstructionResponse> {
+  const { data, error, response } = await api.GET('/api/kiosk/runtime-state', {
     headers: getHeaders(),
     params: { query: { sinceVersion } },
   });
 
-  if (response.status === 404) throw new NoActiveKioskSessionError();
+  if (response.status === 404) throw new NoKioskSessionError();
   if (error || !data) throw new Error('Could not load kiosk instruction.');
   return data;
 }
@@ -92,6 +92,7 @@ export async function submitInstructionResponse(instructionId: string, values: R
 export async function cancelCurrentSession(): Promise<KioskSession> {
   const { data, error } = await api.POST('/api/kiosk/sessions/current/cancel', {
     headers: getHeaders(),
+    body: { source: 'UserHome' },
   });
 
   if (error || !data) throw new Error('Could not cancel kiosk session.');

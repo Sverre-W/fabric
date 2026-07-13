@@ -14,6 +14,7 @@ import { Input } from '@/shared/components/ui/input';
 type HardwareAgent = components['schemas']['HardwareAgentResponse'];
 type CreateHardwareAgentRequest = components['schemas']['CreateHardwareAgentRequest'];
 type HardwareAgentKeyResponse = components['schemas']['HardwareAgentKeyResponse'];
+type HardwareConnectionStatus = components['schemas']['HardwareConnectionStatus'];
 
 type FormValues = {
   readonly id: string;
@@ -31,6 +32,7 @@ export default function HardwarePage() {
 
   const agentsQuery = useQuery({
     queryKey: agentsQueryKey,
+    refetchInterval: 10_000,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/hardware/agents', {
         params: { query: { Page: 0, PageSize: 100 } },
@@ -102,6 +104,9 @@ export default function HardwarePage() {
 
   const agents = agentsQuery.data?.items ?? [];
   const totalItems = Number(agentsQuery.data?.totalItems ?? agents.length);
+  const hasAgentData = agentsQuery.data !== undefined;
+  const isAgentDataStale = hasAgentData && agentsQuery.isError;
+  const isAgentDataLive = hasAgentData && !isAgentDataStale;
 
   function updateValue<TKey extends keyof FormValues>(key: TKey, value: FormValues[TKey]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -120,8 +125,13 @@ export default function HardwarePage() {
       <div className="border-b border-border p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-[20px] font-semibold tracking-tight">Hardware</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-[20px] font-semibold tracking-tight">Hardware</h1>
+              {isAgentDataLive ? <PollingStatusBadge state="live" /> : null}
+              {isAgentDataStale ? <PollingStatusBadge state="stale" /> : null}
+            </div>
             <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">Manage local hardware agents used by kiosks, reception desks, scanners, and printers.</p>
+            {isAgentDataStale ? <p className="mt-2 text-[14px] text-warning">Showing last successful update. Live polling is temporarily unavailable.</p> : null}
           </div>
           <Button type="button" className="w-full sm:w-fit" onClick={() => setIsFormOpen((current) => !current)}>
             <Plus className="size-4" aria-hidden="true" />
@@ -176,7 +186,7 @@ export default function HardwarePage() {
           <div className="grid gap-3">
             <div className="grid gap-3 lg:hidden">
               {agentsQuery.isLoading ? <p className="rounded-structural border border-border p-4 text-[14px] text-muted-foreground">Loading hardware agents...</p> : null}
-              {agentsQuery.isError ? <p className="rounded-structural border border-border p-4 text-[14px] text-error">Could not load hardware agents.</p> : null}
+              {agentsQuery.isError && !hasAgentData ? <p className="rounded-structural border border-border p-4 text-[14px] text-error">Could not load hardware agents.</p> : null}
               {agents.map((agent) => (
                 <AgentCard key={agent.id} agent={agent} onRotate={() => rotateKey.mutate(agent.id)} onDelete={() => deleteAgent.mutate(agent)} busy={rotateKey.isPending || deleteAgent.isPending} />
               ))}
@@ -202,7 +212,7 @@ export default function HardwarePage() {
                     </tr>
                   ) : null}
 
-                  {agentsQuery.isError ? (
+                  {agentsQuery.isError && !hasAgentData ? (
                     <tr>
                       <td className="px-4 py-5 text-error" colSpan={5}>
                         Could not load hardware agents.
@@ -265,6 +275,7 @@ function AgentCard({ agent, onRotate, onDelete, busy }: AgentActionsProps) {
           </div>
           <p className="mt-1 text-[13px] text-muted-foreground">{agent.id}</p>
           <dl className="mt-4 grid gap-2 text-[13px]">
+            <InfoRow label="Connection" value={formatConnectionStatus(agent.connectionStatus)} />
             <InfoRow label="Last seen" value={formatDate(agent.lastSeenAt)} />
             <InfoRow label="Inventory" value={formatDate(agent.lastInventoryAt)} />
           </dl>
@@ -284,7 +295,7 @@ function AgentRow({ agent, onRotate, onDelete, busy }: AgentActionsProps) {
       </td>
       <td className="px-4 py-4 text-muted-foreground">{formatDate(agent.lastSeenAt)}</td>
       <td className="px-4 py-4 text-muted-foreground">{formatDate(agent.lastInventoryAt)}</td>
-      <td className="px-4 py-4"><StatusBadge enabled={agent.enabled} /></td>
+      <td className="px-4 py-4"><div className="flex flex-wrap gap-2"><StatusBadge enabled={agent.enabled} /><ConnectionStatusBadge status={agent.connectionStatus} /></div></td>
       <td className="px-4 py-4">
         <AgentActions agent={agent} onRotate={onRotate} onDelete={onDelete} busy={busy} className="justify-end" />
       </td>
@@ -336,6 +347,19 @@ function InfoRow({ label, value }: { readonly label: string; readonly value: str
 
 function StatusBadge({ enabled }: { readonly enabled: boolean }) {
   return <Badge variant={enabled ? 'success' : 'secondary'}>{enabled ? 'Enabled' : 'Disabled'}</Badge>;
+}
+
+function ConnectionStatusBadge({ status }: { readonly status: HardwareConnectionStatus }) {
+  const variant = status === 'Online' ? 'success' : status === 'Stale' ? 'warning' : 'secondary';
+  return <Badge variant={variant}>{formatConnectionStatus(status)}</Badge>;
+}
+
+function PollingStatusBadge({ state }: { readonly state: 'live' | 'stale' }) {
+  return <Badge variant={state === 'live' ? 'success' : 'warning'}>{state === 'live' ? 'Live' : 'Stale'}</Badge>;
+}
+
+function formatConnectionStatus(status: HardwareConnectionStatus) {
+  return status === 'Online' ? 'Online' : status === 'Stale' ? 'Stale' : 'Offline';
 }
 
 function formatDate(value: string | null) {
