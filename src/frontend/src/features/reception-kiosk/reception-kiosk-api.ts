@@ -6,6 +6,7 @@ import { getReceptionKioskSettings } from './reception-kiosk-settings';
 
 export type ReceptionKioskExpectedArrival = components['schemas']['ReceptionKioskExpectedArrivalResponse'];
 type IdentityVerificationMethod = components['schemas']['IdentityVerificationMethod'];
+type ProblemDetails = components['schemas']['ProblemDetails'];
 
 const receptionKioskArrivalKey = 'fabric.reception-kiosk.arrival';
 const receptionKioskMissedCodeKey = 'fabric.reception-kiosk.missed-code';
@@ -14,6 +15,13 @@ export class ReceptionKioskArrivalNotFoundError extends Error {
   constructor(readonly code: string) {
     super('No expected arrival found for this QR code.');
     this.name = 'ReceptionKioskArrivalNotFoundError';
+  }
+}
+
+export class ReceptionKioskArrivalLookupError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ReceptionKioskArrivalLookupError';
   }
 }
 
@@ -33,6 +41,11 @@ export async function lookupReceptionKioskArrival(code: string): Promise<Recepti
 
   if (response.status === 404) {
     throw new ReceptionKioskArrivalNotFoundError(code);
+  }
+
+  const problem = error as ProblemDetails | undefined;
+  if (response.status === 409 && problem?.detail) {
+    throw new ReceptionKioskArrivalLookupError(problem.detail);
   }
 
   if (error || !data) {

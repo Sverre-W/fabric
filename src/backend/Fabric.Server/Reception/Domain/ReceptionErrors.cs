@@ -4,12 +4,15 @@ public enum ReceptionErrors
 {
     AlreadyOnboarded,
     ArrivalNotFound,
+    ArrivalCodeConflictAcrossSubjects,
     NotYetOnboarded,
     AlreadyOffboarded,
+    ArrivalOutsideKioskOnboardingWindow,
     InvalidStatus,
     MissingRequiredDocuments,
     InvalidIdentityVerificationMethod,
     NotAVisitor,
+    SubjectAlreadyHasOnboardedArrival,
     ExpectedArrivalMustBeBeforeExpectedOffboard,
     GracePeriodMustNotBeNegative,
     AccessRuleAssignmentNotFound

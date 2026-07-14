@@ -437,7 +437,7 @@ describe('App', () => {
     fireEvent.click(await screen.findByRole('button', { name: /complete self-onboarding/i }));
 
     expect(await screen.findByRole('heading', { name: /something went wrong/i })).toBeInTheDocument();
-    expect(screen.getByText(/please contact the reception or organizer for help/i)).toBeInTheDocument();
+    expect(screen.getByText(/contact reception or organizer for help/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /go to home/i })).toHaveAttribute('href', '/reception-kiosk');
   });
 

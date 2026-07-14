@@ -4,7 +4,7 @@ import { Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Camera } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { checkInReceptionKioskArrival, checkOutReceptionKioskArrival, clearReceptionKioskArrival, ReceptionKioskArrivalNotFoundError, lookupReceptionKioskArrival, saveReceptionKioskArrival, saveReceptionKioskMissedCode } from './reception-kiosk-api';
+import { checkInReceptionKioskArrival, checkOutReceptionKioskArrival, clearReceptionKioskArrival, ReceptionKioskArrivalLookupError, ReceptionKioskArrivalNotFoundError, lookupReceptionKioskArrival, saveReceptionKioskArrival, saveReceptionKioskMissedCode } from './reception-kiosk-api';
 import { clearOnboardingState } from './reception-kiosk-onboarding';
 import { saveReceptionKioskResult } from './reception-kiosk-result';
 import { hasReceptionKioskSettings } from './reception-kiosk-settings';
@@ -68,6 +68,14 @@ export default function ReceptionKioskScanQrPage() {
         if (lookupError instanceof ReceptionKioskArrivalNotFoundError) {
           saveReceptionKioskMissedCode(lookupError.code);
           await navigate({ to: '/reception-kiosk/no-registration' });
+          return;
+        }
+
+        if (lookupError instanceof ReceptionKioskArrivalLookupError) {
+          saveReceptionKioskResult('action-failed', getLookupFailureMessage(lookupError.message));
+          handled = false;
+          setIsLookingUp(false);
+          await navigate({ to: '/reception-kiosk/failed' });
           return;
         }
 
@@ -147,4 +155,10 @@ export default function ReceptionKioskScanQrPage() {
       {error ? <p className="mt-6 rounded-interactive bg-error-background p-4 text-center text-[16px] font-medium text-error" role="alert">{error}</p> : null}
     </section>
   );
+}
+
+function getLookupFailureMessage(message: string): string {
+  return message === 'Arrival is outside kiosk onboarding window.'
+    ? 'You are not expected at this moment.'
+    : 'We could not match this badge to a single active arrival.';
 }

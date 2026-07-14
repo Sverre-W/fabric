@@ -10,6 +10,8 @@ public class ReceptionService(
     TimeProvider timeProvider,
     ReceptionAccessPolicyService receptionAccessPolicyService)
 {
+    private readonly record struct SubjectIdentity(ArrivalType Type, Guid Id);
+
     private async Task<ExpectedArrival?> GetAggregate(Guid id, CancellationToken ct) =>
         await db.Arrivals
             .Include(a => a.Entries)
@@ -31,6 +33,10 @@ public class ReceptionService(
         if (expectedArrivalTime >= expectedOffboardTime)
             return Result.Failure<ExpectedArrival, ReceptionErrors>(ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard);
 
+        Result<ReceptionErrors> validation = await ValidateArrivalCodeAssignment(ArrivalType.Visitor, visitorId, arrivalCode, excludedArrivalId: null, ct);
+        if (validation.IsFailure(out ReceptionErrors validationError))
+            return Result.Failure<ExpectedArrival, ReceptionErrors>(validationError);
+
         var arrival = ExpectedArrival.CreateVisitorArrival(
                 firstName, lastName, company, visitorId, invitationId, expectedArrivalTime, expectedOffboardTime, arrivalCode, locationId);
 
@@ -46,6 +52,11 @@ public class ReceptionService(
 
         if (arrival is null)
             return Result.Failure(ReceptionErrors.ArrivalNotFound);
+
+        SubjectIdentity subject = GetSubjectIdentity(arrival);
+        Result<ReceptionErrors> validation = await ValidateArrivalCodeAssignment(subject.Type, subject.Id, arrivalCode, arrival.Id, cancellationToken);
+        if (validation.IsFailure(out _))
+            return validation;
 
         Result<ReceptionErrors> result = arrival.SetArrivalCode(arrivalCode);
 
@@ -119,6 +130,10 @@ public class ReceptionService(
         if (expectedArrivalTime >= expectedOffboardTime)
             return Result.Failure<ExpectedArrival, ReceptionErrors>(ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard);
 
+        Result<ReceptionErrors> validation = await ValidateArrivalCodeAssignment(ArrivalType.Contractor, contractorId, arrivalCode, excludedArrivalId: null, ct);
+        if (validation.IsFailure(out ReceptionErrors validationError))
+            return Result.Failure<ExpectedArrival, ReceptionErrors>(validationError);
+
         var arrival = ExpectedArrival.CreateContractorArrival(
                 firstName, lastName, company,
             contractorId, jobAssignmentId, expectedArrivalTime, expectedOffboardTime, arrivalCode, locationId);
@@ -141,6 +156,10 @@ public class ReceptionService(
         if (arrival is null)
             return Result<ReceptionErrors>.Failure(ReceptionErrors.ArrivalNotFound);
 
+        Result<ReceptionErrors> validation = await ValidateSubjectCanOnboard(arrival, ct);
+        if (validation.IsFailure(out _))
+            return validation;
+
         Result<ReceptionErrors> result = arrival.Onboard(timeProvider.GetUtcNow(), requiredDocs, providedDocs, operatorEmail, operatorDisplayName);
         if (result.IsSuccess(out _))
             await SaveOnboardedArrival(arrival, arrivalId, ct);
@@ -159,6 +178,10 @@ public class ReceptionService(
         ExpectedArrival? arrival = await GetAggregate(arrivalId, ct);
         if (arrival is null)
             return Result<ReceptionErrors>.Failure(ReceptionErrors.ArrivalNotFound);
+
+        Result<ReceptionErrors> validation = await ValidateSubjectCanOnboard(arrival, ct);
+        if (validation.IsFailure(out _))
+            return validation;
 
         Result<ReceptionErrors> result = arrival.Onboard(timeProvider.GetUtcNow(), requiredDocs, providedDocs, kioskId, kioskName);
         if (result.IsSuccess(out _))
@@ -291,4 +314,142 @@ public class ReceptionService(
 
         return result;
     }
+
+    public async Task<Result<ExpectedArrival?, ReceptionErrors>> ResolveArrivalForKiosk(string code, ReceptionKiosk kiosk, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return Result<ExpectedArrival?, ReceptionErrors>.Success(null);
+
+        List<ExpectedArrival> matches = await db.Arrivals
+            .AsNoTracking()
+            .Where(x => x.ArrivalCode == code && (x.LocationId == null || x.LocationId == kiosk.LocationId))
+            .ToListAsync(ct);
+
+        if (matches.Count == 0)
+            return Result<ExpectedArrival?, ReceptionErrors>.Success(null);
+
+        List<ExpectedArrival> activeMatches = matches
+            .Where(x => x.Status is OnboardingStatus.NotYetOnboarded or OnboardingStatus.Onboarded)
+            .ToList();
+
+        if (HasActiveCrossSubjectConflict(activeMatches))
+            return Result.Failure<ExpectedArrival?, ReceptionErrors>(ReceptionErrors.ArrivalCodeConflictAcrossSubjects);
+
+        List<ExpectedArrival> onboardedMatches = activeMatches
+            .Where(x => x.Status == OnboardingStatus.Onboarded)
+            .ToList();
+
+        if (onboardedMatches.Count > 1)
+            return Result.Failure<ExpectedArrival?, ReceptionErrors>(ReceptionErrors.SubjectAlreadyHasOnboardedArrival);
+
+        if (onboardedMatches.Count == 1)
+        {
+            ExpectedArrival selectedOnboarded = onboardedMatches[0];
+            if (await HasAnotherOnboardedArrival(GetSubjectIdentity(selectedOnboarded), selectedOnboarded.Id, ct))
+                return Result.Failure<ExpectedArrival?, ReceptionErrors>(ReceptionErrors.SubjectAlreadyHasOnboardedArrival);
+
+            return Result<ExpectedArrival?, ReceptionErrors>.Success(selectedOnboarded);
+        }
+
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        List<ExpectedArrival> notYetOnboardedMatches = activeMatches
+            .Where(x => x.Status == OnboardingStatus.NotYetOnboarded)
+            .ToList();
+
+        if (notYetOnboardedMatches.Count > 0)
+        {
+            List<ExpectedArrival> eligibleNotYetOnboardedMatches = notYetOnboardedMatches
+                .Where(x => kiosk.CanOnboardArrivalAt(now, x.ExpectedArrivalTime))
+                .ToList();
+
+            return eligibleNotYetOnboardedMatches.Count > 0
+                ? Result<ExpectedArrival?, ReceptionErrors>.Success(SelectBestKioskArrival(eligibleNotYetOnboardedMatches, kiosk.LocationId, now))
+                : Result.Failure<ExpectedArrival?, ReceptionErrors>(ReceptionErrors.ArrivalOutsideKioskOnboardingWindow);
+        }
+
+        List<ExpectedArrival> candidates = matches
+            .Where(x => x.Status == OnboardingStatus.Offboarded)
+            .ToList();
+
+        if (candidates.Count == 0)
+            return Result<ExpectedArrival?, ReceptionErrors>.Success(null);
+
+        return Result<ExpectedArrival?, ReceptionErrors>.Success(SelectBestKioskArrival(candidates, kiosk.LocationId, now));
+    }
+
+    private async Task<Result<ReceptionErrors>> ValidateArrivalCodeAssignment(
+        ArrivalType subjectType,
+        Guid subjectId,
+        string? arrivalCode,
+        Guid? excludedArrivalId,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(arrivalCode))
+            return Result.Success<ReceptionErrors>();
+
+        List<ExpectedArrival> activeMatches = await db.Arrivals
+            .AsNoTracking()
+            .Where(x => x.ArrivalCode == arrivalCode
+                && x.Status != OnboardingStatus.Offboarded
+                && (!excludedArrivalId.HasValue || x.Id != excludedArrivalId.Value))
+            .ToListAsync(ct);
+
+        bool hasCrossSubjectConflict = activeMatches.Any(x => !MatchesSubject(x, subjectType, subjectId));
+        return hasCrossSubjectConflict
+            ? Result.Failure(ReceptionErrors.ArrivalCodeConflictAcrossSubjects)
+            : Result.Success<ReceptionErrors>();
+    }
+
+    private async Task<Result<ReceptionErrors>> ValidateSubjectCanOnboard(ExpectedArrival arrival, CancellationToken ct)
+    {
+        bool hasAnotherOnboarded = await HasAnotherOnboardedArrival(GetSubjectIdentity(arrival), arrival.Id, ct);
+        return hasAnotherOnboarded
+            ? Result.Failure(ReceptionErrors.SubjectAlreadyHasOnboardedArrival)
+            : Result.Success<ReceptionErrors>();
+    }
+
+    private async Task<bool> HasAnotherOnboardedArrival(SubjectIdentity subject, Guid excludedArrivalId, CancellationToken ct) =>
+        subject.Type switch
+        {
+            ArrivalType.Visitor => await db.Arrivals
+                .AsNoTracking()
+                .AnyAsync(x => x.Id != excludedArrivalId && x.VisitorId == subject.Id && x.Status == OnboardingStatus.Onboarded, ct),
+            ArrivalType.Contractor => await db.Arrivals
+                .AsNoTracking()
+                .AnyAsync(x => x.Id != excludedArrivalId && x.ContractorId == subject.Id && x.Status == OnboardingStatus.Onboarded, ct),
+            _ => false,
+        };
+
+    private static SubjectIdentity GetSubjectIdentity(ExpectedArrival arrival) =>
+        arrival.Type switch
+        {
+            ArrivalType.Visitor when arrival.VisitorId.HasValue => new(arrival.Type, arrival.VisitorId.Value),
+            ArrivalType.Contractor when arrival.ContractorId.HasValue => new(arrival.Type, arrival.ContractorId.Value),
+            _ => throw new InvalidOperationException("Arrival subject identity is missing."),
+        };
+
+    private static bool HasActiveCrossSubjectConflict(List<ExpectedArrival> arrivals)
+    {
+        if (arrivals.Count <= 1)
+            return false;
+
+        SubjectIdentity first = GetSubjectIdentity(arrivals[0]);
+        return arrivals.Skip(1).Any(x => GetSubjectIdentity(x) != first);
+    }
+
+    private static bool MatchesSubject(ExpectedArrival arrival, ArrivalType subjectType, Guid subjectId) =>
+        arrival.Type == subjectType && subjectType switch
+        {
+            ArrivalType.Visitor => arrival.VisitorId == subjectId,
+            ArrivalType.Contractor => arrival.ContractorId == subjectId,
+            _ => false,
+        };
+
+    private static ExpectedArrival SelectBestKioskArrival(List<ExpectedArrival> arrivals, Guid kioskLocationId, DateTimeOffset now) =>
+        arrivals
+            .OrderByDescending(x => x.LocationId == kioskLocationId)
+            .ThenBy(x => Math.Abs((x.ExpectedArrivalTime - now).Ticks))
+            .ThenByDescending(x => x.ExpectedArrivalTime)
+            .ThenBy(x => x.Id)
+            .First();
 }

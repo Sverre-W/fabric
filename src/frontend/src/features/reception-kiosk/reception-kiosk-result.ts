@@ -2,12 +2,13 @@ export type ReceptionKioskResultKind = 'onboarding-success' | 'check-in-success'
 
 type ReceptionKioskResult = {
   readonly kind: ReceptionKioskResultKind;
+  readonly message?: string;
 };
 
 const receptionKioskResultKey = 'fabric.reception-kiosk.result';
 
-export function saveReceptionKioskResult(kind: ReceptionKioskResultKind) {
-  window.sessionStorage.setItem(receptionKioskResultKey, JSON.stringify({ kind } satisfies ReceptionKioskResult));
+export function saveReceptionKioskResult(kind: ReceptionKioskResultKind, message?: string) {
+  window.sessionStorage.setItem(receptionKioskResultKey, JSON.stringify({ kind, message } satisfies ReceptionKioskResult));
 }
 
 export function getReceptionKioskResult(): ReceptionKioskResult | null {
@@ -18,7 +19,7 @@ export function getReceptionKioskResult(): ReceptionKioskResult | null {
 
   try {
     const parsed = JSON.parse(rawResult) as Partial<ReceptionKioskResult>;
-    return isReceptionKioskResultKind(parsed.kind) ? { kind: parsed.kind } : null;
+    return isReceptionKioskResultKind(parsed.kind) ? { kind: parsed.kind, message: typeof parsed.message === 'string' ? parsed.message : undefined } : null;
   } catch {
     return null;
   }

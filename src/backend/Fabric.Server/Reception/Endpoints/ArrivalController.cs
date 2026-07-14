@@ -61,6 +61,7 @@ public static class ArrivalEndpoints
             .WithDescription("Look up an expected arrival from a reception kiosk QR code")
             .WithSummary("Kiosk lookup arrival")
             .Produces<ReceptionKioskExpectedArrivalResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict)
             .Produces(StatusCodes.Status404NotFound);
         kioskArrivals.MapPost("/{id:guid}/onboard", OnboardArrivalFromKiosk)
             .WithDescription("Onboard an arrival from a reception kiosk")
@@ -172,10 +173,10 @@ public static class ArrivalEndpoints
 
     private static async Task<IResult> LookupArrivalFromKiosk(
         [FromQuery] string code,
+        ReceptionService receptionService,
         ReceptionDbContext db,
         VisitorsDbContext visitorsDb,
         HttpContext httpContext,
-        TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -191,14 +192,11 @@ public static class ArrivalEndpoints
         if (kiosk is null)
             return Results.NotFound();
 
-        ExpectedArrival? arrival = await db.Arrivals
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.ArrivalCode == code && (x.LocationId == null || x.LocationId == kioskLocationId), cancellationToken);
+        Result<ExpectedArrival?, ReceptionErrors> lookup = await receptionService.ResolveArrivalForKiosk(code, kiosk, cancellationToken);
+        if (lookup.IsFailure(out ReceptionErrors lookupError))
+            return lookup.AsResponse(MapError);
 
-        if (arrival is null)
-            return Results.NotFound();
-
-        if (!kiosk.CanOnboardArrivalAt(timeProvider.GetUtcNow(), arrival.ExpectedArrivalTime))
+        if (!lookup.IsSuccess(out ExpectedArrival? arrival) || arrival is null)
             return Results.NotFound();
 
         ReceptionKioskVisitorDetailsResponse? visitor = arrival.Type == ArrivalType.Visitor && arrival.InvitationId.HasValue
@@ -299,28 +297,9 @@ public static class ArrivalEndpoints
         Guid id,
         ReceptionService receptionService,
         HttpContext httpContext,
-        ReceptionDbContext db,
-        TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
         ReceptionKioskActor actor = GetKioskActor(httpContext.User);
-        ReceptionKiosk? kiosk = await db.ReceptionKiosks
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Id == actor.Id, cancellationToken);
-
-        if (kiosk is null)
-            return Results.NotFound();
-
-        ExpectedArrival? arrival = await db.Arrivals
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-
-        if (arrival is null)
-            return Results.NotFound();
-
-        if (!kiosk.CanOnboardArrivalAt(timeProvider.GetUtcNow(), arrival.ExpectedArrivalTime))
-            return Results.Problem(statusCode: StatusCodes.Status409Conflict, detail: "Arrival is outside kiosk onboarding window.");
-
         Result<ReceptionErrors> result = await receptionService.CheckInFromKiosk(id, actor.Id, actor.Name, cancellationToken);
         return result.AsResponse(MapError);
     }
@@ -462,10 +441,13 @@ public static class ArrivalEndpoints
             ReceptionErrors.ArrivalNotFound => Problem(StatusCodes.Status404NotFound, "Arrival not found."),
             ReceptionErrors.NotYetOnboarded => Problem(StatusCodes.Status409Conflict, "Arrival is not yet onboarded."),
             ReceptionErrors.AlreadyOffboarded => Problem(StatusCodes.Status409Conflict, "Arrival is already offboarded."),
+            ReceptionErrors.ArrivalOutsideKioskOnboardingWindow => Problem(StatusCodes.Status409Conflict, "Arrival is outside kiosk onboarding window."),
+            ReceptionErrors.ArrivalCodeConflictAcrossSubjects => Problem(StatusCodes.Status409Conflict, "Arrival code is already assigned to another active subject."),
             ReceptionErrors.InvalidStatus => Problem(StatusCodes.Status409Conflict, "Arrival status does not allow this operation."),
             ReceptionErrors.MissingRequiredDocuments => Problem(StatusCodes.Status400BadRequest, "Missing required documents."),
             ReceptionErrors.InvalidIdentityVerificationMethod => Problem(StatusCodes.Status400BadRequest, "Identity verification method does not match kiosk configuration."),
             ReceptionErrors.NotAVisitor => Problem(StatusCodes.Status409Conflict, "Arrival is not a visitor."),
+            ReceptionErrors.SubjectAlreadyHasOnboardedArrival => Problem(StatusCodes.Status409Conflict, "Subject already has another onboarded arrival."),
             ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard => Problem(StatusCodes.Status400BadRequest, "Expected arrival must be before expected offboard."),
             _ => Problem(StatusCodes.Status500InternalServerError, "Unexpected reception error."),
         };

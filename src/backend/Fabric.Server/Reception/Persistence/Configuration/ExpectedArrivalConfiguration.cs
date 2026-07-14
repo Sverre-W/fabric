@@ -43,7 +43,6 @@ public sealed class ExpectedArrivalConfiguration : IEntityTypeConfiguration<Expe
 
         TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(ExpectedArrival.ArrivalCode))
-            .IsUnique()
             .HasDatabaseName("ix_expected_arrivals_tenant_id_arrival_code");
         builder.HasIndex(a => a.VisitorId).HasDatabaseName("ix_expected_arrivals_visitor_id");
         builder.HasIndex(a => a.ContractorId).HasDatabaseName("ix_expected_arrivals_contractor_id");
