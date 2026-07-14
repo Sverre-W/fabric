@@ -10,6 +10,7 @@ public class ReceptionService(
     TimeProvider timeProvider,
     ReceptionAccessPolicyService receptionAccessPolicyService)
 {
+    private static readonly TimeSpan CompletedArrivalLookupWindow = TimeSpan.FromHours(12);
     private readonly record struct SubjectIdentity(ArrivalType Type, Guid Id);
 
     private async Task<ExpectedArrival?> GetAggregate(Guid id, CancellationToken ct) =>
@@ -368,7 +369,7 @@ public class ReceptionService(
         }
 
         List<ExpectedArrival> candidates = matches
-            .Where(x => x.Status == OnboardingStatus.Offboarded)
+            .Where(x => x.Status == OnboardingStatus.Offboarded && now - GetArrivalEndTime(x) <= CompletedArrivalLookupWindow)
             .ToList();
 
         if (candidates.Count == 0)
@@ -452,4 +453,6 @@ public class ReceptionService(
             .ThenByDescending(x => x.ExpectedArrivalTime)
             .ThenBy(x => x.Id)
             .First();
+
+    private static DateTimeOffset GetArrivalEndTime(ExpectedArrival arrival) => arrival.OffboardedAt ?? arrival.ExpectedOffboardTime;
 }
