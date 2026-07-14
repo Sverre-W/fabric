@@ -159,20 +159,7 @@ public static class ArrivalEndpoints
         if (actor is null)
             return Results.Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Authenticated operator email claim is required.");
 
-        List<CheckInDocumentRequirement> requiredDocs = request.RequiredDocuments
-            .ConvertAll(d => new CheckInDocumentRequirement
-            {
-                Name = d.Name,
-                Required = d.Required,
-                DocumentType = d.DocumentType
-            })
-;
-
-        List<CheckInDocument> providedDocs = request.ProvidedDocuments
-            .ConvertAll(d => CheckInDocument.Create(d.Name, d.DocumentType, d.Content))
-;
-
-        Result<ReceptionErrors> result = await receptionService.Onboard(id, requiredDocs, providedDocs, actor.Identifier, actor.DisplayName, cancellationToken);
+        Result<ReceptionErrors> result = await receptionService.Onboard(id, [], [], actor.Identifier, actor.DisplayName, cancellationToken);
         if (result.IsSuccess(out _))
         {
             ExpectedArrival? arrival = await db.Arrivals.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -194,6 +181,14 @@ public static class ArrivalEndpoints
             return Results.NotFound();
 
         Guid kioskLocationId = Guid.Parse(httpContext.User.FindFirstValue(ReceptionKioskAuthenticationDefaults.KioskLocationIdClaim)!);
+        Guid kioskId = Guid.Parse(httpContext.User.FindFirstValue(ReceptionKioskAuthenticationDefaults.KioskIdClaim)!);
+
+        ReceptionKiosk? kiosk = await db.ReceptionKiosks
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == kioskId, cancellationToken);
+
+        if (kiosk is null)
+            return Results.NotFound();
 
         ExpectedArrival? arrival = await db.Arrivals
             .AsNoTracking()
@@ -206,7 +201,7 @@ public static class ArrivalEndpoints
             ? await GetVisitorDetails(arrival, visitorsDb, cancellationToken)
             : null;
 
-        return Results.Ok(arrival.ToKioskResponse(visitor));
+        return Results.Ok(arrival.ToKioskResponse(kiosk, visitor));
     }
 
     private static async Task<IResult> OffboardArrival(
@@ -253,7 +248,7 @@ public static class ArrivalEndpoints
 
     private static async Task<IResult> OnboardArrivalFromKiosk(
         Guid id,
-        [FromBody] OnboardArrivalRequest request,
+        [FromBody] OnboardArrivalFromKioskRequest request,
         ReceptionService receptionService,
         VisitorPreOnboardingSagaService onboardingSagaService,
         HttpContext httpContext,
@@ -261,16 +256,19 @@ public static class ArrivalEndpoints
         CancellationToken cancellationToken = default)
     {
         ReceptionKioskActor actor = GetKioskActor(httpContext.User);
-        List<CheckInDocumentRequirement> requiredDocs = request.RequiredDocuments
-            .ConvertAll(d => new CheckInDocumentRequirement
-            {
-                Name = d.Name,
-                Required = d.Required,
-                DocumentType = d.DocumentType
-            });
+        ReceptionKiosk? kiosk = await db.ReceptionKiosks
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == actor.Id, cancellationToken);
 
-        List<CheckInDocument> providedDocs = request.ProvidedDocuments
-            .ConvertAll(d => CheckInDocument.Create(d.Name, d.DocumentType, d.Content));
+        if (kiosk is null)
+            return Results.NotFound();
+
+        Result<ReceptionErrors> validation = ValidateKioskIdentityVerification(kiosk, request.IdentityVerification);
+        if (validation.IsFailure(out ReceptionErrors validationError))
+            return validation.AsResponse(MapError);
+
+        List<CheckInDocumentRequirement> requiredDocs = BuildRequiredDocuments(kiosk);
+        List<CheckInDocument> providedDocs = BuildProvidedDocuments(request);
 
         Result<ReceptionErrors> result = await receptionService.OnboardFromKiosk(id, requiredDocs, providedDocs, actor.Id, actor.Name, cancellationToken);
         if (result.IsSuccess(out _))
@@ -325,6 +323,66 @@ public static class ArrivalEndpoints
         return new ReceptionKioskActor(id, name);
     }
 
+    private static List<CheckInDocumentRequirement> BuildRequiredDocuments(ReceptionKiosk kiosk)
+    {
+        List<CheckInDocumentRequirement> requiredDocuments = [];
+
+        if (kiosk.RequireFacePicture)
+        {
+            requiredDocuments.Add(new CheckInDocumentRequirement
+            {
+                Name = "Face picture",
+                Required = true,
+                DocumentType = CheckInDocumentType.FacePicture
+            });
+        }
+
+        if (kiosk.IdentityVerificationMethod is IdentityVerificationMethod.Picture)
+        {
+            requiredDocuments.Add(new CheckInDocumentRequirement
+            {
+                Name = "Identity document picture",
+                Required = true,
+                DocumentType = CheckInDocumentType.IdentityDocumentImage
+            });
+        }
+
+        return requiredDocuments;
+    }
+
+    private static List<CheckInDocument> BuildProvidedDocuments(OnboardArrivalFromKioskRequest request)
+    {
+        List<CheckInDocument> providedDocuments = [];
+
+        if (request.FacePicture is { Length: > 0 })
+            providedDocuments.Add(CheckInDocument.Create("Face picture", CheckInDocumentType.FacePicture, request.FacePicture));
+
+        if (request.IdentityVerification is { Method: IdentityVerificationMethod.Picture, Content.Length: > 0 })
+        {
+            providedDocuments.Add(CheckInDocument.Create(
+                "Identity document picture",
+                CheckInDocumentType.IdentityDocumentImage,
+                request.IdentityVerification.Content));
+        }
+
+        return providedDocuments;
+    }
+
+    private static Result<ReceptionErrors> ValidateKioskIdentityVerification(
+        ReceptionKiosk kiosk,
+        IdentityVerificationCaptureRequest? identityVerification)
+    {
+        if (kiosk.IdentityVerificationMethod is null)
+            return identityVerification is null ? Result<ReceptionErrors>.Success() : Result<ReceptionErrors>.Failure(ReceptionErrors.InvalidIdentityVerificationMethod);
+
+        if (identityVerification is null)
+            return Result<ReceptionErrors>.Success();
+
+        return identityVerification.Method == kiosk.IdentityVerificationMethod
+            ? Result<ReceptionErrors>.Success()
+            : Result<ReceptionErrors>.Failure(ReceptionErrors.InvalidIdentityVerificationMethod);
+    }
+
     private static async Task<ReceptionKioskVisitorDetailsResponse?> GetVisitorDetails(
         ExpectedArrival arrival,
         VisitorsDbContext visitorsDb,
@@ -373,6 +431,7 @@ public static class ArrivalEndpoints
             ReceptionErrors.AlreadyOffboarded => Problem(StatusCodes.Status409Conflict, "Arrival is already offboarded."),
             ReceptionErrors.InvalidStatus => Problem(StatusCodes.Status409Conflict, "Arrival status does not allow this operation."),
             ReceptionErrors.MissingRequiredDocuments => Problem(StatusCodes.Status400BadRequest, "Missing required documents."),
+            ReceptionErrors.InvalidIdentityVerificationMethod => Problem(StatusCodes.Status400BadRequest, "Identity verification method does not match kiosk configuration."),
             ReceptionErrors.NotAVisitor => Problem(StatusCodes.Status409Conflict, "Arrival is not a visitor."),
             ReceptionErrors.ExpectedArrivalMustBeBeforeExpectedOffboard => Problem(StatusCodes.Status400BadRequest, "Expected arrival must be before expected offboard."),
             _ => Problem(StatusCodes.Status500InternalServerError, "Unexpected reception error."),

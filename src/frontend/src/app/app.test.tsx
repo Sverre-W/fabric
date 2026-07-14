@@ -234,7 +234,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /workflow definition editor/i })).toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: /automation menu/i })).not.toBeInTheDocument();
     expect(document.body).toHaveClass('elsa-studio-fullscreen');
-    expect(screen.getByRole('link', { name: /back to workflow definitions/i })).toHaveAttribute('href', '/automation/workflow');
+    expect(screen.getByRole('button', { name: /back to workflow definitions/i })).toBeInTheDocument();
     expect(document.querySelector('elsa-workflow-definition-editor')).toHaveAttribute('definition-id', 'definition-1');
   });
 
@@ -246,7 +246,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /workflow instance viewer/i })).toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: /automation menu/i })).not.toBeInTheDocument();
     expect(document.body).toHaveClass('elsa-studio-fullscreen');
-    expect(screen.getByRole('link', { name: /back to workflow instances/i })).toHaveAttribute('href', '/automation/workflow?tab=history');
+    expect(screen.getByRole('button', { name: /back to workflow instances/i })).toBeInTheDocument();
     expect(document.querySelector('elsa-workflow-instance-viewer')).toHaveAttribute('instance-id', 'instance-1');
   });
 
@@ -314,6 +314,10 @@ describe('App', () => {
       status: 'NotYetOnboarded',
       checkedIn: false,
       locationId: 'location-1',
+      onboardingRequirements: {
+        requireFacePicture: true,
+        identityVerificationMethod: 'Picture',
+      },
       contractor: null,
       visitor: {
         visitorId: 'visitor-1',
@@ -342,6 +346,99 @@ describe('App', () => {
     expect(screen.getByText(/analytical engines/i)).toBeInTheDocument();
     expect(screen.getByText(/engine demo/i)).toBeInTheDocument();
     expect(screen.getByText(/charles babbage/i)).toBeInTheDocument();
+    expect(screen.getByText(/face picture/i)).toBeInTheDocument();
+    expect(screen.getByText(/identity document picture/i)).toBeInTheDocument();
+  });
+
+  it('submits kiosk self-onboarding with face and identity captures', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.sessionStorage.setItem('fabric.reception-kiosk.arrival', JSON.stringify({
+      id: 'arrival-1',
+      type: 'Visitor',
+      expectedArrivalTime: '2026-06-24T09:00:00Z',
+      expectedOffboardTime: '2026-06-24T17:00:00Z',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      company: 'Analytical Engines',
+      status: 'NotYetOnboarded',
+      checkedIn: false,
+      locationId: 'location-1',
+      onboardingRequirements: {
+        requireFacePicture: true,
+        identityVerificationMethod: 'Picture',
+      },
+      contractor: null,
+      visitor: null,
+    }));
+    window.sessionStorage.setItem('fabric.reception-kiosk.onboarding', JSON.stringify({
+      faceCapture: {
+        base64: 'ZmFjZQ==',
+        mimeType: 'image/jpeg',
+        width: 100,
+        height: 100,
+      },
+      documentCapture: {
+        base64: 'aWRlbnRpdHk=',
+        mimeType: 'image/jpeg',
+        width: 200,
+        height: 120,
+      },
+    }));
+    window.history.pushState({}, '', '/reception-kiosk/arrival');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    const completeButton = await screen.findByRole('button', { name: /complete self-onboarding/i });
+    expect(completeButton).toBeEnabled();
+
+    fireEvent.click(completeButton);
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/reception/kiosk/arrivals/{id}/onboard', expect.objectContaining({
+        params: { path: { id: 'arrival-1' } },
+        body: expect.objectContaining({
+          facePicture: expect.any(String),
+          identityVerification: expect.objectContaining({ method: 'Picture', content: expect.any(String) }),
+        }),
+      }));
+    });
+
+    expect(await screen.findByRole('heading', { name: /thank you/i })).toBeInTheDocument();
+    expect(screen.getByText(/organizer has been notified of your arrival/i)).toBeInTheDocument();
+    expect(screen.getByText(/returning to home in 10 seconds/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /go to home/i })).toHaveAttribute('href', '/reception-kiosk');
+  });
+
+  it('shows failed onboarding screen when kiosk onboarding request fails', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    window.sessionStorage.setItem('fabric.reception-kiosk.arrival', JSON.stringify({
+      id: 'arrival-1',
+      type: 'Visitor',
+      expectedArrivalTime: '2026-06-24T09:00:00Z',
+      expectedOffboardTime: '2026-06-24T17:00:00Z',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      company: 'Analytical Engines',
+      status: 'NotYetOnboarded',
+      checkedIn: false,
+      locationId: 'location-1',
+      onboardingRequirements: {
+        requireFacePicture: false,
+        identityVerificationMethod: null,
+      },
+      contractor: null,
+      visitor: null,
+    }));
+    apiPostMock.mockResolvedValueOnce({ error: { detail: 'failed' } });
+    window.history.pushState({}, '', '/reception-kiosk/arrival');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /complete self-onboarding/i }));
+
+    expect(await screen.findByRole('heading', { name: /something went wrong/i })).toBeInTheDocument();
+    expect(screen.getByText(/please contact the reception or organizer for help/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /go to home/i })).toHaveAttribute('href', '/reception-kiosk');
   });
 
   it('shows no registration screen with retry and home actions', async () => {
@@ -380,6 +477,93 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: /we could not find your registration/i })).toBeInTheDocument();
     expect(screen.getByText('missing-code')).toBeInTheDocument();
+  });
+
+  it('auto checks in onboarded arrival from QR scan', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/reception/kiosk/arrivals/lookup') {
+        return Promise.resolve({
+          data: {
+            id: 'arrival-1',
+            type: 'Visitor',
+            expectedArrivalTime: '2026-06-24T09:00:00Z',
+            expectedOffboardTime: '2026-06-24T17:00:00Z',
+            firstName: 'Ada',
+            lastName: 'Lovelace',
+            company: 'Analytical Engines',
+            status: 'Onboarded',
+            checkedIn: false,
+            locationId: 'location-1',
+            onboardingRequirements: { requireFacePicture: false, identityVerificationMethod: null },
+            contractor: null,
+            visitor: null,
+          },
+          response: { status: 200 },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+    decodeFromVideoDeviceMock.mockImplementation((_deviceId: string | undefined, _videoElement: HTMLVideoElement, callback: (result: { getText: () => string }, error: null, controls: { stop: () => void }) => void) => {
+      setTimeout(() => callback({ getText: () => 'arrival-code' }, null, { stop: vi.fn() }), 0);
+      return Promise.resolve({ stop: vi.fn() });
+    });
+    window.history.pushState({}, '', '/reception-kiosk/scan-qr');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /you have been checked in/i })).toBeInTheDocument();
+    expect(screen.getByText(/have a great visit/i)).toBeInTheDocument();
+    expect(apiPostMock).toHaveBeenCalledWith('/api/reception/kiosk/arrivals/{id}/check-in', expect.objectContaining({
+      params: { path: { id: 'arrival-1' } },
+    }));
+  });
+
+  it('shows completed visit message for offboarded arrival from QR scan', async () => {
+    saveReceptionKioskSettings({ kioskId: 'kiosk-1', kioskApiKey: 'secret-key' });
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/reception/kiosk/arrivals/lookup') {
+        return Promise.resolve({
+          data: {
+            id: 'arrival-1',
+            type: 'Visitor',
+            expectedArrivalTime: '2026-06-24T09:00:00Z',
+            expectedOffboardTime: '2026-06-24T17:00:00Z',
+            firstName: 'Ada',
+            lastName: 'Lovelace',
+            company: 'Analytical Engines',
+            status: 'Offboarded',
+            checkedIn: false,
+            locationId: 'location-1',
+            onboardingRequirements: { requireFacePicture: false, identityVerificationMethod: null },
+            contractor: null,
+            visitor: null,
+          },
+          response: { status: 200 },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+    decodeFromVideoDeviceMock.mockImplementation((_deviceId: string | undefined, _videoElement: HTMLVideoElement, callback: (result: { getText: () => string }, error: null, controls: { stop: () => void }) => void) => {
+      setTimeout(() => callback({ getText: () => 'arrival-code' }, null, { stop: vi.fn() }), 0);
+      return Promise.resolve({ stop: vi.fn() });
+    });
+    window.history.pushState({}, '', '/reception-kiosk/scan-qr');
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /this visit has already been completed/i })).toBeInTheDocument();
+    expect(screen.getByText(/please contact the reception or organizer/i)).toBeInTheDocument();
   });
 
   it('opens reception kiosk setup directly without showing the stored API key', async () => {

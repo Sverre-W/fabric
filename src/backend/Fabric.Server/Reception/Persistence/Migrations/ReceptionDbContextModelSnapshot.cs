@@ -349,6 +349,11 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("enabled");
 
+                    b.Property<string>("IdentityVerificationMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("identity_verification_method");
+
                     b.Property<Guid>("LocationId")
                         .HasColumnType("uuid")
                         .HasColumnName("location_id");
@@ -358,6 +363,10 @@ namespace Fabric.Server.Reception.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
+
+                    b.Property<bool>("RequireFacePicture")
+                        .HasColumnType("boolean")
+                        .HasColumnName("require_face_picture");
 
                     b.Property<string>("TenantId")
                         .IsRequired()

@@ -3184,7 +3184,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["OnboardArrivalRequest"];
+                    "application/json": components["schemas"]["OnboardArrivalFromKioskRequest"];
                 };
             };
             responses: {
@@ -8960,7 +8960,7 @@ export interface components {
             documentType: components["schemas"]["CheckInDocumentType"];
         };
         /** @enum {unknown} */
-        CheckInDocumentType: "FacePicture" | "IdentityCard" | "GenericPage";
+        CheckInDocumentType: "FacePicture" | "IdentityDocumentImage" | "GenericPage";
         ChipDesignResponse: {
             /** Format: uuid */
             id: string;
@@ -9130,6 +9130,15 @@ export interface components {
             name: string;
             /** Format: uuid */
             locationId: string;
+            requireFacePicture: boolean;
+            identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
+        };
+        /** @enum {unknown} */
+        IdentityVerificationMethod: "Picture" | "PassportScanner" | "EidReader" | "Itsme";
+        IdentityVerificationCaptureRequest: {
+            method: components["schemas"]["IdentityVerificationMethod"];
+            /** Format: byte */
+            content: string;
         };
         CreateSiteRequest: {
             /** Format: uuid */
@@ -9885,10 +9894,12 @@ export interface components {
             clientId: string;
             requireHttpsMetadata: boolean;
         };
-        OnboardArrivalRequest: {
-            requiredDocuments: components["schemas"]["CheckInDocumentRequirementDto"][];
-            providedDocuments: components["schemas"]["CheckInDocumentDto"][];
+        OnboardArrivalFromKioskRequest: {
+            /** Format: byte */
+            facePicture: null | string;
+            identityVerification: null | components["schemas"]["IdentityVerificationCaptureRequest"];
         };
+        OnboardArrivalRequest: Record<string, never>;
         /** @enum {unknown} */
         OnboardingStatus: "NotYetOnboarded" | "Onboarded" | "Offboarded";
         OrganizerResponse: {
@@ -10289,6 +10300,7 @@ export interface components {
             checkedIn: boolean;
             /** Format: uuid */
             locationId: null | string;
+            onboardingRequirements: components["schemas"]["ReceptionKioskOnboardingRequirementsResponse"];
             visitor: null | components["schemas"]["ReceptionKioskVisitorDetailsResponse"];
             contractor: null | components["schemas"]["ReceptionKioskContractorDetailsResponse"];
         };
@@ -10303,6 +10315,12 @@ export interface components {
             /** Format: uuid */
             locationId: string;
             enabled: boolean;
+            requireFacePicture: boolean;
+            identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
+        };
+        ReceptionKioskOnboardingRequirementsResponse: {
+            requireFacePicture: boolean;
+            identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
         };
         ReceptionKioskVisitDetailsResponse: {
             /** Format: uuid */
@@ -10631,6 +10649,8 @@ export interface components {
             /** Format: uuid */
             locationId: string;
             enabled: boolean;
+            requireFacePicture: boolean;
+            identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
         };
         UpdateRoomRequest: {
             name: string;

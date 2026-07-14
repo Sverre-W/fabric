@@ -78,7 +78,13 @@ public static class ReceptionKioskEndpoints
         CancellationToken cancellationToken = default)
     {
         ReceptionKioskKey key = keyHasher.CreateKey();
-        ReceptionKiosk kiosk = ReceptionKiosk.Create(request.Name, request.LocationId, key.Hash, key.Salt);
+        ReceptionKiosk kiosk = ReceptionKiosk.Create(
+            request.Name,
+            request.LocationId,
+            key.Hash,
+            key.Salt,
+            request.RequireFacePicture,
+            request.IdentityVerificationMethod);
 
         db.ReceptionKiosks.Add(kiosk);
         await db.SaveChangesAsync(cancellationToken);
@@ -97,7 +103,12 @@ public static class ReceptionKioskEndpoints
         if (kiosk is null)
             return Results.NotFound();
 
-        kiosk.Update(request.Name, request.LocationId, request.Enabled);
+        kiosk.Update(
+            request.Name,
+            request.LocationId,
+            request.Enabled,
+            request.RequireFacePicture,
+            request.IdentityVerificationMethod);
         await db.SaveChangesAsync(cancellationToken);
 
         return Results.Ok(kiosk.ToResponse());

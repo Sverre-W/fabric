@@ -29,17 +29,18 @@ public record RegisterContractorArrivalRequest(
     Guid LocationId
 );
 
-public record OnboardArrivalRequest(
-    List<CheckInDocumentRequirementDto> RequiredDocuments,
-    List<CheckInDocumentDto> ProvidedDocuments
+public record OnboardArrivalRequest();
+
+public record OnboardArrivalFromKioskRequest(
+    byte[]? FacePicture,
+    IdentityVerificationCaptureRequest? IdentityVerification
 );
 
 public record ConfirmVisitorRequest(bool Confirmed);
 
-public record CheckInDocumentRequirementDto(
-    string Name,
-    bool Required,
-    CheckInDocumentType DocumentType
+public record IdentityVerificationCaptureRequest(
+    IdentityVerificationMethod Method,
+    byte[] Content
 );
 
 public record CheckInDocumentDto(

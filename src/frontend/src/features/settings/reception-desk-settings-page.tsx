@@ -15,6 +15,7 @@ type AccessLevelType = components['schemas']['AccessLevelTypeResponse'];
 type AccessRuleAssignment = components['schemas']['AccessRuleAssignmentResponse'];
 type AccessRuleAssignmentRequest = components['schemas']['CreateAccessRuleAssignmentRequest'];
 type CreateReceptionKioskRequest = components['schemas']['CreateReceptionKioskRequest'];
+type IdentityVerificationMethod = components['schemas']['IdentityVerificationMethod'];
 type ReceptionKiosk = components['schemas']['ReceptionKioskResponse'];
 type ReceptionKioskKeyResponse = components['schemas']['ReceptionKioskKeyResponse'];
 type ReceptionAccessPolicyTrigger = components['schemas']['ReceptionAccessPolicyTrigger'];
@@ -32,7 +33,13 @@ type KioskFormValues = {
   readonly name: string;
   readonly locationId: string | null;
   readonly enabled: boolean;
+  readonly requireFacePicture: boolean;
+  readonly identityVerificationMethod: IdentityVerificationMethod | '';
 };
+
+const identityVerificationOptions: { readonly label: string; readonly value: IdentityVerificationMethod }[] = [
+  { label: 'Picture', value: 'Picture' },
+];
 
 const assignmentsQueryKey = ['settings', 'reception-desk', 'access-rule-assignments'] as const;
 const kiosksQueryKey = ['settings', 'reception-desk', 'kiosks'] as const;
@@ -373,7 +380,13 @@ export default function ReceptionDeskSettingsPage() {
   function editKiosk(kiosk: ReceptionKiosk) {
     setEditingKioskId(kiosk.id);
     setIsKioskFormOpen(true);
-    setKioskValues({ name: kiosk.name, locationId: kiosk.locationId, enabled: kiosk.enabled });
+    setKioskValues({
+      name: kiosk.name,
+      locationId: kiosk.locationId,
+      enabled: kiosk.enabled,
+      requireFacePicture: kiosk.requireFacePicture,
+      identityVerificationMethod: kiosk.identityVerificationMethod ?? '',
+    });
   }
 
   function confirmDelete(assignment: AccessRuleAssignment) {
@@ -504,6 +517,14 @@ export default function ReceptionDeskSettingsPage() {
                         requiredDepth="None"
                       />
                     </div>
+                    <label className="inline-flex items-center gap-2 text-[14px] font-medium">
+                      <input
+                        type="checkbox"
+                        checked={kioskValues.requireFacePicture}
+                        onChange={(event) => setKioskValues((current) => ({ ...current, requireFacePicture: event.target.checked }))}
+                      />
+                      Require face picture
+                    </label>
                     {editingKioskId ? (
                       <label className="inline-flex items-center gap-2 text-[14px] font-medium">
                         <input
@@ -514,6 +535,31 @@ export default function ReceptionDeskSettingsPage() {
                         Enabled
                       </label>
                     ) : null}
+                    <div className="lg:col-span-2 grid gap-3 rounded-interactive border border-border bg-content px-4 py-3">
+                      <label className="inline-flex items-center gap-2 text-[14px] font-medium">
+                        <input
+                          type="checkbox"
+                          checked={kioskValues.identityVerificationMethod !== ''}
+                          onChange={(event) => setKioskValues((current) => ({
+                            ...current,
+                            identityVerificationMethod: event.target.checked ? 'Picture' : '',
+                          }))}
+                        />
+                        Require identity verification
+                      </label>
+
+                      {kioskValues.identityVerificationMethod !== '' ? (
+                        <SelectField
+                          label="Identity verification method"
+                          value={kioskValues.identityVerificationMethod}
+                          onChange={(value) => setKioskValues((current) => ({ ...current, identityVerificationMethod: value as IdentityVerificationMethod }))}
+                        >
+                          {identityVerificationOptions.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </SelectField>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
@@ -670,6 +716,7 @@ function ReceptionKiosksTable({
             <th className="px-4 py-3 font-semibold">Name</th>
             <th className="px-4 py-3 font-semibold">Location</th>
             <th className="px-4 py-3 font-semibold">Status</th>
+            <th className="px-4 py-3 font-semibold">Onboarding</th>
             <th className="px-4 py-3 text-right font-semibold">Actions</th>
           </tr>
         </thead>
@@ -679,6 +726,7 @@ function ReceptionKiosksTable({
               <td className="px-4 py-4 font-medium text-foreground">{kiosk.name}</td>
               <td className="px-4 py-4 text-muted-foreground"><AssignmentLocationLabel locationId={kiosk.locationId} /></td>
               <td className="px-4 py-4 text-muted-foreground">{kiosk.enabled ? 'Enabled' : 'Disabled'}</td>
+              <td className="px-4 py-4 text-muted-foreground">{formatKioskOnboarding(kiosk)}</td>
               <td className="px-4 py-4">
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" size="icon-sm" aria-label={`Edit ${kiosk.name}`} onClick={() => onEdit(kiosk)}>
@@ -812,6 +860,8 @@ function getDefaultKioskFormValues(): KioskFormValues {
     name: '',
     locationId: null,
     enabled: true,
+    requireFacePicture: false,
+    identityVerificationMethod: '',
   };
 }
 
@@ -838,13 +888,27 @@ function toCreateKioskRequest(values: KioskFormValues): CreateReceptionKioskRequ
     return null;
   }
 
-  return { name, locationId: values.locationId };
+  return {
+    name,
+    locationId: values.locationId,
+    requireFacePicture: values.requireFacePicture,
+    identityVerificationMethod: values.identityVerificationMethod || null,
+  };
 }
 
 function toUpdateKioskRequest(values: KioskFormValues): UpdateReceptionKioskRequest | null {
   const request = toCreateKioskRequest(values);
 
   return request ? { ...request, enabled: values.enabled } : null;
+}
+
+function formatKioskOnboarding(kiosk: ReceptionKiosk): string {
+  const parts = [
+    kiosk.requireFacePicture ? 'Face picture' : null,
+    kiosk.identityVerificationMethod === 'Picture' ? 'ID picture' : kiosk.identityVerificationMethod,
+  ].filter((value): value is string => value !== null);
+
+  return parts.length > 0 ? parts.join(' + ') : 'None';
 }
 
 function getSystemName(systems: readonly AccessControlSystem[], systemId: string) {

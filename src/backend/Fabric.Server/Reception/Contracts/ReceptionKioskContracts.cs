@@ -8,18 +8,24 @@ public record ReceptionKioskResponse(
     Guid Id,
     string Name,
     Guid LocationId,
-    bool Enabled
+    bool Enabled,
+    bool RequireFacePicture,
+    IdentityVerificationMethod? IdentityVerificationMethod
 );
 
 public record CreateReceptionKioskRequest(
     string Name,
-    Guid LocationId
+    Guid LocationId,
+    bool RequireFacePicture,
+    IdentityVerificationMethod? IdentityVerificationMethod
 );
 
 public record UpdateReceptionKioskRequest(
     string Name,
     Guid LocationId,
-    bool Enabled
+    bool Enabled,
+    bool RequireFacePicture,
+    IdentityVerificationMethod? IdentityVerificationMethod
 );
 
 public record ReceptionKioskKeyResponse(
@@ -38,8 +44,14 @@ public record ReceptionKioskExpectedArrivalResponse(
     OnboardingStatus Status,
     bool CheckedIn,
     Guid? LocationId,
+    ReceptionKioskOnboardingRequirementsResponse OnboardingRequirements,
     ReceptionKioskVisitorDetailsResponse? Visitor,
     ReceptionKioskContractorDetailsResponse? Contractor
+);
+
+public record ReceptionKioskOnboardingRequirementsResponse(
+    bool RequireFacePicture,
+    IdentityVerificationMethod? IdentityVerificationMethod
 );
 
 public record ReceptionKioskVisitorDetailsResponse(
@@ -74,6 +86,7 @@ public static partial class ReceptionKioskMapper
 
     public static ReceptionKioskExpectedArrivalResponse ToKioskResponse(
         this ExpectedArrival arrival,
+        ReceptionKiosk kiosk,
         ReceptionKioskVisitorDetailsResponse? visitor = null,
         ReceptionKioskContractorDetailsResponse? contractor = null) =>
         new(
@@ -87,6 +100,7 @@ public static partial class ReceptionKioskMapper
             arrival.Status,
             arrival.CheckedIn,
             arrival.LocationId,
+            new ReceptionKioskOnboardingRequirementsResponse(kiosk.RequireFacePicture, kiosk.IdentityVerificationMethod),
             visitor,
             contractor);
 }

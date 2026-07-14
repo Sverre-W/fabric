@@ -4,7 +4,9 @@ import { Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Camera } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { ReceptionKioskArrivalNotFoundError, lookupReceptionKioskArrival, saveReceptionKioskArrival, saveReceptionKioskMissedCode } from './reception-kiosk-api';
+import { checkInReceptionKioskArrival, checkOutReceptionKioskArrival, clearReceptionKioskArrival, ReceptionKioskArrivalNotFoundError, lookupReceptionKioskArrival, saveReceptionKioskArrival, saveReceptionKioskMissedCode } from './reception-kiosk-api';
+import { clearOnboardingState } from './reception-kiosk-onboarding';
+import { saveReceptionKioskResult } from './reception-kiosk-result';
 import { hasReceptionKioskSettings } from './reception-kiosk-settings';
 
 export default function ReceptionKioskScanQrPage() {
@@ -18,14 +20,72 @@ export default function ReceptionKioskScanQrPage() {
     let disposed = false;
     let handled = false;
 
+    async function processScannedCode(code: string) {
+      try {
+        const arrival = await lookupReceptionKioskArrival(code);
+        if (disposed) {
+          return;
+        }
+
+        clearOnboardingState();
+        clearReceptionKioskArrival();
+
+        if (arrival.status === 'Onboarded') {
+          if (arrival.checkedIn) {
+            await checkOutReceptionKioskArrival(arrival.id);
+            if (disposed) {
+              return;
+            }
+
+            saveReceptionKioskResult('check-out-success');
+            await navigate({ to: '/reception-kiosk/success' });
+            return;
+          }
+
+          await checkInReceptionKioskArrival(arrival.id);
+          if (disposed) {
+            return;
+          }
+
+          saveReceptionKioskResult('check-in-success');
+          await navigate({ to: '/reception-kiosk/success' });
+          return;
+        }
+
+        if (arrival.status === 'Offboarded') {
+          saveReceptionKioskResult('visit-completed');
+          await navigate({ to: '/reception-kiosk/success' });
+          return;
+        }
+
+        saveReceptionKioskArrival(arrival);
+        await navigate({ to: '/reception-kiosk/arrival' });
+      } catch (lookupError) {
+        if (disposed) {
+          return;
+        }
+
+        if (lookupError instanceof ReceptionKioskArrivalNotFoundError) {
+          saveReceptionKioskMissedCode(lookupError.code);
+          await navigate({ to: '/reception-kiosk/no-registration' });
+          return;
+        }
+
+        saveReceptionKioskResult('action-failed');
+        handled = false;
+        setIsLookingUp(false);
+        await navigate({ to: '/reception-kiosk/failed' });
+      }
+    }
+
     async function startScanner() {
       if (!videoRef.current) {
         return;
       }
 
-      try {
-        const reader = new BrowserQRCodeReader(undefined, { delayBetweenScanAttempts: 300 });
-        controls = await reader.decodeFromVideoDevice(undefined, videoRef.current, (result, scanError, activeControls) => {
+        try {
+          const reader = new BrowserQRCodeReader(undefined, { delayBetweenScanAttempts: 300 });
+          controls = await reader.decodeFromVideoDevice(undefined, videoRef.current, (result, scanError) => {
           if (scanError && scanError.name !== 'NotFoundException') {
             setError('Camera is active. Keep the QR code inside the frame.');
           }
@@ -35,33 +95,10 @@ export default function ReceptionKioskScanQrPage() {
           }
 
           handled = true;
-          activeControls.stop();
+          setError(null);
           setIsLookingUp(true);
 
-          lookupReceptionKioskArrival(result.getText().trim())
-            .then((arrival) => {
-              if (disposed) {
-                return;
-              }
-
-              saveReceptionKioskArrival(arrival);
-              void navigate({ to: '/reception-kiosk/arrival' });
-            })
-            .catch((lookupError: unknown) => {
-              if (disposed) {
-                return;
-              }
-
-              if (lookupError instanceof ReceptionKioskArrivalNotFoundError) {
-                saveReceptionKioskMissedCode(lookupError.code);
-                void navigate({ to: '/reception-kiosk/no-registration' });
-                return;
-              }
-
-              handled = false;
-              setIsLookingUp(false);
-              setError(lookupError instanceof Error ? lookupError.message : 'Could not look up expected arrival.');
-            });
+            void processScannedCode(result.getText().trim());
         });
       } catch {
         if (!disposed) {
@@ -75,6 +112,10 @@ export default function ReceptionKioskScanQrPage() {
     return () => {
       disposed = true;
       controls?.stop();
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.srcObject = null;
+      }
     };
   }, [navigate]);
 

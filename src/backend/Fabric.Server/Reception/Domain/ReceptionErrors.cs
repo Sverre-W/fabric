@@ -8,6 +8,7 @@ public enum ReceptionErrors
     AlreadyOffboarded,
     InvalidStatus,
     MissingRequiredDocuments,
+    InvalidIdentityVerificationMethod,
     NotAVisitor,
     ExpectedArrivalMustBeBeforeExpectedOffboard,
     GracePeriodMustNotBeNegative,

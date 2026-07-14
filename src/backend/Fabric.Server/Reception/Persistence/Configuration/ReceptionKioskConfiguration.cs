@@ -19,6 +19,8 @@ public sealed class ReceptionKioskConfiguration : IEntityTypeConfiguration<Recep
         builder.Property(kiosk => kiosk.ApiKeyHash).HasColumnName("api_key_hash").IsRequired().HasMaxLength(200);
         builder.Property(kiosk => kiosk.ApiKeySalt).HasColumnName("api_key_salt").IsRequired().HasMaxLength(200);
         builder.Property(kiosk => kiosk.Enabled).HasColumnName("enabled").IsRequired();
+        builder.Property(kiosk => kiosk.RequireFacePicture).HasColumnName("require_face_picture").IsRequired();
+        builder.Property(kiosk => kiosk.IdentityVerificationMethod).HasColumnName("identity_verification_method").HasConversion<string>().HasMaxLength(50);
 
         TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(ReceptionKiosk.LocationId))

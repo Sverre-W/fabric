@@ -812,10 +812,7 @@ function ExpectedArrivalDetails({ arrivalId, onClose }: { readonly arrivalId: st
     mutationFn: async () => {
       const { error } = await api.POST('/api/reception/arrivals/{id}/onboard', {
         params: { path: { id: arrivalId } },
-        body: {
-          requiredDocuments: [],
-          providedDocuments: [],
-        },
+        body: {},
       });
 
       if (error) {

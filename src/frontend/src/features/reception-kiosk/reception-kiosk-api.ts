@@ -1,9 +1,11 @@
 import { api } from '@/shared/api/client';
 import type { components } from '@/shared/api/generated/schema';
 
+import { clearOnboardingState } from './reception-kiosk-onboarding';
 import { getReceptionKioskSettings } from './reception-kiosk-settings';
 
 export type ReceptionKioskExpectedArrival = components['schemas']['ReceptionKioskExpectedArrivalResponse'];
+type IdentityVerificationMethod = components['schemas']['IdentityVerificationMethod'];
 
 const receptionKioskArrivalKey = 'fabric.reception-kiosk.arrival';
 const receptionKioskMissedCodeKey = 'fabric.reception-kiosk.missed-code';
@@ -41,7 +43,12 @@ export async function lookupReceptionKioskArrival(code: string): Promise<Recepti
 }
 
 export function saveReceptionKioskArrival(arrival: ReceptionKioskExpectedArrival) {
+  clearOnboardingState();
   window.sessionStorage.setItem(receptionKioskArrivalKey, JSON.stringify(arrival));
+}
+
+export function clearReceptionKioskArrival() {
+  window.sessionStorage.removeItem(receptionKioskArrivalKey);
 }
 
 export function getReceptionKioskArrival(): ReceptionKioskExpectedArrival | null {
@@ -59,6 +66,76 @@ export function getReceptionKioskArrival(): ReceptionKioskExpectedArrival | null
 
 export function saveReceptionKioskMissedCode(code: string) {
   window.sessionStorage.setItem(receptionKioskMissedCodeKey, code);
+}
+
+export async function onboardReceptionKioskArrival(
+  arrivalId: string,
+  request: {
+    readonly facePicture?: string;
+    readonly identityVerification?: {
+      readonly method: IdentityVerificationMethod;
+      readonly content: string;
+    };
+  },
+) {
+  const settings = getReceptionKioskSettings();
+  if (!settings) {
+    throw new Error('Reception kiosk setup is required.');
+  }
+
+  const { error } = await api.POST('/api/reception/kiosk/arrivals/{id}/onboard', {
+    params: { path: { id: arrivalId } },
+    headers: {
+      'reception-kiosk-id': settings.kioskId,
+      'reception-kiosk-key': settings.kioskApiKey,
+    },
+    body: {
+      facePicture: request.facePicture ?? null,
+      identityVerification: request.identityVerification ?? null,
+    },
+  });
+
+  if (error) {
+    throw new Error('Could not complete self-onboarding.');
+  }
+}
+
+export async function checkInReceptionKioskArrival(arrivalId: string) {
+  const settings = getReceptionKioskSettings();
+  if (!settings) {
+    throw new Error('Reception kiosk setup is required.');
+  }
+
+  const { error } = await api.POST('/api/reception/kiosk/arrivals/{id}/check-in', {
+    params: { path: { id: arrivalId } },
+    headers: {
+      'reception-kiosk-id': settings.kioskId,
+      'reception-kiosk-key': settings.kioskApiKey,
+    },
+  });
+
+  if (error) {
+    throw new Error('Could not check in arrival.');
+  }
+}
+
+export async function checkOutReceptionKioskArrival(arrivalId: string) {
+  const settings = getReceptionKioskSettings();
+  if (!settings) {
+    throw new Error('Reception kiosk setup is required.');
+  }
+
+  const { error } = await api.POST('/api/reception/kiosk/arrivals/{id}/check-out', {
+    params: { path: { id: arrivalId } },
+    headers: {
+      'reception-kiosk-id': settings.kioskId,
+      'reception-kiosk-key': settings.kioskApiKey,
+    },
+  });
+
+  if (error) {
+    throw new Error('Could not check out arrival.');
+  }
 }
 
 export function getReceptionKioskMissedCode(): string {
