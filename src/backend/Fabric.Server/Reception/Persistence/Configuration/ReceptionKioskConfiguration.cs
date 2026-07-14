@@ -21,6 +21,10 @@ public sealed class ReceptionKioskConfiguration : IEntityTypeConfiguration<Recep
         builder.Property(kiosk => kiosk.Enabled).HasColumnName("enabled").IsRequired();
         builder.Property(kiosk => kiosk.RequireFacePicture).HasColumnName("require_face_picture").IsRequired();
         builder.Property(kiosk => kiosk.IdentityVerificationMethod).HasColumnName("identity_verification_method").HasConversion<string>().HasMaxLength(50);
+        builder.Property(kiosk => kiosk.OnboardingGracePeriodMinutes)
+            .HasColumnName("onboarding_grace_period_minutes")
+            .HasDefaultValue(ReceptionKiosk.DefaultOnboardingGracePeriodMinutes)
+            .IsRequired();
 
         TenantDbContext.ConfigureTenantProperty(builder);
         builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(ReceptionKiosk.LocationId))

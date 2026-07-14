@@ -15,7 +15,7 @@ type AccessLevelType = components['schemas']['AccessLevelTypeResponse'];
 type AccessRuleAssignment = components['schemas']['AccessRuleAssignmentResponse'];
 type AccessRuleAssignmentRequest = components['schemas']['CreateAccessRuleAssignmentRequest'];
 type CreateReceptionKioskRequest = components['schemas']['CreateReceptionKioskRequest'];
-type IdentityVerificationMethod = components['schemas']['IdentityVerificationMethod'];
+type IdentityVerificationMethod = Exclude<components['schemas']['IdentityVerificationMethod'], null>;
 type ReceptionKiosk = components['schemas']['ReceptionKioskResponse'];
 type ReceptionKioskKeyResponse = components['schemas']['ReceptionKioskKeyResponse'];
 type ReceptionAccessPolicyTrigger = components['schemas']['ReceptionAccessPolicyTrigger'];
@@ -35,6 +35,7 @@ type KioskFormValues = {
   readonly enabled: boolean;
   readonly requireFacePicture: boolean;
   readonly identityVerificationMethod: IdentityVerificationMethod | '';
+  readonly onboardingGracePeriodMinutes: string;
 };
 
 const identityVerificationOptions: { readonly label: string; readonly value: IdentityVerificationMethod }[] = [
@@ -382,10 +383,11 @@ export default function ReceptionDeskSettingsPage() {
     setIsKioskFormOpen(true);
     setKioskValues({
       name: kiosk.name,
-      locationId: kiosk.locationId,
+      locationId: kiosk.locationId ?? null,
       enabled: kiosk.enabled,
       requireFacePicture: kiosk.requireFacePicture,
       identityVerificationMethod: kiosk.identityVerificationMethod ?? '',
+      onboardingGracePeriodMinutes: String(kiosk.onboardingGracePeriodMinutes),
     });
   }
 
@@ -559,6 +561,17 @@ export default function ReceptionDeskSettingsPage() {
                           ))}
                         </SelectField>
                       ) : null}
+
+                      <Field label="Onboarding grace period minutes">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={kioskValues.onboardingGracePeriodMinutes}
+                          onChange={(event) => setKioskValues((current) => ({ ...current, onboardingGracePeriodMinutes: event.target.value }))}
+                          required
+                        />
+                      </Field>
                     </div>
                   </div>
 
@@ -862,6 +875,7 @@ function getDefaultKioskFormValues(): KioskFormValues {
     enabled: true,
     requireFacePicture: false,
     identityVerificationMethod: '',
+    onboardingGracePeriodMinutes: '60',
   };
 }
 
@@ -883,8 +897,9 @@ function toAssignmentRequest(values: FormValues): AccessRuleAssignmentRequest | 
 
 function toCreateKioskRequest(values: KioskFormValues): CreateReceptionKioskRequest | null {
   const name = values.name.trim();
+  const onboardingGracePeriodMinutes = Number.parseInt(values.onboardingGracePeriodMinutes, 10);
 
-  if (!name || !values.locationId) {
+  if (!name || !values.locationId || Number.isNaN(onboardingGracePeriodMinutes) || onboardingGracePeriodMinutes < 0) {
     return null;
   }
 
@@ -893,6 +908,7 @@ function toCreateKioskRequest(values: KioskFormValues): CreateReceptionKioskRequ
     locationId: values.locationId,
     requireFacePicture: values.requireFacePicture,
     identityVerificationMethod: values.identityVerificationMethod || null,
+    onboardingGracePeriodMinutes,
   };
 }
 
@@ -908,7 +924,8 @@ function formatKioskOnboarding(kiosk: ReceptionKiosk): string {
     kiosk.identityVerificationMethod === 'Picture' ? 'ID picture' : kiosk.identityVerificationMethod,
   ].filter((value): value is string => value !== null);
 
-  return parts.length > 0 ? parts.join(' + ') : 'None';
+  const requirements = parts.length > 0 ? parts.join(' + ') : 'None';
+  return `${requirements} • ${kiosk.onboardingGracePeriodMinutes} min grace`;
 }
 
 function getSystemName(systems: readonly AccessControlSystem[], systemId: string) {

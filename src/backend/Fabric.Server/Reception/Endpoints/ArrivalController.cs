@@ -175,6 +175,7 @@ public static class ArrivalEndpoints
         ReceptionDbContext db,
         VisitorsDbContext visitorsDb,
         HttpContext httpContext,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -195,6 +196,9 @@ public static class ArrivalEndpoints
             .SingleOrDefaultAsync(x => x.ArrivalCode == code && (x.LocationId == null || x.LocationId == kioskLocationId), cancellationToken);
 
         if (arrival is null)
+            return Results.NotFound();
+
+        if (!kiosk.CanOnboardArrivalAt(timeProvider.GetUtcNow(), arrival.ExpectedArrivalTime))
             return Results.NotFound();
 
         ReceptionKioskVisitorDetailsResponse? visitor = arrival.Type == ArrivalType.Visitor && arrival.InvitationId.HasValue
@@ -253,6 +257,7 @@ public static class ArrivalEndpoints
         VisitorPreOnboardingSagaService onboardingSagaService,
         HttpContext httpContext,
         ReceptionDbContext db,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
         ReceptionKioskActor actor = GetKioskActor(httpContext.User);
@@ -262,6 +267,16 @@ public static class ArrivalEndpoints
 
         if (kiosk is null)
             return Results.NotFound();
+
+        ExpectedArrival? arrival = await db.Arrivals
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (arrival is null)
+            return Results.NotFound();
+
+        if (!kiosk.CanOnboardArrivalAt(timeProvider.GetUtcNow(), arrival.ExpectedArrivalTime))
+            return Results.Problem(statusCode: StatusCodes.Status409Conflict, detail: "Arrival is outside kiosk onboarding window.");
 
         Result<ReceptionErrors> validation = ValidateKioskIdentityVerification(kiosk, request.IdentityVerification);
         if (validation.IsFailure(out ReceptionErrors validationError))
@@ -273,8 +288,7 @@ public static class ArrivalEndpoints
         Result<ReceptionErrors> result = await receptionService.OnboardFromKiosk(id, requiredDocs, providedDocs, actor.Id, actor.Name, cancellationToken);
         if (result.IsSuccess(out _))
         {
-            ExpectedArrival? arrival = await db.Arrivals.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-            if (arrival?.Type == ArrivalType.Visitor)
+            if (arrival.Type == ArrivalType.Visitor)
                 await onboardingSagaService.EnqueueVisitorArrivedAsync(id, cancellationToken);
         }
 
@@ -285,9 +299,28 @@ public static class ArrivalEndpoints
         Guid id,
         ReceptionService receptionService,
         HttpContext httpContext,
+        ReceptionDbContext db,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
         ReceptionKioskActor actor = GetKioskActor(httpContext.User);
+        ReceptionKiosk? kiosk = await db.ReceptionKiosks
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == actor.Id, cancellationToken);
+
+        if (kiosk is null)
+            return Results.NotFound();
+
+        ExpectedArrival? arrival = await db.Arrivals
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (arrival is null)
+            return Results.NotFound();
+
+        if (!kiosk.CanOnboardArrivalAt(timeProvider.GetUtcNow(), arrival.ExpectedArrivalTime))
+            return Results.Problem(statusCode: StatusCodes.Status409Conflict, detail: "Arrival is outside kiosk onboarding window.");
+
         Result<ReceptionErrors> result = await receptionService.CheckInFromKiosk(id, actor.Id, actor.Name, cancellationToken);
         return result.AsResponse(MapError);
     }

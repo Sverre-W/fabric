@@ -1273,6 +1273,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/elsa/api/activity-executions/{id}/call-stack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ElsaWorkflowsApiEndpointsActivityExecutionsGetCallStackEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/elsa/api/activity-executions/{id}": {
         parameters: {
             query?: never;
@@ -8679,6 +8695,8 @@ export interface components {
         };
         ActivityExecutionContextState: {
             id?: string;
+            /** Format: int32 */
+            callStackDepth?: number | string;
             parentContextId?: null | string;
             scheduledActivityNodeId?: string;
             ownerActivityNodeId?: null | string;
@@ -8718,6 +8736,11 @@ export interface components {
             aggregateFaultCount?: number | string;
             /** Format: date-time */
             completedAt?: null | string;
+            schedulingActivityExecutionId?: null | string;
+            schedulingActivityId?: null | string;
+            schedulingWorkflowInstanceId?: null | string;
+            /** Format: int32 */
+            callStackDepth?: null | number | string;
             id?: string;
             tenantId?: null | string;
         };
@@ -8942,17 +8965,6 @@ export interface components {
         ChangeKioskLanguageRequest: {
             languageCode: string;
         };
-        CheckInDocumentDto: {
-            name: string;
-            documentType: components["schemas"]["CheckInDocumentType"];
-            /** Format: byte */
-            content: string;
-        };
-        CheckInDocumentRequirementDto: {
-            name: string;
-            required: boolean;
-            documentType: components["schemas"]["CheckInDocumentType"];
-        };
         CheckInDocumentResponse: {
             /** Format: uuid */
             id: string;
@@ -9132,13 +9144,8 @@ export interface components {
             locationId: string;
             requireFacePicture: boolean;
             identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
-        };
-        /** @enum {unknown} */
-        IdentityVerificationMethod: "Picture" | "PassportScanner" | "EidReader" | "Itsme";
-        IdentityVerificationCaptureRequest: {
-            method: components["schemas"]["IdentityVerificationMethod"];
-            /** Format: byte */
-            content: string;
+            /** Format: int32 */
+            onboardingGracePeriodMinutes: number | string;
         };
         CreateSiteRequest: {
             /** Format: uuid */
@@ -9342,10 +9349,6 @@ export interface components {
             lastInventoryAt: null | string;
             connectionStatus: components["schemas"]["HardwareConnectionStatus"];
         };
-        /** @enum {unknown} */
-        HardwareConnectionStatus: "Online" | "Stale" | "Offline";
-        /** @enum {unknown} */
-        HardwareDeviceAvailabilityReason: "DeviceDisabled" | "DeviceOffline";
         HardwareCommandClaimResponse: {
             command: components["schemas"]["HardwareCommandEnvelope"];
             /** Format: date-time */
@@ -9373,6 +9376,10 @@ export interface components {
             errorCode: null | string;
             errorMessage: null | string;
         };
+        /** @enum {unknown} */
+        HardwareConnectionStatus: "Online" | "Stale" | "Offline";
+        /** @enum {unknown} */
+        HardwareDeviceAvailabilityReason: "DeviceDisabled" | "DeviceOffline" | null;
         HardwareDeviceDiagnostics: {
             connection: null | string;
             configured: boolean;
@@ -9439,6 +9446,13 @@ export interface components {
             subjectType: components["schemas"]["SubjectType"];
             externalId: string;
         };
+        IdentityVerificationCaptureRequest: {
+            method: components["schemas"]["IdentityVerificationMethod"];
+            /** Format: byte */
+            content: string;
+        };
+        /** @enum {unknown} */
+        IdentityVerificationMethod: "Picture" | "PassportScanner" | "EidReader" | "Itsme" | null;
         /** Format: binary */
         IFormFile: string;
         IncidentStrategyDescriptor: {
@@ -9808,6 +9822,7 @@ export interface components {
         };
         LinkedWorkflowDefinitionSummary: {
             links?: null | components["schemas"]["Link"][];
+            isMaterializerAvailable?: boolean;
             id?: string;
             definitionId?: string;
             name?: null | string;
@@ -10308,6 +10323,10 @@ export interface components {
             kiosk: components["schemas"]["ReceptionKioskResponse"];
             apiKey: string;
         };
+        ReceptionKioskOnboardingRequirementsResponse: {
+            requireFacePicture: boolean;
+            identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
+        };
         ReceptionKioskResponse: {
             /** Format: uuid */
             id: string;
@@ -10317,10 +10336,8 @@ export interface components {
             enabled: boolean;
             requireFacePicture: boolean;
             identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
-        };
-        ReceptionKioskOnboardingRequirementsResponse: {
-            requireFacePicture: boolean;
-            identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
+            /** Format: int32 */
+            onboardingGracePeriodMinutes: number | string;
         };
         ReceptionKioskVisitDetailsResponse: {
             /** Format: uuid */
@@ -10651,6 +10668,8 @@ export interface components {
             enabled: boolean;
             requireFacePicture: boolean;
             identityVerificationMethod: null | components["schemas"]["IdentityVerificationMethod"];
+            /** Format: int32 */
+            onboardingGracePeriodMinutes: number | string;
         };
         UpdateRoomRequest: {
             name: string;
@@ -13843,6 +13862,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ListResponseOfActivityExecutionRecord"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ElsaWorkflowsApiEndpointsActivityExecutionsGetCallStackEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["Request"];
+                "application/json": components["schemas"]["Request"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
                 };
             };
             /** @description Unauthorized */

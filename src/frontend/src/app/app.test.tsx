@@ -1282,6 +1282,87 @@ describe('App', () => {
     });
   });
 
+  it('creates reception kiosk with default onboarding grace period', async () => {
+    window.history.pushState({}, '', '/settings/reception-desk');
+
+    apiGetMock.mockImplementation((path: string) => {
+      if (path === '/api/tenants/settings') {
+        return Promise.resolve({ data: tenantSettingsResponse, response: { status: 200 } });
+      }
+
+      if (path === '/api/reception/kiosks') {
+        return Promise.resolve({ data: emptyVisitPage });
+      }
+
+      if (path === '/api/reception/access-rule-assignments') {
+        return Promise.resolve({ data: emptyAccessRuleAssignmentPage });
+      }
+
+      if (path === '/api/access-policies/access-control-systems') {
+        return Promise.resolve({ data: emptyAccessControlSystemPage });
+      }
+
+      if (path === '/api/locations/sites') {
+        return Promise.resolve({
+          data: {
+            ...emptySitePage,
+            totalItems: 1,
+            items: [{ id: 'site-1', name: 'Oslo HQ', address: 'Karl Johans gate 1' }],
+          },
+        });
+      }
+
+      return Promise.resolve({ data: emptyVisitPage });
+    });
+
+    apiPostMock.mockImplementation((path: string) => {
+      if (path === '/api/reception/kiosks') {
+        return Promise.resolve({
+          data: {
+            kiosk: {
+              id: 'kiosk-1',
+              name: 'Front Desk',
+              locationId: 'site-1',
+              enabled: true,
+              requireFacePicture: false,
+              identityVerificationMethod: null,
+              onboardingGracePeriodMinutes: 60,
+            },
+            apiKey: 'secret-key',
+          },
+        });
+      }
+
+      return Promise.resolve({});
+    });
+
+    render(<App appRouter={createAppRouter()} />);
+
+    expect(await screen.findByRole('heading', { name: /reception desk/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /create kiosk/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /create kiosk/i }));
+
+    expect(await screen.findByLabelText('Site')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Front Desk' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Site' }), { target: { value: 'site-1' } });
+    fireEvent.click(screen.getByRole('button', { name: /save kiosk/i }));
+
+    await waitFor(() => {
+      expect(apiPostMock).toHaveBeenCalledWith('/api/reception/kiosks', {
+        body: {
+          name: 'Front Desk',
+          locationId: 'site-1',
+          requireFacePicture: false,
+          identityVerificationMethod: null,
+          onboardingGracePeriodMinutes: 60,
+        },
+      });
+    });
+  });
+
   it('keeps saved visitor badge type selected after systems load', async () => {
     window.history.pushState({}, '', '/settings/visitors');
     let resolveSystems: (value: unknown) => void = () => {};

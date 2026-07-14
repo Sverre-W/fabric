@@ -84,7 +84,8 @@ public static class ReceptionKioskEndpoints
             key.Hash,
             key.Salt,
             request.RequireFacePicture,
-            request.IdentityVerificationMethod);
+            request.IdentityVerificationMethod,
+            request.OnboardingGracePeriodMinutes);
 
         db.ReceptionKiosks.Add(kiosk);
         await db.SaveChangesAsync(cancellationToken);
@@ -108,7 +109,8 @@ public static class ReceptionKioskEndpoints
             request.LocationId,
             request.Enabled,
             request.RequireFacePicture,
-            request.IdentityVerificationMethod);
+            request.IdentityVerificationMethod,
+            request.OnboardingGracePeriodMinutes);
         await db.SaveChangesAsync(cancellationToken);
 
         return Results.Ok(kiosk.ToResponse());

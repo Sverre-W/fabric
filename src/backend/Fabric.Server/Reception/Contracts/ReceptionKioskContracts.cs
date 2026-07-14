@@ -10,14 +10,16 @@ public record ReceptionKioskResponse(
     Guid LocationId,
     bool Enabled,
     bool RequireFacePicture,
-    IdentityVerificationMethod? IdentityVerificationMethod
+    IdentityVerificationMethod? IdentityVerificationMethod,
+    int OnboardingGracePeriodMinutes
 );
 
 public record CreateReceptionKioskRequest(
     string Name,
     Guid LocationId,
     bool RequireFacePicture,
-    IdentityVerificationMethod? IdentityVerificationMethod
+    IdentityVerificationMethod? IdentityVerificationMethod,
+    int OnboardingGracePeriodMinutes
 );
 
 public record UpdateReceptionKioskRequest(
@@ -25,7 +27,8 @@ public record UpdateReceptionKioskRequest(
     Guid LocationId,
     bool Enabled,
     bool RequireFacePicture,
-    IdentityVerificationMethod? IdentityVerificationMethod
+    IdentityVerificationMethod? IdentityVerificationMethod,
+    int OnboardingGracePeriodMinutes
 );
 
 public record ReceptionKioskKeyResponse(
