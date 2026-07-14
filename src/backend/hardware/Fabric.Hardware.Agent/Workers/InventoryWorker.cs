@@ -18,6 +18,7 @@ public sealed class InventoryWorker(
     ILogger<InventoryWorker> logger) : BackgroundService
 {
     private readonly HardwareAgentOptions _options = options.Value;
+    private readonly InventorySyncState _syncState = new(options.Value.InventoryInterval);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -27,6 +28,7 @@ public sealed class InventoryWorker(
         {
             try
             {
+                DateTimeOffset reportedAt = timeProvider.GetUtcNow();
                 HardwareDeviceInventoryItem[] devices =
                 [
                     .. qrReaders.Select(qrReader => qrReader.GetInventoryItem()),
@@ -35,8 +37,14 @@ public sealed class InventoryWorker(
                     .. encoders.Select(encoder => encoder.GetInventoryItem()),
                     .. rfidReaders.Select(rfidReader => rfidReader.GetInventoryItem())
                 ];
-                var request = new PostHardwareInventoryRequest(timeProvider.GetUtcNow(), devices);
-                await gatewayClient.PostInventoryAsync(request, stoppingToken);
+
+                InventorySyncDecision decision = _syncState.GetDecision(devices, reportedAt);
+                if (decision.ShouldSend)
+                {
+                    var request = new PostHardwareInventoryRequest(reportedAt, devices);
+                    await gatewayClient.PostInventoryAsync(request, stoppingToken);
+                    _syncState.MarkSent(decision, reportedAt);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -47,7 +55,7 @@ public sealed class InventoryWorker(
                 logger.InventoryFailed(ex);
             }
 
-            await Task.Delay(_options.InventoryInterval, stoppingToken);
+            await Task.Delay(_options.HeartbeatInterval, stoppingToken);
         }
 
         logger.WorkerStopped(nameof(InventoryWorker));

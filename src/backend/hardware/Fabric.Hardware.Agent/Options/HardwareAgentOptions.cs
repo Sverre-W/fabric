@@ -17,7 +17,7 @@ public sealed class HardwareAgentOptions
 
     public TimeSpan HeartbeatInterval { get; init; } = TimeSpan.FromSeconds(30);
 
-    public TimeSpan InventoryInterval { get; init; } = TimeSpan.FromMinutes(5);
+    public TimeSpan InventoryInterval { get; init; } = TimeSpan.FromMinutes(15);
 
     public TimeSpan CommandPollInterval { get; init; } = TimeSpan.FromSeconds(2);
 

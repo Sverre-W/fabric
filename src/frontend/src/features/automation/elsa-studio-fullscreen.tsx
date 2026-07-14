@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { type PropsWithChildren, useEffect } from 'react';
+import { type PropsWithChildren, useEffect, useRef, useState } from 'react';
 
 import { WorkflowDefinitionEditor, WorkflowInstanceViewer } from './elsa-studio-elements';
 import { type ElsaRuntimeProps } from './automation-page-shell';
@@ -17,11 +17,12 @@ export function isElsaStudioFullscreenRoute(pathname: string) {
 
 export function ElsaStudioEditorScreen({ definitionId, runtime, onWorkflowDefinitionExecuted }: { readonly definitionId: string; readonly runtime: ElsaRuntimeProps; readonly onWorkflowDefinitionExecuted?: (workflowInstanceId: string) => void }) {
   const assets = useElsaStudioAssets(editorElements);
+  const runtimeKey = useElsaRuntimeKey(runtime.accessToken);
   useElsaStudioFullscreenDocument();
 
   return (
     <ElsaStudioFullscreenFrame title="Workflow Definition Editor" backTo="/automation/workflow" backLabel="Back to workflow definitions">
-      {assets.status === 'ready' ? <WorkflowDefinitionEditor {...runtime} definitionId={definitionId} onWorkflowDefinitionExecuted={onWorkflowDefinitionExecuted} className="fabric-elsa-studio-root block h-full w-full" /> : null}
+      {assets.status === 'ready' ? <WorkflowDefinitionEditor key={`${definitionId}:${runtimeKey}`} {...runtime} definitionId={definitionId} onWorkflowDefinitionExecuted={onWorkflowDefinitionExecuted} className="fabric-elsa-studio-root block h-full w-full" /> : null}
       {assets.status === 'loading' ? <ElsaStudioStatusMessage>Loading Elsa Studio editor...</ElsaStudioStatusMessage> : null}
       {assets.status === 'error' ? <ElsaStudioStatusMessage tone="error">{assets.error ?? 'Could not load Elsa Studio editor.'}</ElsaStudioStatusMessage> : null}
     </ElsaStudioFullscreenFrame>
@@ -30,15 +31,31 @@ export function ElsaStudioEditorScreen({ definitionId, runtime, onWorkflowDefini
 
 export function ElsaStudioViewerScreen({ instanceId, runtime, onEditWorkflowDefinition }: { readonly instanceId: string; readonly runtime: ElsaRuntimeProps; readonly onEditWorkflowDefinition?: (definitionId: string) => void }) {
   const assets = useElsaStudioAssets(viewerElements);
+  const runtimeKey = useElsaRuntimeKey(runtime.accessToken);
   useElsaStudioFullscreenDocument();
 
   return (
     <ElsaStudioFullscreenFrame title="Workflow Instance Viewer" backTo="/automation/workflow?tab=history" backLabel="Back to workflow instances">
-      {assets.status === 'ready' ? <WorkflowInstanceViewer {...runtime} instanceId={instanceId} onEditWorkflowDefinition={onEditWorkflowDefinition} className="fabric-elsa-studio-root block h-full w-full" /> : null}
+      {assets.status === 'ready' ? <WorkflowInstanceViewer key={`${instanceId}:${runtimeKey}`} {...runtime} instanceId={instanceId} onEditWorkflowDefinition={onEditWorkflowDefinition} className="fabric-elsa-studio-root block h-full w-full" /> : null}
       {assets.status === 'loading' ? <ElsaStudioStatusMessage>Loading Elsa Studio viewer...</ElsaStudioStatusMessage> : null}
       {assets.status === 'error' ? <ElsaStudioStatusMessage tone="error">{assets.error ?? 'Could not load Elsa Studio viewer.'}</ElsaStudioStatusMessage> : null}
     </ElsaStudioFullscreenFrame>
   );
+}
+
+function useElsaRuntimeKey(accessToken: string | undefined) {
+  const [runtimeKey, setRuntimeKey] = useState(0);
+  const previousAccessToken = useRef(accessToken);
+
+  useEffect(() => {
+    if (previousAccessToken.current === accessToken)
+      return;
+
+    previousAccessToken.current = accessToken;
+    setRuntimeKey((current) => current + 1);
+  }, [accessToken]);
+
+  return runtimeKey;
 }
 
 function ElsaStudioFullscreenFrame({ title, backTo, backLabel, children }: PropsWithChildren<{ readonly title: string; readonly backTo: string; readonly backLabel: string }>) {

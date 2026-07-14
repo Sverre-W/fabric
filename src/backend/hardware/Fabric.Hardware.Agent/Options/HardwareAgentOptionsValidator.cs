@@ -6,6 +6,12 @@ public sealed class HardwareAgentOptionsValidator(IReadOnlyList<EncoderOptions> 
     {
         List<string> failures = [];
 
+        if (options.HeartbeatInterval <= TimeSpan.Zero)
+            failures.Add("Heartbeat interval must be positive.");
+
+        if (options.InventoryInterval <= TimeSpan.Zero)
+            failures.Add("Inventory interval must be positive.");
+
         if (options.QrReaders.Length == 0 && options.Dispensers.Length == 0 && options.Collectors.Length == 0 && options.RfidEas.Readers.Length == 0 && encoders.Count == 0)
             failures.Add("At least one hardware device must be configured.");
 
