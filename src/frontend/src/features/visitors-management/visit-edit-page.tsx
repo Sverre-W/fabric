@@ -20,6 +20,7 @@ type VisitInvitationResponse = components['schemas']['VisitInvitationResponse'];
 type VisitorPreOnboardingSaga = components['schemas']['VisitorPreOnboardingSaga'];
 
 const visitsQueryKey = ['visitors-management', 'visits'] as const;
+const onboardingSagaRefetchIntervalMs = 10_000;
 
 function toDatetimeLocal(value: string): string {
   const date = new Date(value);
@@ -171,6 +172,16 @@ export default function VisitEditPage() {
       return data ?? [];
     },
     enabled: !!visit,
+    refetchInterval: (query) => {
+      const sagas = query.state.data ?? [];
+      if (!Array.isArray(sagas) || sagas.length === 0) {
+        return false;
+      }
+
+      return sagas.some((saga) => saga.state !== 'AwaitingConfirmation' && saga.state !== 'Confirmed' && saga.state !== 'Rejected' && saga.state !== 'Cancelled' && saga.state !== 'Expired')
+        ? onboardingSagaRefetchIntervalMs
+        : false;
+    },
   });
 
   const sagasByInvitationId = new Map(
@@ -237,6 +248,7 @@ export default function VisitEditPage() {
       });
 
       await queryClient.invalidateQueries({ queryKey: [...visitsQueryKey, visitId] });
+      await queryClient.invalidateQueries({ queryKey: [...visitsQueryKey, visitId, 'onboarding-sagas'] });
       toast.success('Invitation sent.');
       setInviteFirstName('');
       setInviteLastName('');

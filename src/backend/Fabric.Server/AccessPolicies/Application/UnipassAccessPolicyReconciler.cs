@@ -37,9 +37,16 @@ public sealed class UnipassAccessPolicyReconciler(
         List<AccessPolicy> policies = await GetProvisionablePolicies(subjectId, systemId, cancellationToken);
         if (policies.Count == 0)
         {
-            var emptyState = SubjectSystemAccessState.Empty(subjectId, systemId);
-            await CleanupUnneededManagedResources(api, policies, emptyState, cancellationToken);
-            return Result.Success<SubjectSystemAccessState, string>(emptyState);
+            try
+            {
+                var emptyState = SubjectSystemAccessState.Empty(subjectId, systemId);
+                await CleanupUnneededManagedResources(api, policies, emptyState, cancellationToken);
+                return Result.Success<SubjectSystemAccessState, string>(emptyState);
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure<SubjectSystemAccessState, string>(ex.Message);
+            }
         }
 
         Subject subject = policies[0].Subject;

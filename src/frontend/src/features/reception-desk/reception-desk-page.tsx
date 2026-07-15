@@ -26,6 +26,7 @@ type ArrivalListMode = 'expected' | 'onboarded' | 'history';
 const arrivalIntervalStorageKey = 'fabric.reception-desk.expected-arrivals';
 const historyIntervalStorageKey = 'fabric.reception-desk.history';
 const pageSize = 10;
+const onboardingSagaRefetchIntervalMs = 10_000;
 const intervalOptions: { readonly label: string; readonly value: ArrivalIntervalView }[] = [
   { label: 'Today', value: 'today' },
   { label: 'Week', value: 'week' },
@@ -806,6 +807,16 @@ function ExpectedArrivalDetails({ arrivalId, onClose }: { readonly arrivalId: st
       return data;
     },
     enabled: !!visit?.id && !!arrival?.invitationId,
+    refetchInterval: (query) => {
+      const saga = query.state.data;
+      if (!saga) {
+        return false;
+      }
+
+      return saga.state !== 'AwaitingConfirmation' && saga.state !== 'Confirmed' && saga.state !== 'Rejected' && saga.state !== 'Cancelled' && saga.state !== 'Expired'
+        ? onboardingSagaRefetchIntervalMs
+        : false;
+    },
   });
 
   const onboardArrival = useMutation({
