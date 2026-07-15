@@ -38,6 +38,7 @@ public record VisitConfirmationResponse(
     DateTimeOffset Start,
     DateTimeOffset Stop,
     Guid? LocationId,
+    string? LocationLabel,
     OrganizerResponse Organizer,
     VisitConfirmationVisitorResponse Visitor,
     ParticipantConfirmationStatus ConfirmationStatus,
@@ -76,7 +77,7 @@ public static partial class VisitMapper
 
     public static partial VisitInvitationResponse ToResponse(this VisitInvitation invitation);
 
-    public static VisitConfirmationResponse ToConfirmationResponse(this Visit visit, VisitInvitation invitation, Organizer organizer)
+    public static VisitConfirmationResponse ToConfirmationResponse(this Visit visit, VisitInvitation invitation, Organizer organizer, string? locationLabel)
     {
         return new VisitConfirmationResponse(
             visit.Id,
@@ -86,6 +87,7 @@ public static partial class VisitMapper
             visit.Start,
             visit.Stop,
             visit.LocationId,
+            locationLabel,
             organizer.ToResponse(),
             new VisitConfirmationVisitorResponse(
                 invitation.VisitorId,

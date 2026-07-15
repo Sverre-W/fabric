@@ -1623,6 +1623,7 @@ function visitConfirmationResponse(overrides: Record<string, unknown> = {}) {
     start: '2026-07-01T09:00:00.000Z',
     stop: '2026-07-01T10:00:00.000Z',
     locationId: null,
+    locationLabel: null,
     organizer: {
       id: 'organizer-1',
       firstName: 'Grace',

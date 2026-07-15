@@ -47,6 +47,7 @@ export default function VisitEditPage() {
   const queryClient = useQueryClient();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [isInviteSuggestionsOpen, setIsInviteSuggestionsOpen] = useState(false);
   const [inviteFirstName, setInviteFirstName] = useState('');
   const [inviteLastName, setInviteLastName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
@@ -384,14 +385,17 @@ export default function VisitEditPage() {
                 <div className="mb-4 grid gap-3">
                   <div className="relative">
                     <label className="mb-1 block text-[13px] font-medium text-foreground">Email</label>
-                    <Input
-                      required
-                      type="email"
-                      placeholder="Email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                    />
-                    {inviteEmail && visitorsQuery.data && visitorsQuery.data.length > 0 ? (
+                      <Input
+                        required
+                        type="email"
+                        placeholder="Email"
+                        value={inviteEmail}
+                        onChange={(e) => {
+                          setInviteEmail(e.target.value);
+                          setIsInviteSuggestionsOpen(true);
+                        }}
+                      />
+                    {isInviteSuggestionsOpen && inviteEmail && visitorsQuery.data && visitorsQuery.data.length > 0 ? (
                       <div className="absolute z-50 mt-1 w-full rounded-structural border border-border bg-content text-foreground shadow-md">
                         {visitorsQuery.data.map((visitor) => (
                           <button
@@ -403,6 +407,7 @@ export default function VisitEditPage() {
                               setInviteFirstName(visitor.firstName ?? '');
                               setInviteLastName(visitor.lastName ?? '');
                               setInviteCompany(visitor.company ?? '');
+                              setIsInviteSuggestionsOpen(false);
                             }}
                           >
                             <div>
@@ -454,6 +459,7 @@ export default function VisitEditPage() {
                     size="sm"
                     onClick={() => {
                       setShowInviteForm(false);
+                      setIsInviteSuggestionsOpen(false);
                       setInviteFirstName('');
                       setInviteLastName('');
                       setInviteEmail('');

@@ -1,4 +1,6 @@
 using Fabric.Server.Core;
+using Fabric.Server.Locations.Application;
+using Fabric.Server.Locations.Domain;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Fabric.Server.Visitors.Application;
 using Fabric.Server.Visitors.Contracts;
@@ -329,6 +331,7 @@ public static class VisitorEndpoints
         Guid visitId,
         Guid invitationId,
         VisitorsDbContext db,
+        LocationService locationService,
         CancellationToken cancellationToken = default
     )
     {
@@ -346,7 +349,11 @@ public static class VisitorEndpoints
             cancellationToken
         );
 
-        return Results.Ok(visit.ToConfirmationResponse(invitation, organizer));
+        string? locationLabel = visit.LocationId.HasValue
+            ? FormatLocationLabel(await locationService.GetLocationById(visit.LocationId.Value, cancellationToken))
+            : null;
+
+        return Results.Ok(visit.ToConfirmationResponse(invitation, organizer, locationLabel));
     }
 
     private static async Task<IResult> ConfirmInvitation(
@@ -448,4 +455,13 @@ public static class VisitorEndpoints
         int statusCode,
         string detail
     ) => (statusCode, new ProblemDetails { Status = statusCode, Detail = detail });
+
+    private static string? FormatLocationLabel(Location? location) =>
+        location switch
+        {
+            Location.SiteLocation site => site.Site.Name,
+            Location.BuildingLocation building => $"{building.Site.Name} / {building.Building.Name}",
+            Location.RoomLocation room => $"{room.Site.Name} / {room.Building.Name} / {room.Room.Name}",
+            _ => null,
+        };
 }

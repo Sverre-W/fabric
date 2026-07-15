@@ -3166,6 +3166,15 @@ export interface paths {
                     };
                     content?: never;
                 };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
             };
         };
         put?: never;
@@ -10826,6 +10835,7 @@ export interface components {
             stop: string;
             /** Format: uuid */
             locationId: null | string;
+            locationLabel: null | string;
             organizer: components["schemas"]["OrganizerResponse"];
             visitor: components["schemas"]["VisitConfirmationVisitorResponse"];
             confirmationStatus: components["schemas"]["ParticipantConfirmationStatus"];

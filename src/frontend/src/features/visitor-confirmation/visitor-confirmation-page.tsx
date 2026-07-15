@@ -168,7 +168,7 @@ export default function VisitorConfirmationPage() {
           <dl className="mt-5 grid gap-4 text-[14px]">
             <Detail icon={<CalendarDays className="size-4" />} label="Starts" value={formatDateTime(visit.start)} />
             <Detail icon={<CalendarDays className="size-4" />} label="Ends" value={formatDateTime(visit.stop)} />
-            <Detail icon={<MapPin className="size-4" />} label="Location" value={visit.locationId ?? 'Not specified'} />
+            <Detail icon={<MapPin className="size-4" />} label="Location" value={visit.locationLabel ?? 'Not specified'} />
             <Detail icon={<UserRound className="size-4" />} label="Organizer" value={getOrganizerName(visit)} hint={visit.organizer.email} />
           </dl>
         </Card>
