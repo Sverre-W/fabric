@@ -5,6 +5,8 @@ using Fabric.Server.Desfire;
 using Fabric.Server.Desfire.Endpoints;
 using Fabric.Server.Hardware;
 using Fabric.Server.Hardware.Endpoints;
+using Fabric.Server.Identities;
+using Fabric.Server.Identities.Endpoints;
 using Fabric.Server.Infrastructure;
 using Fabric.Server.Infrastructure.Authentication;
 using Fabric.Server.Infrastructure.Tenancy;
@@ -56,6 +58,7 @@ builder.Services.AddCors(options =>
 
 builder.Services
     .SetupTenants(builder.Configuration)
+    .SetupIdentities(builder.Configuration)
     .SetupAccessPolicies(builder.Configuration)
     .SetupVisitors(builder.Configuration)
     .SetupSagas(builder.Configuration)
@@ -88,6 +91,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapTenantEndpoints();
+app.MapIdentityEndpoints();
 app.MapAccessPolicyEndpoints();
 app.MapAccessControlSystemEndpoints();
 app.MapLocationEndpoints();

@@ -28,7 +28,7 @@ public record VisitInvitationResponse(
     DateTimeOffset? ArrivedAt,
     DateTimeOffset? NoShowAt);
 
-public record VisitorResponse(Guid Id, string FirstName, string LastName, string Email, string? Company, string? LicensePlate);
+public record VisitorResponse(Guid Id, Guid IdentityId, string FirstName, string LastName, string Email, string? Company, string? LicensePlate);
 
 public record VisitConfirmationResponse(
     Guid VisitId,

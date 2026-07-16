@@ -116,8 +116,8 @@ public static class VisitorEndpoints
                 EF.Functions.ILike(visitor.FirstName, filter)
                 || EF.Functions.ILike(visitor.LastName, filter)
                 || EF.Functions.ILike(visitor.FirstName + " " + visitor.LastName, filter)
-                || EF.Functions.ILike(visitor.Email, filter)
-                || EF.Functions.ILike(visitor.Company!, filter)
+                || visitor.Email != null && EF.Functions.ILike(visitor.Email, filter)
+                || visitor.Company != null && EF.Functions.ILike(visitor.Company, filter)
             );
         }
 
@@ -439,6 +439,10 @@ public static class VisitorEndpoints
                 StatusCodes.Status409Conflict,
                 "Invitation email already exists."
             ),
+            VisitErrors.IdentitySyncFailed => Problem(
+                StatusCodes.Status409Conflict,
+                "Visitor could not be linked to a canonical identity."
+            ),
             VisitErrors.InvitationAlreadyResponded => Problem(
                 StatusCodes.Status409Conflict,
                 "Invitation has already been responded to."
@@ -464,4 +468,5 @@ public static class VisitorEndpoints
             Location.RoomLocation room => $"{room.Site.Name} / {room.Building.Name} / {room.Room.Name}",
             _ => null,
         };
+
 }

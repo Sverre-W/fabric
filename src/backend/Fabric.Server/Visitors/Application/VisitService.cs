@@ -1,11 +1,13 @@
 using Fabric.Server.Core;
+using Fabric.Server.Identities.Application;
+using Fabric.Server.Identities.Domain;
 using Fabric.Server.Visitors.Domain;
 using Fabric.Server.Visitors.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Visitors.Application;
 
-public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
+public class VisitService(VisitorsDbContext db, TimeProvider timeProvider, IdentityService identityService)
 {
     private async Task<Visit?> GetVisitAggregate(Guid visitId, CancellationToken cancellationToken = default)
     {
@@ -151,11 +153,21 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
 
         if (visitor is null)
         {
-            visitor = Visitor.Create(Guid.NewGuid(), firstName, lastName, email, company);
+            Guid visitorId = Guid.NewGuid();
+            Result<Identity, IdentityErrors> identityResult = await identityService.UpsertFromVisitorAsync(null, visitorId, firstName, lastName, email, cancellationToken);
+            if (identityResult.IsFailure(out _))
+                return Result.Failure<VisitInvitation, VisitErrors>(VisitErrors.IdentitySyncFailed);
+
+            identityResult.IsSuccess(out Identity identity);
+            visitor = Visitor.Create(visitorId, identity.Id, firstName, lastName, email, company);
             db.Visitors.Add(visitor);
         }
         else
         {
+            Result<Identity, IdentityErrors> identityResult = await identityService.UpsertFromVisitorAsync(visitor.IdentityId, visitor.Id, firstName, lastName, email, cancellationToken);
+            if (identityResult.IsFailure(out _))
+                return Result.Failure<VisitInvitation, VisitErrors>(VisitErrors.IdentitySyncFailed);
+
             visitor.UpdateProfile(firstName, lastName, email, company, visitor.LicensePlate);
         }
 
@@ -210,11 +222,20 @@ public class VisitService(VisitorsDbContext db, TimeProvider timeProvider)
 
         if (visitor is null)
         {
-            visitor = Visitor.Create(visitorId, firstName, lastName, email, company, licensePlate);
+            Result<Identity, IdentityErrors> identityResult = await identityService.UpsertFromVisitorAsync(null, visitorId, firstName, lastName, email, cancellationToken);
+            if (identityResult.IsFailure(out _))
+                return Result.Failure<Visitor, VisitErrors>(VisitErrors.IdentitySyncFailed);
+
+            identityResult.IsSuccess(out Identity identity);
+            visitor = Visitor.Create(visitorId, identity.Id, firstName, lastName, email, company, licensePlate);
             db.Visitors.Add(visitor);
         }
         else
         {
+            Result<Identity, IdentityErrors> identityResult = await identityService.UpsertFromVisitorAsync(visitor.IdentityId, visitor.Id, firstName, lastName, email, cancellationToken);
+            if (identityResult.IsFailure(out _))
+                return Result.Failure<Visitor, VisitErrors>(VisitErrors.IdentitySyncFailed);
+
             visitor.UpdateProfile(firstName, lastName, email, company, licensePlate);
         }
 
