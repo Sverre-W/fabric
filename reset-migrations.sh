@@ -10,6 +10,7 @@ cd "$server_dir"
 migration_dirs=(
   "Tenants/Persistence/Migrations"
   "AccessPolicies/Persistence/Migrations"
+  "Identities/Persistence/Migrations"
   "Visitors/Persistence/Migrations"
   "Sagas/Persistence/Migrations"
   "Locations/Persistence/Migrations"
@@ -26,6 +27,7 @@ dotnet build "$solution" /bl:{}
 
 dotnet ef migrations add TenantsInit --context TenantsDbContext --output-dir Tenants/Persistence/Migrations --no-build
 dotnet ef migrations add AccessPoliciesInit --context AccessPoliciesDbContext --output-dir AccessPolicies/Persistence/Migrations --no-build
+dotnet ef migrations add IdentitiesInit --context IdentitiesDbContext --output-dir Identities/Persistence/Migrations --no-build
 dotnet ef migrations add VisitorsInit --context VisitorsDbContext --output-dir Visitors/Persistence/Migrations --no-build
 dotnet ef migrations add SagasInit --context SagasDbContext --output-dir Sagas/Persistence/Migrations --no-build
 dotnet ef migrations add LocationsInit --context LocationsDbContext --output-dir Locations/Persistence/Migrations --no-build
