@@ -18,6 +18,9 @@ public static class EmployeeServiceCollectionExtensions
             options.SerializerOptions.TypeInfoResolverChain.Add(EmployeesJsonSerializerContext.Default));
 
         collection.AddScoped<EmployeeService>();
+        collection.AddScoped<EmployeeLifecycleService>();
+        collection.AddSingleton<EmployeeLifecycleTrigger>();
+        collection.AddHostedService<EmployeeLifecycleWorker>();
         return collection;
     }
 }

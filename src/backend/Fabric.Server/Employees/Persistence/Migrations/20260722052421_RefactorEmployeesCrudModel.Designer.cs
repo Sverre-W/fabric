@@ -3,6 +3,7 @@ using System;
 using Fabric.Server.Employees.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.Employees.Persistence.Migrations
 {
     [DbContext(typeof(EmployeesDbContext))]
-    partial class EmployeesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260722052421_RefactorEmployeesCrudModel")]
+    partial class RefactorEmployeesCrudModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,166 +183,6 @@ namespace Fabric.Server.Employees.Persistence.Migrations
                         .HasDatabaseName("ix_employee_leave_periods_tenant_id_employee_id_dates");
 
                     b.ToTable("employee_leave_periods", "employees");
-                });
-
-            modelBuilder.Entity("Fabric.Server.Employees.Domain.EmployeeLifecycleEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTimeOffset>("EffectiveAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("effective_at");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("employee_id");
-
-                    b.Property<string>("FromStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("from_status");
-
-                    b.Property<Guid>("IdentityId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("identity_id");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("reason");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("source");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("ToStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("to_status");
-
-                    b.HasKey("Id")
-                        .HasName("pk_employee_lifecycle_events");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.HasIndex("TenantId")
-                        .HasDatabaseName("ix_employee_lifecycle_events_tenant_id");
-
-                    b.HasIndex("TenantId", "EmployeeId", "EffectiveAt")
-                        .HasDatabaseName("ix_employee_lifecycle_events_tenant_id_employee_id_effective_at");
-
-                    b.ToTable("employee_lifecycle_events", "employees");
-                });
-
-            modelBuilder.Entity("Fabric.Server.Employees.Domain.EmployeeLifecycleRecalculation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completed_at");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("employee_id");
-
-                    b.Property<DateTimeOffset?>("ProcessingStartedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processing_started_at");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("reason");
-
-                    b.Property<DateTimeOffset>("ScheduledFor")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("scheduled_for");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("status");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_employee_lifecycle_recalculations");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.HasIndex("TenantId")
-                        .HasDatabaseName("ix_employee_lifecycle_recalculations_tenant_id");
-
-                    b.HasIndex("TenantId", "Status", "ScheduledFor")
-                        .HasDatabaseName("ix_employee_lifecycle_recalculations_tenant_id_status_scheduled_for");
-
-                    b.HasIndex("TenantId", "EmployeeId", "ScheduledFor", "Reason")
-                        .HasDatabaseName("ix_employee_lifecycle_recalculations_tenant_id_employee_id_schedule_reason");
-
-                    b.ToTable("employee_lifecycle_recalculations", "employees");
-                });
-
-            modelBuilder.Entity("Fabric.Server.Employees.Domain.EmployeeLifecycleState", b =>
-                {
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("employee_id");
-
-                    b.Property<string>("CurrentStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("current_status");
-
-                    b.Property<DateTimeOffset>("EffectiveAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("effective_at");
-
-                    b.Property<DateTimeOffset>("LastEvaluatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_evaluated_at");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("EmployeeId")
-                        .HasName("pk_employee_lifecycle_states");
-
-                    b.HasIndex("TenantId")
-                        .HasDatabaseName("ix_employee_lifecycle_states_tenant_id");
-
-                    b.HasIndex("TenantId", "CurrentStatus")
-                        .HasDatabaseName("ix_employee_lifecycle_states_tenant_id_current_status");
-
-                    b.ToTable("employee_lifecycle_states", "employees");
                 });
 
             modelBuilder.Entity("Fabric.Server.Employees.Domain.EmployeePersona", b =>
@@ -618,33 +461,6 @@ namespace Fabric.Server.Employees.Persistence.Migrations
                 {
                     b.HasOne("Fabric.Server.Employees.Domain.Employee", null)
                         .WithMany("LeavePeriods")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Fabric.Server.Employees.Domain.EmployeeLifecycleEvent", b =>
-                {
-                    b.HasOne("Fabric.Server.Employees.Domain.Employee", null)
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Fabric.Server.Employees.Domain.EmployeeLifecycleRecalculation", b =>
-                {
-                    b.HasOne("Fabric.Server.Employees.Domain.Employee", null)
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Fabric.Server.Employees.Domain.EmployeeLifecycleState", b =>
-                {
-                    b.HasOne("Fabric.Server.Employees.Domain.Employee", null)
-                        .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
