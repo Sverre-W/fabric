@@ -23,6 +23,308 @@ namespace Fabric.Server.Sagas.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Fabric.Server.Sagas.AccessGrantProvisioning.AccessGrantProvisioningSaga", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccessGrantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("access_grant_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("failure_reason");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("next_retry_at");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("retry_count");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("state");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_access_grant_provisioning_sagas");
+
+                    b.HasIndex("AccessGrantId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_access_grant_provisioning_sagas_access_grant_id");
+
+                    b.HasIndex("NextRetryAt")
+                        .HasDatabaseName("ix_access_grant_provisioning_sagas_next_retry_at");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_access_grant_provisioning_sagas_tenant_id");
+
+                    b.ToTable("access_grant_provisioning_sagas", "sagas");
+                });
+
+            modelBuilder.Entity("Fabric.Server.Sagas.AccessGrantProvisioning.AccessGrantProvisioningSagaEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccessGrantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("access_grant_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("failure_reason");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("next_retry_at");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("retry_count");
+
+                    b.Property<Guid>("SagaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("saga_id");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_access_grant_provisioning_saga_events");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_access_grant_provisioning_saga_events_created_at");
+
+                    b.HasIndex("NextRetryAt")
+                        .HasDatabaseName("ix_access_grant_provisioning_saga_events_next_retry_at");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_access_grant_provisioning_saga_events_processed_at");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_access_grant_provisioning_saga_events_tenant_id");
+
+                    b.ToTable("access_grant_provisioning_saga_events", "sagas");
+                });
+
+            modelBuilder.Entity("Fabric.Server.Sagas.EmployeeLifecycle.EmployeeAccessAutomationReconciliation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt_count");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("LastKnownError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("last_known_error");
+
+                    b.Property<DateTimeOffset?>("LastRetryAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_retry_at");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("ScheduledFor")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_for");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employee_access_automation_reconciliations");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_employee_access_automation_reconciliations_tenant_id");
+
+                    b.HasIndex("TenantId", "EmployeeId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_employee_access_automation_reconciliations_tenant_id_employee_id");
+
+                    b.HasIndex("TenantId", "ScheduledFor")
+                        .HasDatabaseName("ix_employee_access_automation_reconciliations_tenant_id_scheduled_for");
+
+                    b.ToTable("employee_access_automation_reconciliations", "sagas");
+                });
+
+            modelBuilder.Entity("Fabric.Server.Sagas.EmployeeLifecycle.EmployeeLifecycleAutomationSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("DisableEmployeeOnLeave")
+                        .HasColumnType("boolean")
+                        .HasColumnName("disable_employee_on_leave");
+
+                    b.Property<DateTimeOffset?>("DisabledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("disabled_at");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_enabled");
+
+                    b.Property<DateTimeOffset?>("LastFullReconciledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_full_reconciled_at");
+
+                    b.Property<DateTimeOffset?>("ReenabledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reenabled_at");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employee_lifecycle_automation_settings");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_employee_lifecycle_automation_settings_tenant_id");
+
+                    b.ToTable("employee_lifecycle_automation_settings", "sagas");
+                });
+
+            modelBuilder.Entity("Fabric.Server.Sagas.EmployeeLifecycle.OrganizationalUnitPackageRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_enabled");
+
+                    b.Property<Guid>("OrganizationUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_unit_id");
+
+                    b.Property<Guid>("PackageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("package_id");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employee_lifecycle_ou_package_rules");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_employee_lifecycle_ou_package_rules_tenant_id");
+
+                    b.HasIndex("TenantId", "OrganizationUnitId", "PackageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_employee_lifecycle_ou_package_rules_tenant_id_ou_package_id");
+
+                    b.ToTable("employee_lifecycle_ou_package_rules", "sagas");
+                });
+
+            modelBuilder.Entity("Fabric.Server.Sagas.EmployeeLifecycle.PersonaPackageRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_enabled");
+
+                    b.Property<Guid>("PackageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("package_id");
+
+                    b.Property<Guid>("PersonaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("persona_id");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employee_lifecycle_persona_package_rules");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_employee_lifecycle_persona_package_rules_tenant_id");
+
+                    b.HasIndex("TenantId", "PersonaId", "PackageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_employee_lifecycle_persona_package_rules_tenant_id_persona_package_id");
+
+                    b.ToTable("employee_lifecycle_persona_package_rules", "sagas");
+                });
+
             modelBuilder.Entity("Fabric.Server.Sagas.Kiosk.KioskSaga", b =>
                 {
                     b.Property<Guid>("Id")

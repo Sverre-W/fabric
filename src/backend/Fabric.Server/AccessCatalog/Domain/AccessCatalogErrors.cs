@@ -1,0 +1,36 @@
+namespace Fabric.Server.AccessCatalog.Domain;
+
+public enum AccessCatalogErrors
+{
+    CatalogNotFound,
+    CatalogNameAlreadyExists,
+    PackageNotFound,
+    PackageNameAlreadyExists,
+    AccessItemNotFound,
+    AccessItemAlreadyLinked,
+    AccessItemNotLinked,
+    CatalogPackageAlreadyLinked,
+    CatalogPackageNotLinked,
+    AccessGrantNotFound,
+    InvalidValidityRange,
+    ReasonRequired,
+    PackageMustContainAccessItems,
+    LocationRequired,
+    AccessGrantAlreadyRevoked,
+    AccessProvisioningFailed,
+    PackageRequestNotFound,
+    ApprovalGroupNotFound,
+    ApprovalGroupNameAlreadyExists,
+    ApprovalGroupMemberNotFound,
+    ApprovalGroupMemberAlreadyExists,
+    ApprovalDefinitionNotFound,
+    ApprovalDefinitionAlreadyExists,
+    ApprovalRequirementNotFound,
+    ApprovalRequirementAlreadyCompleted,
+    ApprovalDecisionNotAllowed,
+    InvalidOrganizationalApprovalLevels,
+    IdentityNotFound,
+    EmployeeNotFound,
+    ManagerNotFound,
+    PackageInactive
+}

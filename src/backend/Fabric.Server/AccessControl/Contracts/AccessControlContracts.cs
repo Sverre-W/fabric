@@ -1,0 +1,308 @@
+using System.Text.Json.Serialization;
+using Fabric.Server.AccessControl.Application;
+using Fabric.Server.AccessControl.Domain;
+using Fabric.Server.Core;
+
+namespace Fabric.Server.AccessControl.Contracts;
+
+public sealed record ListAccessControlSystemsRequest : BaseListRequest
+{
+    public string? Name { get; set; }
+}
+
+public sealed record ListAccessItemsRequest : BaseListRequest
+{
+    public string? Name { get; set; }
+}
+
+public sealed record CreateUnipassAccessControlSystemRequest(
+    string Name,
+    string Endpoint,
+    bool SslValidation,
+    string Username,
+    string Password);
+
+public sealed record UpdateUnipassAccessControlSystemRequest(
+    string Name,
+    string Endpoint,
+    bool SslValidation,
+    string Username,
+    string? Password,
+    AccessControlSystemStatus Status);
+
+public sealed record LinkAccessControlSystemLocationRequest(Guid LocationId);
+
+public sealed record CreateAccessItemRequest(string Name, string? Description);
+
+public sealed record UpdateAccessItemRequest(string Name, string? Description, AccessItemStatus Status);
+
+public sealed record CreateUnipassAccessLevelTargetRequest(
+    Guid AccessControlSystemId,
+    string Name,
+    int SiteId,
+    int AccessRuleId,
+    ProvisioningTiming ProvisioningTiming);
+
+public sealed record UpdateUnipassAccessLevelTargetRequest(
+    string Name,
+    int SiteId,
+    int AccessRuleId,
+    bool IsEnabled,
+    ProvisioningTiming ProvisioningTiming);
+
+public sealed record ListPACSAssignmentsRequest : BaseListRequest
+{
+    public Guid? SourceAssignmentId { get; set; }
+    public Guid? IdentityId { get; set; }
+    public Guid? AccessControlSystemId { get; set; }
+    public PACSAssignmentStatus? Status { get; set; }
+}
+
+public sealed record CreatePACSAssignmentsRequest(
+    Guid SourceAssignmentId,
+    Guid IdentityId,
+    Guid AccessItemId,
+    Guid LocationId,
+    PACSAssignmentDurationKind DurationKind,
+    DateTimeOffset ValidFrom,
+    DateTimeOffset? ValidUntil);
+
+public sealed record ListPACSSubjectProvisioningsRequest : BaseListRequest
+{
+    public Guid? PACSSubjectId { get; set; }
+    public PACSSubjectProvisioningStatus? Status { get; set; }
+}
+
+public sealed record UpsertPACSSubjectProvisioningRequest(
+    Guid IdentityId,
+    Guid AccessControlSystemId,
+    PACSSubjectState DesiredState,
+    string DesiredFirstName,
+    string DesiredLastName,
+    string? DesiredEmail,
+    PACSSubjectProvisioningReason Reason,
+    PACSSubjectProvisioningSourceKind SourceKind,
+    Guid SourceId);
+
+public sealed record ResolveAccessControlSystemResponse(Guid MatchedLocationId, Guid AccessControlSystemId);
+
+public sealed record PACSSubjectResponse(
+    Guid Id,
+    Guid IdentityId,
+    Guid AccessControlSystemId,
+    string NativeSubjectId,
+    PACSSubjectState State,
+    string FirstName,
+    string LastName,
+    string? Email,
+    DateTimeOffset LastSynchronizedAt);
+
+public sealed record PACSSubjectProvisioningResponse(
+    Guid Id,
+    Guid PACSSubjectId,
+    PACSSubjectState DesiredState,
+    string DesiredFirstName,
+    string DesiredLastName,
+    string? DesiredEmail,
+    PACSSubjectProvisioningReason Reason,
+    PACSSubjectProvisioningSourceKind SourceKind,
+    Guid SourceId,
+    PACSSubjectProvisioningStatus Status,
+    DateTimeOffset ScheduledFor,
+    DateTimeOffset? LastRetryAt,
+    string? LastKnownError,
+    int AttemptCount,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record PACSSubjectProvisioningResultResponse(
+    PACSSubjectResponse Subject,
+    PACSSubjectProvisioningResponse? Provisioning);
+
+public sealed record PACSAssignmentResponse(
+    Guid Id,
+    Guid SourceAssignmentId,
+    Guid AccessLevelTargetId,
+    Guid AccessControlSystemId,
+    Guid IdentityId,
+    PACSAssignmentDurationKind DurationKind,
+    DateTimeOffset ValidFrom,
+    DateTimeOffset? ValidUntil,
+    PACSAssignmentStatus Status,
+    DateTimeOffset ScheduledFor,
+    string? NativeAssignmentId,
+    string? FailureReason,
+    DateTimeOffset? ProvisionedAt,
+    DateTimeOffset? CompletedAt);
+
+public sealed record ListPACSProvisioningsRequest : BaseListRequest
+{
+    public Guid? IdentityId { get; set; }
+    public Guid? AccessControlSystemId { get; set; }
+    public PACSProvisioningStatus? Status { get; set; }
+}
+
+public sealed record PACSProvisioningResponse(
+    Guid Id,
+    Guid AccessLevelTargetId,
+    Guid AccessControlSystemId,
+    Guid IdentityId,
+    PACSAssignmentDurationKind DurationKind,
+    DateTimeOffset ValidFrom,
+    DateTimeOffset? ValidUntil,
+    ProvisioningTiming ProvisioningTiming,
+    PACSProvisioningStatus Status,
+    DateTimeOffset ScheduledFor,
+    string? NativeAssignmentId,
+    string? FailureReason,
+    DateTimeOffset? ProvisionedAt,
+    DateTimeOffset? CompletedAt,
+    Guid[] SourceAssignmentIds);
+
+public sealed record AccessControlSystemLocationResponse(Guid Id, Guid AccessControlSystemId, Guid LocationId);
+
+public sealed record AccessControlSystemResponse(
+    Guid Id,
+    string Name,
+    AccessControlProviderKind ProviderKind,
+    AccessControlSystemStatus Status,
+    string Endpoint,
+    bool SslValidation,
+    string Username,
+    bool HasSecret);
+
+public sealed record AccessItemResponse(
+    Guid Id,
+    string Name,
+    string? Description,
+    AccessItemStatus Status);
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(UnipassAccessLevelTargetResponse), "unipass")]
+public abstract record AccessLevelTargetResponse(
+    Guid Id,
+    Guid AccessItemId,
+    Guid AccessControlSystemId,
+    string Name,
+    bool IsEnabled);
+
+public sealed record UnipassAccessLevelTargetResponse(
+    Guid Id,
+    Guid AccessItemId,
+    Guid AccessControlSystemId,
+    string Name,
+    bool IsEnabled,
+    ProvisioningTiming ProvisioningTiming,
+    int SiteId,
+    string SiteName,
+    int AccessRuleId,
+    string AccessRuleName) : AccessLevelTargetResponse(Id, AccessItemId, AccessControlSystemId, Name, IsEnabled);
+
+public static class AccessControlMapper
+{
+    public static AccessControlSystemResponse ToResponse(this AccessControlSystem system) =>
+        new(
+            system.Id,
+            system.Name,
+            system.ProviderKind,
+            system.Status,
+            system.UnipassConfig?.Endpoint ?? string.Empty,
+            system.UnipassConfig?.SslValidation ?? false,
+            system.UnipassConfig?.Username ?? string.Empty,
+            !string.IsNullOrWhiteSpace(system.UnipassConfig?.Password));
+
+    public static AccessControlSystemLocationResponse ToResponse(this AccessControlSystemLocation link) =>
+        new(link.Id, link.AccessControlSystemId, link.LocationId);
+
+    public static AccessItemResponse ToResponse(this AccessItem item) =>
+        new(item.Id, item.Name, item.Description, item.Status);
+
+    public static AccessLevelTargetResponse ToResponse(this AccessLevelTarget target) =>
+        target switch
+        {
+            UnipassAccessLevelTarget unipass => new UnipassAccessLevelTargetResponse(
+                unipass.Id,
+                unipass.AccessItemId,
+                unipass.AccessControlSystemId,
+                unipass.Name,
+                unipass.IsEnabled,
+                unipass.ProvisioningTiming,
+                unipass.SiteId,
+                unipass.SiteName,
+                unipass.AccessRuleId,
+                unipass.AccessRuleName),
+            _ => throw new InvalidOperationException("Unknown access level target type.")
+        };
+
+    public static ResolveAccessControlSystemResponse ToResponse(this ResolvedAccessControlSystem resolved) =>
+        new(resolved.LocationId, resolved.AccessControlSystemId);
+
+    public static PACSSubjectResponse ToResponse(this PACSSubject subject) =>
+        new(
+            subject.Id,
+            subject.IdentityId,
+            subject.AccessControlSystemId,
+            subject.NativeSubjectId,
+            subject.State,
+            subject.FirstName,
+            subject.LastName,
+            subject.Email,
+            subject.LastSynchronizedAt);
+
+    public static PACSSubjectProvisioningResponse ToResponse(this PACSSubjectProvisioning provisioning) =>
+        new(
+            provisioning.Id,
+            provisioning.PACSSubjectId,
+            provisioning.DesiredState,
+            provisioning.DesiredFirstName,
+            provisioning.DesiredLastName,
+            provisioning.DesiredEmail,
+            provisioning.Reason,
+            provisioning.SourceKind,
+            provisioning.SourceId,
+            provisioning.Status,
+            provisioning.ScheduledFor,
+            provisioning.LastRetryAt,
+            provisioning.LastKnownError,
+            provisioning.AttemptCount,
+            provisioning.CreatedAt,
+            provisioning.UpdatedAt);
+
+    public static PACSSubjectProvisioningResultResponse ToResponse(this PACSSubjectProvisioningResult result) =>
+        new(result.Subject.ToResponse(), result.Provisioning?.ToResponse());
+
+    public static PACSAssignmentResponse ToResponse(this PACSAssignment assignment) =>
+        new(
+            assignment.Id,
+            assignment.SourceAssignmentId,
+            assignment.AccessLevelTargetId,
+            assignment.AccessControlSystemId,
+            assignment.IdentityId,
+            assignment.DurationKind,
+            assignment.ValidFrom,
+            assignment.ValidUntil,
+            assignment.Status,
+            assignment.ScheduledFor,
+            assignment.NativeAssignmentId,
+            assignment.FailureReason,
+            assignment.ProvisionedAt,
+            assignment.CompletedAt);
+
+    public static PACSProvisioningResponse ToResponse(this PACSProvisioning provisioning, Guid[] sourceAssignmentIds) =>
+        new(
+            provisioning.Id,
+            provisioning.AccessLevelTargetId,
+            provisioning.AccessControlSystemId,
+            provisioning.IdentityId,
+            provisioning.DurationKind,
+            provisioning.ValidFrom,
+            provisioning.ValidUntil,
+            provisioning.ProvisioningTiming,
+            provisioning.Status,
+            provisioning.ScheduledFor,
+            provisioning.NativeAssignmentId,
+            provisioning.FailureReason,
+            provisioning.ProvisionedAt,
+            provisioning.CompletedAt,
+            sourceAssignmentIds);
+}

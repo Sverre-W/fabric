@@ -1,3 +1,7 @@
+using Fabric.Server.AccessCatalog;
+using Fabric.Server.AccessCatalog.Endpoints;
+using Fabric.Server.AccessControl;
+using Fabric.Server.AccessControl.Endpoints;
 using Fabric.Server.AccessPolicies;
 using Fabric.Server.AccessPolicies.Endpoints;
 using Fabric.Server.Automation;
@@ -22,6 +26,7 @@ using Fabric.Server.Notifications;
 using Fabric.Server.Reception;
 using Fabric.Server.Reception.Endpoints;
 using Fabric.Server.Sagas;
+using Fabric.Server.Sagas.EmployeeLifecycle;
 using Fabric.Server.Sagas.VisitorPreOnboarding;
 using Fabric.Server.Tenants;
 using Fabric.Server.Tenants.Endpoints;
@@ -43,6 +48,7 @@ if (enableOpenApi)
 }
 
 builder.Services.AddTransient(_ => TimeProvider.System);
+builder.Services.AddSingleton<IApplicationVersionProvider, ApplicationVersionProvider>();
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolverChain.Clear());
 builder.Services.AddTenancy(builder.Configuration);
 builder.Services.AddFabricAuthentication();
@@ -65,6 +71,8 @@ builder.Services
     .SetupIdentities(builder.Configuration)
     .SetupEmployees(builder.Configuration)
     .SetupCredentialManagement(builder.Configuration)
+    .SetupAccessControl(builder.Configuration)
+    .SetupAccessCatalog(builder.Configuration)
     .SetupAccessPolicies(builder.Configuration)
     .SetupVisitors(builder.Configuration)
     .SetupSagas(builder.Configuration)
@@ -100,6 +108,14 @@ app.MapTenantEndpoints();
 app.MapIdentityEndpoints();
 app.MapEmployeeEndpoints();
 app.MapCredentialManagementEndpoints();
+app.MapAccessControlEndpoints();
+app.MapCatalogEndpoints();
+app.MapPackageEndpoints();
+app.MapAccessGrantEndpoints();
+app.MapApprovalGroupEndpoints();
+app.MapApprovalDefinitionEndpoints();
+app.MapPackageRequestEndpoints();
+app.MapApprovalRequirementEndpoints();
 app.MapAccessPolicyEndpoints();
 app.MapAccessControlSystemEndpoints();
 app.MapLocationEndpoints();
@@ -122,6 +138,7 @@ app.MapKioskRuntimeEndpoints();
 app.MapVisitorEndpoints();
 app.MapOrganizerEndpoints();
 app.MapVisitorPreOnboardingSagaEndpoints();
+app.MapEmployeeLifecycleAutomationEndpoints();
 
 
 if (enableAutomation)

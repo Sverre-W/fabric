@@ -5,6 +5,7 @@ using Fabric.Server.Employees.Persistence;
 using Fabric.Server.Identities.Domain;
 using Fabric.Server.Identities.Persistence;
 using Fabric.Server.Locations.Persistence;
+using Fabric.Server.Sagas.EmployeeLifecycle;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -15,6 +16,7 @@ public sealed class EmployeeService(
     IdentitiesDbContext identitiesDb,
     LocationsDbContext locationsDb,
     EmployeeLifecycleService lifecycleService,
+    EmployeeLifecycleAutomationService employeeLifecycleAutomationService,
     TimeProvider timeProvider)
 {
     public async Task<Result<Employee, EmployeeErrors>> CreateEmployeeAsync(
@@ -79,6 +81,7 @@ public sealed class EmployeeService(
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         await lifecycleService.ReconcileNowAndRescheduleAsync(employee.Id, EmployeeLifecycleSource.EmployeeCreated, "Employee created", cancellationToken);
+        await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeeCreated", cancellationToken);
 
         return Result.Success<Employee, EmployeeErrors>(employee);
     }
@@ -141,6 +144,7 @@ public sealed class EmployeeService(
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         await lifecycleService.ReconcileNowAndRescheduleAsync(employee.Id, EmployeeLifecycleSource.EmployeeUpdated, "Employee updated", cancellationToken);
+        await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeeUpdated", cancellationToken);
 
         return Result.Success<Employee, EmployeeErrors>(employee);
     }
@@ -157,6 +161,7 @@ public sealed class EmployeeService(
 
         await db.SaveChangesAsync(cancellationToken);
         await lifecycleService.ReconcileNowAndRescheduleAsync(employee.Id, EmployeeLifecycleSource.EmployeeArchived, "Employee archived", cancellationToken);
+        await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeeArchived", cancellationToken);
         return Result.Success<Employee, EmployeeErrors>(employee);
     }
 
@@ -172,6 +177,7 @@ public sealed class EmployeeService(
 
         await db.SaveChangesAsync(cancellationToken);
         await lifecycleService.ReconcileNowAndRescheduleAsync(employee.Id, EmployeeLifecycleSource.EmployeeUnarchived, "Employee unarchived", cancellationToken);
+        await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeeUnarchived", cancellationToken);
         return Result.Success<Employee, EmployeeErrors>(employee);
     }
 
@@ -196,6 +202,7 @@ public sealed class EmployeeService(
             return Result.Failure<Employee, EmployeeErrors>(error);
 
         await db.SaveChangesAsync(cancellationToken);
+        await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeeWorkLocationsReplaced", cancellationToken);
         return Result.Success<Employee, EmployeeErrors>(employee);
     }
 
@@ -221,6 +228,7 @@ public sealed class EmployeeService(
             return Result.Failure<Employee, EmployeeErrors>(error);
 
         await db.SaveChangesAsync(cancellationToken);
+        await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeePersonasReplaced", cancellationToken);
         return Result.Success<Employee, EmployeeErrors>(employee);
     }
 

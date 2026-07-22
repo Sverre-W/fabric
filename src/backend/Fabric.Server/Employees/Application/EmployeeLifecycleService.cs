@@ -1,5 +1,6 @@
 using Fabric.Server.Employees.Domain;
 using Fabric.Server.Employees.Persistence;
+using Fabric.Server.Sagas.EmployeeLifecycle;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Server.Employees.Application;
@@ -9,7 +10,8 @@ public sealed record EmployeeLifecycleRecalculationWorkItem(Guid RecalculationId
 public sealed class EmployeeLifecycleService(
     EmployeesDbContext db,
     TimeProvider timeProvider,
-    EmployeeLifecycleTrigger trigger)
+    EmployeeLifecycleTrigger trigger,
+    EmployeeLifecycleAutomationService employeeLifecycleAutomationService)
 {
     public async Task ReconcileNowAndRescheduleAsync(
         Guid employeeId,
@@ -62,6 +64,7 @@ public sealed class EmployeeLifecycleService(
 
         await RebuildFutureScheduleAsync(employee, now, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, reason ?? source.ToString(), cancellationToken);
         trigger.Notify();
     }
 
