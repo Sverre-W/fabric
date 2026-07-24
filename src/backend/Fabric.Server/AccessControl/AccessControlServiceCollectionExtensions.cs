@@ -20,6 +20,8 @@ public static class AccessControlServiceCollectionExtensions
         collection.AddScoped<AccessControlSystemService>();
         collection.AddScoped<AccessItemService>();
         collection.AddScoped<AccessLevelTargetService>();
+        collection.AddScoped<CredentialPACSAssignmentService>();
+        collection.AddScoped<UnipassCredentialPacsProvisioner>();
         collection.AddScoped<AccessControlLocationResolver>();
         collection.AddScoped<PACSSubjectService>();
         collection.AddScoped<UnipassPACSSubjectProvisioner>();
@@ -31,6 +33,7 @@ public static class AccessControlServiceCollectionExtensions
         collection.AddScoped<UnipassPACSAssignmentProvisioner>();
         collection.AddScoped<PACSAssignmentService>();
         collection.AddScoped<UnipassApiFactory>();
+        collection.AddHostedService<CredentialPacsAssignmentWorker>();
         collection.AddHostedService<PACSSubjectProvisioningWorker>();
 
         return collection;

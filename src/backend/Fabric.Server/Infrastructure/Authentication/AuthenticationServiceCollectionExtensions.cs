@@ -30,6 +30,24 @@ public static class AuthenticationServiceCollectionExtensions
         services.AddAuthorizationBuilder()
             .SetDefaultPolicy(requireAuthPolicy)
             .SetFallbackPolicy(requireAuthPolicy)
+            .AddPolicy(FabricRoleDefaults.AdminPolicy, policy =>
+            {
+                policy.AuthenticationSchemes.Add(TenantBearerAuthenticationDefaults.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole(FabricRoleDefaults.AdminRole);
+            })
+            .AddPolicy(FabricRoleDefaults.SecurityOfficerPolicy, policy =>
+            {
+                policy.AuthenticationSchemes.Add(TenantBearerAuthenticationDefaults.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole(FabricRoleDefaults.SecurityOfficerRole);
+            })
+            .AddPolicy(FabricRoleDefaults.AdminOrSecurityOfficerPolicy, policy =>
+            {
+                policy.AuthenticationSchemes.Add(TenantBearerAuthenticationDefaults.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole(FabricRoleDefaults.AdminRole, FabricRoleDefaults.SecurityOfficerRole);
+            })
             .AddPolicy(ReceptionKioskAuthenticationDefaults.Policy, policy =>
             {
                 policy.AuthenticationSchemes.Add(ReceptionKioskAuthenticationDefaults.AuthenticationScheme);

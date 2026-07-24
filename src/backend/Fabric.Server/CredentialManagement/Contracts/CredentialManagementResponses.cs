@@ -6,9 +6,7 @@ public sealed record CredentialTypeResponse(
     Guid Id,
     string Name,
     CredentialTechnology Technology,
-    int RangeStart,
-    int RangeStop,
-    int RangeSize,
+    CredentialAllocationMode AllocationMode,
     int UsedCount,
     int AvailableCount,
     int? NearLimitThreshold,
@@ -16,41 +14,20 @@ public sealed record CredentialTypeResponse(
     CredentialTypeStatus Status,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    CredentialTypeTargetResponse[] Targets);
+    CredentialRangeResponse[] Ranges);
 
-public sealed record CredentialTypeTargetResponse(
+public sealed record CredentialRangeResponse(
     Guid Id,
     Guid CredentialTypeId,
-    Guid AccessControlSystemId,
-    Guid? ProviderCredentialTypeId,
-    ProvisioningTiming ProvisioningTiming,
-    bool IsEnabled,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
-
-public sealed record CredentialReservationResponse(
-    Guid Id,
-    Guid CredentialTypeId,
-    int CredentialNumber,
-    Guid IdentityId,
-    CredentialReservationStatus Status,
-    CredentialPurpose Purpose,
-    CredentialSourceKind SourceKind,
-    Guid? SourceId,
-    Guid? RequestedByIdentityId,
-    string ReasonText,
-    DateTimeOffset ExpiresAt,
-    DateTimeOffset? ConsumedAt,
-    DateTimeOffset? ReleasedAt,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    long RangeStart,
+    long RangeStop,
+    bool IsActive);
 
 public sealed record CredentialResponse(
     Guid Id,
     Guid CredentialTypeId,
-    int CredentialNumber,
+    string Identifier,
     Guid IdentityId,
-    Guid? ReservationId,
     CredentialDurationKind DurationKind,
     DateTimeOffset ValidFrom,
     DateTimeOffset? ValidUntil,
@@ -60,21 +37,5 @@ public sealed record CredentialResponse(
     Guid? SourceId,
     Guid? RequestedByIdentityId,
     string ReasonText,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt,
-    CredentialProvisioningTransactionResponse[] Provisioning);
-
-public sealed record CredentialProvisioningTransactionResponse(
-    Guid Id,
-    Guid CredentialId,
-    Guid CredentialTypeTargetId,
-    Guid AccessControlSystemId,
-    CredentialProvisioningStatus Status,
-    DateTimeOffset ScheduledFor,
-    int AttemptCount,
-    DateTimeOffset? LastAttemptAt,
-    DateTimeOffset? ProvisionedAt,
-    DateTimeOffset? RevokedAt,
-    string? ErrorMessage,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);

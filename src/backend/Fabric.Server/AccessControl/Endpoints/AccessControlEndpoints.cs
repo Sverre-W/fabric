@@ -15,6 +15,8 @@ public static class AccessControlEndpoints
         RouteGroupBuilder root = app.MapGroup("/api/access-control");
         RouteGroupBuilder systems = root.MapGroup("/systems");
         RouteGroupBuilder items = root.MapGroup("/items");
+        RouteGroupBuilder credentialTargets = root.MapGroup("/credential-type-targets");
+        RouteGroupBuilder credentialAssignments = root.MapGroup("/credential-pacs-assignments");
         RouteGroupBuilder assignments = root.MapGroup("/assignments");
         RouteGroupBuilder provisionings = root.MapGroup("/provisionings");
         RouteGroupBuilder subjects = root.MapGroup("/subjects");
@@ -70,6 +72,17 @@ public static class AccessControlEndpoints
             .Produces<UnipassAccessLevelTargetResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        credentialTargets.MapGet("", ListCredentialTypeTargets)
+            .Produces<Page<CredentialTypeTargetResponse>>();
+        credentialTargets.MapPost("", CreateCredentialTypeTarget)
+            .Produces<CredentialTypeTargetResponse>(StatusCodes.Status201Created);
+        credentialTargets.MapPut("/{targetId:guid}", UpdateCredentialTypeTarget)
+            .Produces<CredentialTypeTargetResponse>()
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        credentialAssignments.MapGet("", ListCredentialPacsAssignments)
+            .Produces<Page<CredentialPACSAssignmentResponse>>();
 
         assignments.MapGet("", ListAssignments)
             .Produces<Page<PACSAssignmentResponse>>();
@@ -309,6 +322,57 @@ public static class AccessControlEndpoints
         return result.Match<IResult>(
             target => Results.Created($"/api/access-control/items/targets/unipass/{target.Id}", (UnipassAccessLevelTargetResponse)target.ToResponse()),
             error => MapError(error).ToResult());
+    }
+
+    private static async Task<IResult> ListCredentialTypeTargets(
+        [AsParameters] ListCredentialTypeTargetsRequest request,
+        AccessControlDbContext db,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<CredentialTypeTarget> query = db.CredentialTypeTargets.AsNoTracking();
+        if (request.CredentialTypeId.HasValue)
+            query = query.Where(item => item.CredentialTypeId == request.CredentialTypeId.Value);
+        if (request.AccessControlSystemId.HasValue)
+            query = query.Where(item => item.AccessControlSystemId == request.AccessControlSystemId.Value);
+
+        IPaged<CredentialTypeTarget> result = await query.OrderBy(item => item.CredentialTypeId).GetPageAsync(request.Page, request.PageSize, cancellationToken);
+        return Results.Ok(result.Map(item => item.ToResponse()));
+    }
+
+    private static async Task<IResult> CreateCredentialTypeTarget(
+        [FromBody] CreateCredentialTypeTargetRequest request,
+        CredentialPACSAssignmentService service,
+        CancellationToken cancellationToken = default)
+    {
+        Result<CredentialTypeTarget, AccessControlErrors> result = await service.CreateCredentialTypeTargetAsync(request.CredentialTypeId, request.AccessControlSystemId, request.ProviderCredentialTypeId, request.ProvisioningTiming, cancellationToken);
+        return result.Match<IResult>(item => Results.Created($"/api/access-control/credential-type-targets/{item.Id}", item.ToResponse()), error => MapError(error).ToResult());
+    }
+
+    private static async Task<IResult> UpdateCredentialTypeTarget(
+        Guid targetId,
+        [FromBody] UpdateCredentialTypeTargetRequest request,
+        CredentialPACSAssignmentService service,
+        CancellationToken cancellationToken = default)
+    {
+        Result<CredentialTypeTarget, AccessControlErrors> result = await service.UpdateCredentialTypeTargetAsync(targetId, request.ProviderCredentialTypeId, request.ProvisioningTiming, request.IsEnabled, cancellationToken);
+        return result.Map(item => item.ToResponse()).AsResponse(MapError);
+    }
+
+    private static async Task<IResult> ListCredentialPacsAssignments(
+        [AsParameters] ListCredentialPACSAssignmentsRequest request,
+        AccessControlDbContext db,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<CredentialPACSAssignment> query = db.CredentialPACSAssignments.AsNoTracking();
+        if (request.CredentialId.HasValue)
+            query = query.Where(item => item.CredentialId == request.CredentialId.Value);
+        if (request.AccessControlSystemId.HasValue)
+            query = query.Where(item => item.AccessControlSystemId == request.AccessControlSystemId.Value);
+        if (request.Status.HasValue)
+            query = query.Where(item => item.Status == request.Status.Value);
+
+        IPaged<CredentialPACSAssignment> result = await query.OrderBy(item => item.ScheduledFor).GetPageAsync(request.Page, request.PageSize, cancellationToken);
+        return Results.Ok(result.Map(item => item.ToResponse()));
     }
 
     private static async Task<IResult> UpdateUnipassTarget(

@@ -14,9 +14,8 @@ public sealed class CredentialConfiguration : IEntityTypeConfiguration<Credentia
 
         builder.Property(credential => credential.Id).HasColumnName("id").ValueGeneratedNever();
         builder.Property(credential => credential.CredentialTypeId).HasColumnName("credential_type_id").IsRequired();
-        builder.Property(credential => credential.CredentialNumber).HasColumnName("credential_number").IsRequired();
+        builder.Property(credential => credential.Identifier).HasColumnName("identifier").HasMaxLength(200).IsRequired();
         builder.Property(credential => credential.IdentityId).HasColumnName("identity_id").IsRequired();
-        builder.Property(credential => credential.ReservationId).HasColumnName("reservation_id");
         builder.Property(credential => credential.DurationKind).HasColumnName("duration_kind").HasConversion<string>().HasMaxLength(50).IsRequired();
         builder.Property(credential => credential.ValidFrom).HasColumnName("valid_from").IsRequired();
         builder.Property(credential => credential.ValidUntil).HasColumnName("valid_until");
@@ -33,15 +32,11 @@ public sealed class CredentialConfiguration : IEntityTypeConfiguration<Credentia
             .WithMany()
             .HasForeignKey(credential => credential.CredentialTypeId)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<CredentialReservation>()
-            .WithMany()
-            .HasForeignKey(credential => credential.ReservationId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         TenantDbContext.ConfigureTenantProperty(builder);
-        builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(Credential.CredentialTypeId), nameof(Credential.CredentialNumber))
+        builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(Credential.Identifier))
             .IsUnique()
-            .HasDatabaseName("ix_credentials_tenant_id_type_number");
+            .HasDatabaseName("ix_credentials_tenant_id_identifier");
         builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(Credential.IdentityId))
             .HasDatabaseName("ix_credentials_tenant_id_identity_id");
         builder.HasIndex(TenantDbContext.TenantIdPropertyName, nameof(Credential.Status))

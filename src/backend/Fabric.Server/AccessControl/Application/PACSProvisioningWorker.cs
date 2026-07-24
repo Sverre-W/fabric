@@ -40,6 +40,7 @@ public sealed class PACSProvisioningWorker(
 
                 await ProcessDueReconciliationsAsync(stoppingToken);
                 await ProcessDueProvisioningsAsync(stoppingToken);
+                await ProcessExpiredProvisioningsAsync(stoppingToken);
                 timerReady = timer.WaitForNextTickAsync(stoppingToken).AsTask();
             }
         }
@@ -76,6 +77,32 @@ public sealed class PACSProvisioningWorker(
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error processing PACS provisionings for tenant {TenantId}", tenantId);
+            }
+        }
+    }
+
+    private async Task ProcessExpiredProvisioningsAsync(CancellationToken cancellationToken)
+    {
+        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+        TenantsDbContext tenantsDb = scope.ServiceProvider.GetRequiredService<TenantsDbContext>();
+        List<string> tenantIds = await tenantsDb.Tenants.AsNoTracking().Select(item => item.Id).ToListAsync(cancellationToken);
+
+        foreach (string tenantId in tenantIds)
+        {
+            try
+            {
+                await using AsyncServiceScope tenantScope = scopeFactory.CreateAsyncScope();
+                if (!await SetTenantAsync(tenantScope.ServiceProvider, tenantId, cancellationToken))
+                    continue;
+
+                PACSProvisioningReconciliationService service = tenantScope.ServiceProvider.GetRequiredService<PACSProvisioningReconciliationService>();
+                IReadOnlyList<Guid> expiredIds = await service.GetExpiredProvisioningIdsAsync(cancellationToken);
+                foreach (Guid provisioningId in expiredIds)
+                    await service.RevokeExpiredProvisioningAsync(provisioningId, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error processing expired PACS provisionings for tenant {TenantId}", tenantId);
             }
         }
     }

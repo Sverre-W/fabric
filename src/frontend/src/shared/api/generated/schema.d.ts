@@ -1433,6 +1433,4856 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/actors/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current actor */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrentActorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List identities
+         * @description List canonical identities with optional search and affiliation filters.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    query?: string;
+                    status?: components["schemas"]["IdentityStatus"];
+                    affiliationType?: components["schemas"]["IdentityAffiliationType"];
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfIdentityResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create identity
+         * @description Create a canonical identity record.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateIdentityRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IdentityResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get identity
+         * @description Get one canonical identity including thin affiliations.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IdentityResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identities/{id}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update identity profile
+         * @description Update canonical identity profile fields.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateIdentityProfileRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IdentityResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List employees */
+        get: {
+            parameters: {
+                query: {
+                    Query?: string;
+                    Status: components["schemas"]["EmployeeStatus"][];
+                    OrganizationUnitId?: string;
+                    IncludeDescendants: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfEmployeeResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create employee */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateEmployeeRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get employee */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Update employee */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateEmployeeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive employee */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unarchive employee */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/work-locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List employee work locations */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeWorkLocationResponse"][];
+                    };
+                };
+            };
+        };
+        /** Replace employee work locations */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReplaceEmployeeWorkLocationsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/personas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List employee personas */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaSummaryResponse"][];
+                    };
+                };
+            };
+        };
+        /** Replace employee personas */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReplaceEmployeePersonasRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/leave-periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List employee leave periods */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeLeavePeriodResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Add employee leave period */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateEmployeePeriodRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeLeavePeriodResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/leave-periods/{periodId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update employee leave period */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    periodId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateEmployeePeriodRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete employee leave period */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    periodId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/suspension-periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List employee suspension periods */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeSuspensionPeriodResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Add employee suspension period */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateEmployeePeriodRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeSuspensionPeriodResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/employees/{id}/suspension-periods/{periodId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update employee suspension period */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    periodId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateEmployeePeriodRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete employee suspension period */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    periodId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List organization units */
+        get: {
+            parameters: {
+                query?: {
+                    Query?: string;
+                    ParentId?: string;
+                    IsActive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfOrganizationUnitResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create organization unit */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateOrganizationUnitRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get organization unit */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Update organization unit */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateOrganizationUnitRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units/{id}/ancestors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List organization unit ancestors */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units/{id}/descendants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List organization unit descendants */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units/{id}/employees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List organization unit subtree employees */
+        get: {
+            parameters: {
+                query: {
+                    Query?: string;
+                    Status: components["schemas"]["EmployeeStatus"][];
+                    OrganizationUnitId?: string;
+                    IncludeDescendants: boolean;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfEmployeeResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units/{id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move organization unit */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MoveOrganizationUnitRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate organization unit */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/organization-units/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate organization unit */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationUnitResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/personas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List personas */
+        get: {
+            parameters: {
+                query?: {
+                    Query?: string;
+                    IsActive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPersonaResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create persona */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePersonaRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/personas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get persona */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Update persona */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePersonaRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/personas/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate persona */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/employees/personas/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate persona */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credential-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List credential types */
+        get: {
+            parameters: {
+                query: {
+                    Query?: string;
+                    Technology?: components["schemas"]["CredentialTechnology"];
+                    Status?: components["schemas"]["CredentialTypeStatus"];
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfCredentialTypeResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create credential type */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCredentialTypeRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialTypeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credential-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get credential type */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialTypeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Update credential type */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCredentialTypeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialTypeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credential-types/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate credential type */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialTypeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credential-types/{id}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Disable credential type */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialTypeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credential-types/{id}/ranges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create credential range */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCredentialRangeRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialRangeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credential-types/ranges/{rangeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update credential range */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    rangeId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCredentialRangeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialRangeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List credentials */
+        get: {
+            parameters: {
+                query: {
+                    CredentialTypeId?: string;
+                    IdentityId?: string;
+                    Status?: components["schemas"]["CredentialStatus"];
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfCredentialResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Issue credential */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["IssueCredentialRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credential-management/credentials/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get credential */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Name?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessControlSystemResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/unipass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateUnipassAccessControlSystemRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessControlSystemResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/{systemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    systemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessControlSystemResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/{systemId}/unipass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    systemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUnipassAccessControlSystemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessControlSystemResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/{systemId}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    systemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SystemMetadata"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/{systemId}/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path: {
+                    systemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessControlSystemLocationResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    systemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LinkAccessControlSystemLocationRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessControlSystemLocationResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/locations/{linkId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    linkId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/resolve/{locationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    locationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResolveAccessControlSystemResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Name?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessItemResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAccessItemRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessItemResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessItemResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAccessItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessItemResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/items/{itemId}/targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessLevelTargetResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/items/{itemId}/targets/unipass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateUnipassAccessLevelTargetRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UnipassAccessLevelTargetResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/items/targets/unipass/{targetId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    targetId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUnipassAccessLevelTargetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UnipassAccessLevelTargetResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/credential-type-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    CredentialTypeId?: string;
+                    AccessControlSystemId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfCredentialTypeTargetResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCredentialTypeTargetRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialTypeTargetResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/credential-type-targets/{targetId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    targetId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCredentialTypeTargetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CredentialTypeTargetResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/credential-pacs-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    CredentialId?: string;
+                    AccessControlSystemId?: string;
+                    Status?: components["schemas"]["CredentialPACSAssignmentStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfCredentialPACSAssignmentResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    SourceAssignmentId?: string;
+                    IdentityId?: string;
+                    AccessControlSystemId?: string;
+                    Status?: components["schemas"]["PACSAssignmentStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPACSAssignmentResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePACSAssignmentsRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PACSAssignmentResponse"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/assignments/{assignmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    assignmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PACSAssignmentResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/assignments/{assignmentId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    assignmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PACSAssignmentResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/provisionings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    IdentityId?: string;
+                    AccessControlSystemId?: string;
+                    Status?: components["schemas"]["PACSProvisioningStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPACSProvisioningResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/provisionings/{provisioningId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    provisioningId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PACSProvisioningResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/subjects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPACSSubjectResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/subjects/{subjectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    subjectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PACSSubjectResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/subject-provisionings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    PACSSubjectId?: string;
+                    Status?: components["schemas"]["PACSSubjectProvisioningStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPACSSubjectProvisioningResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertPACSSubjectProvisioningRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PACSSubjectProvisioningResultResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/catalogs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Name?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfCatalogResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCatalogRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CatalogResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/catalogs/{catalogId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    catalogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CatalogResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    catalogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCatalogRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CatalogResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/catalogs/{catalogId}/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path: {
+                    catalogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfCatalogPackageResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    catalogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LinkCatalogPackageRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CatalogPackageResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/catalogs/{catalogId}/packages/{packageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    catalogId: string;
+                    packageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Name?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPackageResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePackageRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/packages/{packageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    packageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    packageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePackageRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/packages/{packageId}/access-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path: {
+                    packageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPackageAccessItemResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    packageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddPackageAccessItemRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageAccessItemResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/packages/{packageId}/access-items/{accessItemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    packageId: string;
+                    accessItemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/access-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    IdentityId?: string;
+                    PackageId?: string;
+                    Status?: components["schemas"]["AccessGrantStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfAccessGrantResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAccessGrantRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessGrantResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/access-grants/{accessGrantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    accessGrantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessGrantResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/access-grants/{accessGrantId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    accessGrantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessGrantResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Name?: string;
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfApprovalGroupResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateApprovalGroupRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalGroupResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-groups/{approvalGroupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    approvalGroupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalGroupResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    approvalGroupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateApprovalGroupRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalGroupResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-groups/{approvalGroupId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path: {
+                    approvalGroupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfApprovalGroupMemberResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    approvalGroupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateApprovalGroupMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalGroupMemberResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-groups/{approvalGroupId}/members/{memberId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    approvalGroupId: string;
+                    memberId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfApprovalDefinitionResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateApprovalDefinitionRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalDefinitionResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-definitions/{approvalDefinitionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    approvalDefinitionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalDefinitionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    approvalDefinitionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateApprovalDefinitionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalDefinitionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/package-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    RequesterIdentityId?: string;
+                    BeneficiaryIdentityId?: string;
+                    Status?: components["schemas"]["PackageRequestStatus"];
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPackageRequestResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePackageRequestRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageRequestResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/package-requests/{requestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    requestId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageRequestResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-requirements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    RequestId?: string;
+                    RequiredApproverIdentityId?: string;
+                    ApprovalGroupId?: string;
+                    Status?: components["schemas"]["ApprovalStatus"];
+                    ids: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfApprovalRequirementResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-catalog/approval-requirements/{approvalRequirementId}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    approvalRequirementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateApprovalDecisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApprovalDecisionResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/access-policies/policies": {
         parameters: {
             query?: never;
@@ -8588,35 +13438,452 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sagas/employee-lifecycle/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeLifecycleAutomationSettingsResponse"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateEmployeeLifecycleAutomationSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmployeeLifecycleAutomationSettingsResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/employee-lifecycle/ou-package-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfOrganizationalUnitPackageRuleResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateOrganizationalUnitPackageRuleRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationalUnitPackageRuleResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/employee-lifecycle/ou-package-rules/{id}/enabled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetRuleEnabledRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationalUnitPackageRuleResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/employee-lifecycle/ou-package-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/employee-lifecycle/persona-package-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    Page: number | string;
+                    PageSize: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfPersonaPackageRuleResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePersonaPackageRuleRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaPackageRuleResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/employee-lifecycle/persona-package-rules/{id}/enabled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetRuleEnabledRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonaPackageRuleResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/employee-lifecycle/persona-package-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sagas/employee-lifecycle/reconcile/{employeeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    employeeId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accepted */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AccessControlSystemResponse: components["schemas"]["AccessControlSystemResponseUnipassAccessControlSystemResponse"] | components["schemas"]["AccessControlSystemResponseLenelAccessControlSystemResponse"];
-        AccessControlSystemResponseLenelAccessControlSystemResponse: {
-            /** @enum {string} */
-            type?: "lenel";
-            badgeTypes: components["schemas"]["LenelBadgeTypeResponse"][];
-            accessLevels: components["schemas"]["LenelAccessLevelTypeResponse"][];
+        /** @enum {unknown} */
+        AccessControlProviderKind: "Unipass";
+        AccessControlSystemLocationResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            /** Format: uuid */
+            locationId: string;
+        };
+        AccessControlSystemResponse: {
             /** Format: uuid */
             id: string;
             name: string;
+            providerKind: components["schemas"]["AccessControlProviderKind"];
+            status: components["schemas"]["AccessControlSystemStatus"];
             endpoint: string;
             sslValidation: boolean;
+            username: string;
             hasSecret: boolean;
         };
-        AccessControlSystemResponseUnipassAccessControlSystemResponse: {
-            /** @enum {string} */
-            type?: "unipass";
-            username: string;
-            badgeTypes: components["schemas"]["UnipassBadgeTypeResponse"][];
-            accessLevels: components["schemas"]["UnipassAccessLevelTypeResponse"][];
+        /** @enum {unknown} */
+        AccessControlSystemStatus: "Active" | "Inactive";
+        /** @enum {unknown} */
+        AccessDurationKind: "Permanent" | "Temporary";
+        AccessGrantResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            packageId: string;
+            /** Format: uuid */
+            identityId: string;
+            assignmentChannel: components["schemas"]["AssignmentChannel"];
+            sourceKind: components["schemas"]["AssignmentSourceKind"];
+            /** Format: uuid */
+            sourceId: string;
+            durationKind: components["schemas"]["AccessDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+            status: components["schemas"]["AccessGrantStatus"];
+            reasonText: string;
+            locationIds: string[];
+        };
+        /** @enum {unknown} */
+        AccessGrantStatus: "Active" | "Revoked";
+        AccessItemResponse: {
             /** Format: uuid */
             id: string;
             name: string;
-            endpoint: string;
-            sslValidation: boolean;
-            hasSecret: boolean;
+            description: null | string;
+            status: components["schemas"]["AccessItemStatus"];
+        };
+        /** @enum {unknown} */
+        AccessItemStatus: "Active" | "Inactive";
+        AccessLevelTargetResponse: components["schemas"]["AccessLevelTargetResponseUnipassAccessLevelTargetResponse"];
+        AccessLevelTargetResponseUnipassAccessLevelTargetResponse: {
+            /** @enum {string} */
+            type?: "unipass";
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
+            /** Format: int32 */
+            siteId: number | string;
+            siteName: string;
+            /** Format: int32 */
+            accessRuleId: number | string;
+            accessRuleName: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            accessItemId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            name: string;
+            isEnabled: boolean;
         };
         AccessLevelTypeResponse: components["schemas"]["AccessLevelTypeResponseUnipassAccessLevelTypeResponse"] | components["schemas"]["AccessLevelTypeResponseLenelAccessLevelTypeResponse"];
         AccessLevelTypeResponseLenelAccessLevelTypeResponse: {
@@ -8820,6 +14087,10 @@ export interface components {
             lastName: string;
             email: string;
         };
+        AddPackageAccessItemRequest: {
+            /** Format: uuid */
+            accessItemId: string;
+        };
         AddRoomRequest: {
             name: string;
             /** Format: int32 */
@@ -8847,11 +14118,14 @@ export interface components {
          */
         AdHocEncodingMode: "Sync" | "Queued";
         AdminTenantSettingsResponse: {
+            version: string;
             oidc: components["schemas"]["OidcSettingsResponse"];
             theme: components["schemas"]["ThemeSettingsResponse"];
             logo: null | components["schemas"]["LogoSettingsResponse"];
             email: null | components["schemas"]["GraphEmailSettingsResponse"];
         };
+        /** @enum {unknown} */
+        AffiliationStatus: "Active" | "Ended";
         ApplicationKeySettingsSpecification: {
             changeKey?: string;
             changeable?: boolean;
@@ -8871,6 +14145,80 @@ export interface components {
                 [key: string]: components["schemas"]["FileSpecification"];
             };
         };
+        /** @enum {unknown} */
+        ApprovalDecisionKind: "Approve" | "Reject";
+        ApprovalDecisionResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            approvalRequirementId: string;
+            /** Format: uuid */
+            approverIdentityId: string;
+            role: components["schemas"]["ApprovalDecisionRole"];
+            decisionKind: components["schemas"]["ApprovalDecisionKind"];
+            note: null | string;
+            /** Format: date-time */
+            decidedAt: string;
+        };
+        /** @enum {unknown} */
+        ApprovalDecisionRole: "FacilityManager" | "L1" | "L2" | "L3";
+        ApprovalDefinitionResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            accessItemId: string;
+            /** Format: uuid */
+            destinationApprovalGroupId: null | string;
+            organizationalApprovalMode: components["schemas"]["OrganizationalApprovalMode"];
+            /** Format: int32 */
+            organizationalApprovalLevels: number | string;
+        };
+        ApprovalGroupMemberResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            approvalGroupId: string;
+            /** Format: uuid */
+            identityId: string;
+            /** Format: uuid */
+            responsibleLocationId: string;
+        };
+        ApprovalGroupResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            status: components["schemas"]["ApprovalGroupStatus"];
+        };
+        /** @enum {unknown} */
+        ApprovalGroupStatus: "Active" | "Inactive";
+        ApprovalRequirementResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            accessItemId: string;
+            /** Format: uuid */
+            locationId: string;
+            type: components["schemas"]["ApprovalRequirementType"];
+            role: components["schemas"]["ApprovalDecisionRole"];
+            /** Format: uuid */
+            approvalGroupId: null | string;
+            /** Format: uuid */
+            requiredApproverIdentityId: null | string;
+            status: components["schemas"]["ApprovalStatus"];
+            systemApprovalReason: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+        };
+        /** @enum {unknown} */
+        ApprovalRequirementType: "Destination" | "Organizational";
+        /** @enum {unknown} */
+        ApprovalStatus: "Pending" | "Approved" | "Rejected" | "SystemApproved";
         ArrivalEntryResponse: {
             /** Format: uuid */
             id: string;
@@ -8920,6 +14268,10 @@ export interface components {
         AssignKioskWorkflowRequest: {
             workflowDefinitionId: string;
         };
+        /** @enum {unknown} */
+        AssignmentChannel: "CatalogRequest" | "AutomaticConfiguration" | "Manual";
+        /** @enum {unknown} */
+        AssignmentSourceKind: "CatalogRequest" | "OrganizationalUnit" | "Persona" | "VisitorLocation" | "Manual";
         BadgeTypeResponse: components["schemas"]["BadgeTypeResponseUnipassBadgeTypeResponse"] | components["schemas"]["BadgeTypeResponseLenelBadgeTypeResponse"];
         BadgeTypeResponseLenelBadgeTypeResponse: {
             /** @enum {string} */
@@ -8971,6 +14323,22 @@ export interface components {
         CancelCurrentKioskSessionRequest: {
             source: components["schemas"]["KioskSessionCancellationSource"];
         };
+        CatalogPackageResponse: {
+            /** Format: uuid */
+            catalogId: string;
+            /** Format: uuid */
+            packageId: string;
+            isRequestable: boolean;
+        };
+        CatalogResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: null | string;
+            status: components["schemas"]["CatalogStatus"];
+        };
+        /** @enum {unknown} */
+        CatalogStatus: "Active" | "Inactive";
         ChangeKioskLanguageRequest: {
             languageCode: string;
         };
@@ -9034,6 +14402,27 @@ export interface components {
             endpoint: string;
             sslValidation: boolean;
         };
+        CreateAccessGrantRequest: {
+            /** Format: uuid */
+            packageId: string;
+            /** Format: uuid */
+            identityId: string;
+            locationIds: string[];
+            assignmentChannel: components["schemas"]["AssignmentChannel"];
+            sourceKind: components["schemas"]["AssignmentSourceKind"];
+            /** Format: uuid */
+            sourceId: string;
+            durationKind: components["schemas"]["AccessDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+            reasonText: string;
+        };
+        CreateAccessItemRequest: {
+            name: string;
+            description: null | string;
+        };
         CreateAccessPolicyRequest: {
             /** Format: uuid */
             systemId: string;
@@ -9074,6 +14463,34 @@ export interface components {
             /** Format: uuid */
             kioskSessionId?: null | string;
         };
+        CreateApprovalDecisionRequest: {
+            /** Format: uuid */
+            approverIdentityId: string;
+            decisionKind: components["schemas"]["ApprovalDecisionKind"];
+            note: null | string;
+        };
+        CreateApprovalDefinitionRequest: {
+            /** Format: uuid */
+            accessItemId: string;
+            /** Format: uuid */
+            destinationApprovalGroupId: null | string;
+            organizationalApprovalMode: components["schemas"]["OrganizationalApprovalMode"];
+            /** Format: int32 */
+            organizationalApprovalLevels: number | string;
+        };
+        CreateApprovalGroupMemberRequest: {
+            /** Format: uuid */
+            identityId: string;
+            /** Format: uuid */
+            responsibleLocationId: string;
+        };
+        CreateApprovalGroupRequest: {
+            name: string;
+        };
+        CreateCatalogRequest: {
+            name: string;
+            description: null | string;
+        };
         CreateChipDesignRequest: {
             name: string;
             /** Format: int32 */
@@ -9095,6 +14512,54 @@ export interface components {
             effectiveUntil: string;
             /** Format: date-time */
             provisionFrom: null | string;
+        };
+        CreateCredentialRangeRequest: {
+            /** Format: int64 */
+            rangeStart: number | string;
+            /** Format: int64 */
+            rangeStop: number | string;
+            isActive: boolean;
+        };
+        CreateCredentialTypeRequest: {
+            name: string;
+            technology: components["schemas"]["CredentialTechnology"];
+            allocationMode: components["schemas"]["CredentialAllocationMode"];
+            /** Format: int32 */
+            nearLimitThreshold: null | number | string;
+        };
+        CreateCredentialTypeTargetRequest: {
+            /** Format: uuid */
+            credentialTypeId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            /** Format: uuid */
+            providerCredentialTypeId: null | string;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
+        };
+        CreateEmployeePeriodRequest: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            reason: null | string;
+        };
+        CreateEmployeeRequest: {
+            firstName: string;
+            lastName: string;
+            /** Format: date */
+            birthDate: null | string;
+            employeeNumber: null | string;
+            directoryId: null | string;
+            email: null | string;
+            /** Format: uuid */
+            organizationUnitId: string;
+            /** Format: uuid */
+            managerEmployeeId: null | string;
+            jobTitle: null | string;
+            /** Format: date */
+            contractStartDate: null | string;
+            /** Format: date */
+            contractEndDate: null | string;
         };
         CreateEncoderRequest: {
             name: string;
@@ -9123,6 +14588,14 @@ export interface components {
             id: string;
             name: string;
         };
+        CreateIdentityRequest: {
+            firstName: string;
+            middleName: null | string;
+            lastName: string;
+            preferredName: null | string;
+            email: null | string;
+            phone: null | string;
+        };
         CreateKeyDiversificationStrategyRequest: {
             name: string;
             algorithm: components["schemas"]["KeyDiversificationAlgorithm"];
@@ -9146,6 +14619,62 @@ export interface components {
             profileId: string;
             /** @default false */
             showDetailedErrors: boolean;
+        };
+        CreateOrganizationalUnitPackageRuleRequest: {
+            /** Format: uuid */
+            organizationUnitId: string;
+            /** Format: uuid */
+            packageId: string;
+        };
+        CreateOrganizationUnitRequest: {
+            name: string;
+            code: null | string;
+            type: string;
+            /** Format: uuid */
+            parentId: null | string;
+        };
+        CreatePackageRequest: {
+            name: string;
+            description: null | string;
+        };
+        CreatePackageRequestRequest: {
+            /** Format: uuid */
+            packageId: string;
+            /** Format: uuid */
+            requesterIdentityId: string;
+            /** Format: uuid */
+            beneficiaryIdentityId: string;
+            locationIds: string[];
+            requestReason: string;
+            durationKind: components["schemas"]["AccessDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+        };
+        CreatePACSAssignmentsRequest: {
+            /** Format: uuid */
+            sourceAssignmentId: string;
+            /** Format: uuid */
+            identityId: string;
+            /** Format: uuid */
+            accessItemId: string;
+            /** Format: uuid */
+            locationId: string;
+            durationKind: components["schemas"]["PACSAssignmentDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+        };
+        CreatePersonaPackageRuleRequest: {
+            /** Format: uuid */
+            personaId: string;
+            /** Format: uuid */
+            packageId: string;
+        };
+        CreatePersonaRequest: {
+            name: string;
         };
         CreateReceptionKioskRequest: {
             name: string;
@@ -9176,6 +14705,23 @@ export interface components {
             toChipDesignName: string;
             variables: components["schemas"]["TransformationVariableConfigRequest"][];
         };
+        CreateUnipassAccessControlSystemRequest: {
+            name: string;
+            endpoint: string;
+            sslValidation: boolean;
+            username: string;
+            password: string;
+        };
+        CreateUnipassAccessLevelTargetRequest: {
+            /** Format: uuid */
+            accessControlSystemId: string;
+            name: string;
+            /** Format: int32 */
+            siteId: number | string;
+            /** Format: int32 */
+            accessRuleId: number | string;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
+        };
         CreateVisitRequest: {
             /** Format: uuid */
             organizer: string;
@@ -9188,7 +14734,146 @@ export interface components {
             locationId: null | string;
         };
         /** @enum {unknown} */
+        CredentialAllocationMode: "Range" | "Provided";
+        /** @enum {unknown} */
+        CredentialCapacityState: "Healthy" | "NearLimit" | "Limit";
+        /** @enum {unknown} */
+        CredentialDurationKind: "Permanent" | "Temporary";
+        /** @enum {unknown} */
         CredentialGenerationMode: "PlatformQr" | "AccessControlQr";
+        CredentialPACSAssignmentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            credentialId: string;
+            /** Format: uuid */
+            credentialTypeTargetId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            status: components["schemas"]["CredentialPACSAssignmentStatus"];
+            /** Format: date-time */
+            scheduledFor: string;
+            /** Format: int32 */
+            attemptCount: number | string;
+            /** Format: date-time */
+            lastAttemptAt: null | string;
+            nativeAssignmentId: null | string;
+            /** Format: date-time */
+            provisionedAt: null | string;
+            /** Format: date-time */
+            revokedAt: null | string;
+            failureReasonCode: null | string;
+            errorMessage: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @enum {unknown} */
+        CredentialPACSAssignmentStatus: "Pending" | "Provisioned" | "FailedRetryable" | "FailedTerminal" | "Revoked";
+        /** @enum {unknown} */
+        CredentialPurpose: "VisitorAccess" | "EmployeeCredential" | "Replacement" | "TemporaryAccess" | "ManualIssue";
+        CredentialRangeResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            credentialTypeId: string;
+            /** Format: int64 */
+            rangeStart: number | string;
+            /** Format: int64 */
+            rangeStop: number | string;
+            isActive: boolean;
+        };
+        CredentialResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            credentialTypeId: string;
+            identifier: string;
+            /** Format: uuid */
+            identityId: string;
+            durationKind: components["schemas"]["CredentialDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+            status: components["schemas"]["CredentialStatus"];
+            purpose: components["schemas"]["CredentialPurpose"];
+            sourceKind: components["schemas"]["CredentialSourceKind"];
+            /** Format: uuid */
+            sourceId: null | string;
+            /** Format: uuid */
+            requestedByIdentityId: null | string;
+            reasonText: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @enum {unknown} */
+        CredentialSourceKind: "VisitInvitation" | "Visit" | "Employee" | "Manual" | "Replacement";
+        /** @enum {unknown} */
+        CredentialStatus: "Issued" | "Active" | "Suspended" | "Expired" | "Revoked" | "Archived";
+        /** @enum {unknown} */
+        CredentialTechnology: "Qr" | "Desfire" | "LicensePlate";
+        CredentialTypeResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            technology: components["schemas"]["CredentialTechnology"];
+            allocationMode: components["schemas"]["CredentialAllocationMode"];
+            /** Format: int32 */
+            usedCount: number | string;
+            /** Format: int32 */
+            availableCount: number | string;
+            /** Format: int32 */
+            nearLimitThreshold: null | number | string;
+            capacityState: components["schemas"]["CredentialCapacityState"];
+            status: components["schemas"]["CredentialTypeStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            ranges: components["schemas"]["CredentialRangeResponse"][];
+        };
+        /** @enum {unknown} */
+        CredentialTypeStatus: "Active" | "Disabled";
+        CredentialTypeTargetResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            credentialTypeId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            /** Format: uuid */
+            providerCredentialTypeId: null | string;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
+            isEnabled: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CurrentActorResponse: {
+            /** Format: uuid */
+            identityId: null | string;
+            /** Format: uuid */
+            employeeId: null | string;
+            /** Format: uuid */
+            organizationUnitId: null | string;
+            /** Format: uuid */
+            managerEmployeeId: null | string;
+            displayName: null | string;
+            firstName: null | string;
+            lastName: null | string;
+            email: null | string;
+            directoryId: null | string;
+            isEmployee: boolean;
+            isManager: boolean;
+            isAdmin: boolean;
+            isSecurityOfficer: boolean;
+            roles: string[];
+        };
         CustomNotification: {
             subject: string;
             body: string;
@@ -9203,6 +14888,80 @@ export interface components {
         };
         /** @enum {unknown} */
         DiversificationInputOptions: "Uid" | "Uid4Bytes" | "ApplicationId" | "ApplicationIdReversed" | "KeyNo" | "FixedHexValue";
+        EmployeeLeavePeriodResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            reason: null | string;
+        };
+        EmployeeLifecycleAutomationSettingsResponse: {
+            isEnabled: boolean;
+            disableEmployeeOnLeave: boolean;
+            /** Format: date-time */
+            disabledAt: null | string;
+            /** Format: date-time */
+            reenabledAt: null | string;
+            /** Format: date-time */
+            lastFullReconciledAt: null | string;
+        };
+        EmployeeResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            identityId: string;
+            firstName: string;
+            lastName: string;
+            /** Format: date */
+            birthDate: null | string;
+            employeeNumber: null | string;
+            directoryId: null | string;
+            email: null | string;
+            organizationUnit: components["schemas"]["OrganizationUnitSummaryResponse"];
+            /** Format: uuid */
+            managerEmployeeId: null | string;
+            jobTitle: null | string;
+            /** Format: date */
+            contractStartDate: null | string;
+            /** Format: date */
+            contractEndDate: null | string;
+            /** Format: date-time */
+            archivedAt: null | string;
+            status: components["schemas"]["EmployeeStatus"];
+            hasActiveLeave: boolean;
+            hasActiveSuspension: boolean;
+            personas: components["schemas"]["PersonaSummaryResponse"][];
+            workLocations: components["schemas"]["EmployeeWorkLocationResponse"][];
+            leavePeriods: components["schemas"]["EmployeeLeavePeriodResponse"][];
+            suspensionPeriods: components["schemas"]["EmployeeSuspensionPeriodResponse"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @enum {unknown} */
+        EmployeeStatus: "PreHire" | "Active" | "Leave" | "Suspended" | "Terminated" | "Archived";
+        EmployeeSuspensionPeriodResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            reason: null | string;
+        };
+        EmployeeWorkLocationRequest: {
+            /** Format: uuid */
+            locationId: string;
+            isPrimary: boolean;
+        };
+        EmployeeWorkLocationResponse: {
+            /** Format: uuid */
+            locationId: string;
+            isPrimary: boolean;
+        };
         EmptyRequest: Record<string, never>;
         EncoderResponse: {
             /** Format: uuid */
@@ -9445,6 +15204,19 @@ export interface components {
             customProperties?: Record<string, never>;
             metadata?: Record<string, never>;
         };
+        IdentityAffiliationSummaryResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sourceId: string;
+            status: components["schemas"]["AffiliationStatus"];
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveUntil: null | string;
+        };
+        /** @enum {unknown} */
+        IdentityAffiliationType: "Employee" | "Contractor" | "Visitor" | null;
         IdentityMappingResponse: {
             /** Format: uuid */
             subjectId: string;
@@ -9455,6 +15227,27 @@ export interface components {
             subjectType: components["schemas"]["SubjectType"];
             externalId: string;
         };
+        IdentityResponse: {
+            /** Format: uuid */
+            id: string;
+            firstName: string;
+            middleName: null | string;
+            lastName: string;
+            preferredName: null | string;
+            displayName: string;
+            email: null | string;
+            phone: null | string;
+            status: components["schemas"]["IdentityStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            employeeAffiliations: components["schemas"]["IdentityAffiliationSummaryResponse"][];
+            contractorAffiliations: components["schemas"]["IdentityAffiliationSummaryResponse"][];
+            visitorAffiliations: components["schemas"]["IdentityAffiliationSummaryResponse"][];
+        };
+        /** @enum {unknown} */
+        IdentityStatus: "Active" | "Suspended" | "Archived";
         IdentityVerificationCaptureRequest: {
             method: components["schemas"]["IdentityVerificationMethod"];
             /** Format: byte */
@@ -9505,6 +15298,25 @@ export interface components {
             lastName: string;
             email: string;
             company: string;
+        };
+        IssueCredentialRequest: {
+            /** Format: uuid */
+            credentialTypeId: string;
+            identifier: null | string;
+            /** Format: uuid */
+            identityId: string;
+            durationKind: components["schemas"]["CredentialDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+            purpose: components["schemas"]["CredentialPurpose"];
+            sourceKind: components["schemas"]["CredentialSourceKind"];
+            /** Format: uuid */
+            sourceId: null | string;
+            /** Format: uuid */
+            requestedByIdentityId: null | string;
+            reasonText: string;
         };
         IssuedResourceResponse: components["schemas"]["IssuedResourceResponseCredentialResponse"] | components["schemas"]["IssuedResourceResponseAccessLevelResponse"];
         IssuedResourceResponseAccessLevelResponse: {
@@ -9804,6 +15616,15 @@ export interface components {
             rel: string;
             method: string;
         };
+        LinkAccessControlSystemLocationRequest: {
+            /** Format: uuid */
+            locationId: string;
+        };
+        LinkCatalogPackageRequest: {
+            /** Format: uuid */
+            packageId: string;
+            isRequestable: boolean;
+        };
         LinkedWorkflowDefinitionModel: {
             links: null | components["schemas"]["Link"][];
             id?: string;
@@ -9913,6 +15734,10 @@ export interface components {
         };
         /** @enum {unknown} */
         ModeOfTransport: "Car" | "PublicTransport" | "Bike" | "Walk" | null;
+        MoveOrganizationUnitRequest: {
+            /** Format: uuid */
+            parentId: null | string;
+        };
         OidcSettingsResponse: {
             metadataUrl: string;
             clientId: string;
@@ -9926,6 +15751,47 @@ export interface components {
         OnboardArrivalRequest: Record<string, never>;
         /** @enum {unknown} */
         OnboardingStatus: "NotYetOnboarded" | "Onboarded" | "Offboarded";
+        /** @enum {unknown} */
+        OrganizationalApprovalMode: "None" | "ManagerChain";
+        OrganizationalUnitPackageRuleResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            organizationUnitId: string;
+            /** Format: uuid */
+            packageId: string;
+            isEnabled: boolean;
+        };
+        OrganizationUnitResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            code: null | string;
+            type: string;
+            /** Format: uuid */
+            parentId: null | string;
+            isActive: boolean;
+            /** Format: int32 */
+            depth: null | number | string;
+            /** Format: int32 */
+            childCount: null | number | string;
+            /** Format: int32 */
+            employeeCount: null | number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        OrganizationUnitSummaryResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            code: null | string;
+            type: string;
+            /** Format: uuid */
+            parentId: null | string;
+            isActive: boolean;
+        };
         OrganizerResponse: {
             /** Format: uuid */
             id: string;
@@ -9951,11 +15817,175 @@ export interface components {
             isSerializable?: null | boolean;
             isSynthetic?: boolean;
         };
+        PackageAccessItemResponse: {
+            /** Format: uuid */
+            packageId: string;
+            /** Format: uuid */
+            accessItemId: string;
+        };
+        PackageRequestResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            packageId: string;
+            /** Format: uuid */
+            requesterIdentityId: string;
+            /** Format: uuid */
+            beneficiaryIdentityId: string;
+            requestReason: string;
+            status: components["schemas"]["PackageRequestStatus"];
+            durationKind: components["schemas"]["AccessDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            decidedAt: null | string;
+            locationIds: string[];
+        };
+        /** @enum {unknown} */
+        PackageRequestStatus: "Requested" | "PendingApproval" | "Approved" | "Rejected" | "Expired";
+        PackageResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: null | string;
+            status: components["schemas"]["PackageStatus"];
+        };
+        /** @enum {unknown} */
+        PackageStatus: "Active" | "Inactive";
+        /** @enum {unknown} */
+        PACSAssignmentDurationKind: "Permanent" | "Temporary";
+        PACSAssignmentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sourceAssignmentId: string;
+            /** Format: uuid */
+            accessLevelTargetId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            /** Format: uuid */
+            identityId: string;
+            durationKind: components["schemas"]["PACSAssignmentDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+            status: components["schemas"]["PACSAssignmentStatus"];
+            /** Format: date-time */
+            scheduledFor: string;
+            nativeAssignmentId: null | string;
+            failureReason: null | string;
+            /** Format: date-time */
+            provisionedAt: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+        };
+        /** @enum {unknown} */
+        PACSAssignmentStatus: "Pending" | "Provisioned" | "Failed" | "Revoked";
+        PACSProvisioningResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            accessLevelTargetId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            /** Format: uuid */
+            identityId: string;
+            durationKind: components["schemas"]["PACSAssignmentDurationKind"];
+            /** Format: date-time */
+            validFrom: string;
+            /** Format: date-time */
+            validUntil: null | string;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
+            status: components["schemas"]["PACSProvisioningStatus"];
+            /** Format: date-time */
+            scheduledFor: string;
+            nativeAssignmentId: null | string;
+            failureReason: null | string;
+            /** Format: date-time */
+            provisionedAt: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+            sourceAssignmentIds: string[];
+        };
+        /** @enum {unknown} */
+        PACSProvisioningStatus: "Pending" | "Provisioned" | "Failed" | "Revoked";
+        /** @enum {unknown} */
+        PACSSubjectProvisioningReason: "ProfileChanged" | "EmployeeLeave" | "EmployeeSuspension" | "EmployeeLifecycleRestored" | "ArchiveRequested" | "Manual";
+        PACSSubjectProvisioningResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            pacsSubjectId: string;
+            desiredState: components["schemas"]["PACSSubjectState"];
+            desiredFirstName: string;
+            desiredLastName: string;
+            desiredEmail: null | string;
+            reason: components["schemas"]["PACSSubjectProvisioningReason"];
+            sourceKind: components["schemas"]["PACSSubjectProvisioningSourceKind"];
+            /** Format: uuid */
+            sourceId: string;
+            status: components["schemas"]["PACSSubjectProvisioningStatus"];
+            /** Format: date-time */
+            scheduledFor: string;
+            /** Format: date-time */
+            lastRetryAt: null | string;
+            lastKnownError: null | string;
+            /** Format: int32 */
+            attemptCount: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PACSSubjectProvisioningResultResponse: {
+            subject: components["schemas"]["PACSSubjectResponse"];
+            provisioning: null | components["schemas"]["PACSSubjectProvisioningResponse"];
+        };
+        /** @enum {unknown} */
+        PACSSubjectProvisioningSourceKind: "EmployeeLifecycleSaga" | "ContractorLifecycleSaga" | "VisitorLifecycleSaga" | "Manual";
+        /** @enum {unknown} */
+        PACSSubjectProvisioningStatus: "Pending" | "InProgress" | "Failed";
+        PACSSubjectResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            identityId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            nativeSubjectId: string;
+            state: components["schemas"]["PACSSubjectState"];
+            firstName: string;
+            lastName: string;
+            email: null | string;
+            /** Format: date-time */
+            lastSynchronizedAt: string;
+        };
+        /** @enum {unknown} */
+        PACSSubjectState: "Active" | "Blocked" | "Archived";
         PagedListResponseOfLinkedWorkflowDefinitionSummary: {
             items?: components["schemas"]["LinkedWorkflowDefinitionSummary"][];
             /** Format: int64 */
             totalCount?: number | string;
             links?: components["schemas"]["Link"][];
+        };
+        PageOfAccessControlSystemLocationResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["AccessControlSystemLocationResponse"][];
+            isLastPage?: boolean;
         };
         PageOfAccessControlSystemResponse: {
             /** Format: int32 */
@@ -9967,6 +15997,42 @@ export interface components {
             /** Format: int32 */
             totalItems?: null | number | string;
             items?: components["schemas"]["AccessControlSystemResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfAccessGrantResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["AccessGrantResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfAccessItemResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["AccessItemResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfAccessLevelTargetResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["AccessLevelTargetResponse"][];
             isLastPage?: boolean;
         };
         PageOfAccessPolicyResponse: {
@@ -9993,6 +16059,54 @@ export interface components {
             items?: components["schemas"]["AccessRuleAssignmentResponse"][];
             isLastPage?: boolean;
         };
+        PageOfApprovalDefinitionResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["ApprovalDefinitionResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfApprovalGroupMemberResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["ApprovalGroupMemberResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfApprovalGroupResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["ApprovalGroupResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfApprovalRequirementResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["ApprovalRequirementResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfArrivalResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -10005,6 +16119,30 @@ export interface components {
             items?: components["schemas"]["ArrivalResponse"][];
             isLastPage?: boolean;
         };
+        PageOfCatalogPackageResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["CatalogPackageResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfCatalogResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["CatalogResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfChipDesignResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -10015,6 +16153,66 @@ export interface components {
             /** Format: int32 */
             totalItems?: null | number | string;
             items?: components["schemas"]["ChipDesignResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfCredentialPACSAssignmentResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["CredentialPACSAssignmentResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfCredentialResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["CredentialResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfCredentialTypeResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["CredentialTypeResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfCredentialTypeTargetResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["CredentialTypeTargetResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfEmployeeResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["EmployeeResponse"][];
             isLastPage?: boolean;
         };
         PageOfEncoderResponse: {
@@ -10077,6 +16275,18 @@ export interface components {
             items?: components["schemas"]["IdentityMappingResponse"][];
             isLastPage?: boolean;
         };
+        PageOfIdentityResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["IdentityResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfKeyDiversificationStrategyResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -10125,6 +16335,30 @@ export interface components {
             items?: components["schemas"]["KioskResponse"][];
             isLastPage?: boolean;
         };
+        PageOfOrganizationalUnitPackageRuleResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["OrganizationalUnitPackageRuleResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfOrganizationUnitResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["OrganizationUnitResponse"][];
+            isLastPage?: boolean;
+        };
         PageOfOrganizerResponse: {
             /** Format: int32 */
             currentPage?: number | string;
@@ -10135,6 +16369,114 @@ export interface components {
             /** Format: int32 */
             totalItems?: null | number | string;
             items?: components["schemas"]["OrganizerResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPackageAccessItemResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PackageAccessItemResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPackageRequestResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PackageRequestResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPackageResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PackageResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPACSAssignmentResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PACSAssignmentResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPACSProvisioningResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PACSProvisioningResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPACSSubjectProvisioningResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PACSSubjectProvisioningResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPACSSubjectResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PACSSubjectResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPersonaPackageRuleResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PersonaPackageRuleResponse"][];
+            isLastPage?: boolean;
+        };
+        PageOfPersonaResponse: {
+            /** Format: int32 */
+            currentPage?: number | string;
+            /** Format: int32 */
+            totalPages?: null | number | string;
+            /** Format: int32 */
+            pageSize?: number | string;
+            /** Format: int32 */
+            totalItems?: null | number | string;
+            items?: components["schemas"]["PersonaResponse"][];
             isLastPage?: boolean;
         };
         PageOfReceptionKioskResponse: {
@@ -10211,6 +16553,31 @@ export interface components {
         };
         /** @enum {unknown} */
         ParticipantConfirmationStatus: "Tentative" | "Rejected" | "Confirmed";
+        PersonaPackageRuleResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            personaId: string;
+            /** Format: uuid */
+            packageId: string;
+            isEnabled: boolean;
+        };
+        PersonaResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            isActive: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PersonaSummaryResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            isActive: boolean;
+        };
         PiccConfigurationSpecification: {
             piccSettings?: components["schemas"]["PiccSettings"];
             secureMessaging?: components["schemas"]["SecureMessingConfiguration"];
@@ -10294,6 +16661,8 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        /** @enum {unknown} */
+        ProvisioningTiming: "Eager" | "AtValidFrom";
         QrScanResponse: {
             status: components["schemas"]["HardwareOperationStatus"];
             value: null | string;
@@ -10379,6 +16748,12 @@ export interface components {
             /** Format: uuid */
             locationId: null | string;
         };
+        ReplaceEmployeePersonasRequest: {
+            personaIds: string[];
+        };
+        ReplaceEmployeeWorkLocationsRequest: {
+            workLocations: components["schemas"]["EmployeeWorkLocationRequest"][];
+        };
         Request: {
             variables?: components["schemas"]["VariableUpdateValue"][];
         };
@@ -10387,6 +16762,12 @@ export interface components {
             start: string;
             /** Format: date-time */
             stop: string;
+        };
+        ResolveAccessControlSystemResponse: {
+            /** Format: uuid */
+            matchedLocationId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
         };
         ResolvedKioskWelcomeResponse: {
             title: string;
@@ -10421,6 +16802,9 @@ export interface components {
             disableD40?: boolean;
             disableEv1?: boolean;
             disableEv2Chaining?: boolean;
+        };
+        SetRuleEnabledRequest: {
+            isEnabled: boolean;
         };
         SimulatedResponse: {
             message: string;
@@ -10462,22 +16846,10 @@ export interface components {
                 [key: string]: string;
             };
         };
-        SystemMetadata: components["schemas"]["SystemMetadataUnipassMetadata"] | components["schemas"]["SystemMetadataLenelMetadata"];
-        SystemMetadataLenelMetadata: {
-            /** @enum {string} */
-            type?: "lenel";
-            badgeTypes: components["schemas"]["SystemMetadataObject"][];
-            accessLevels: components["schemas"]["SystemMetadataObject"][];
-        };
+        SystemMetadata: Record<string, never>;
         SystemMetadataObject: {
             id: string;
             name: string;
-        };
-        SystemMetadataUnipassMetadata: {
-            /** @enum {string} */
-            type?: "unipass";
-            sites: components["schemas"]["SystemMetadataObject"][];
-            accessRules: components["schemas"]["SystemMetadataObject"][];
         };
         SystemProviderResponse: {
             /** Format: uuid */
@@ -10501,6 +16873,7 @@ export interface components {
             };
         };
         TenantSettingsResponse: {
+            version: string;
             oidc: components["schemas"]["OidcSettingsResponse"];
             theme: components["schemas"]["ThemeSettingsResponse"];
             logo: null | components["schemas"]["LogoSettingsResponse"];
@@ -10567,6 +16940,23 @@ export interface components {
         /** @enum {unknown} */
         TransformationVariableKind: "UserProvided" | "SystemProvided";
         Type: unknown;
+        UnipassAccessLevelTargetResponse: {
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
+            /** Format: int32 */
+            siteId: number | string;
+            siteName: string;
+            /** Format: int32 */
+            accessRuleId: number | string;
+            accessRuleName: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            accessItemId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            name: string;
+            isEnabled: boolean;
+        };
         UnipassAccessLevelTypeResponse: {
             /** Format: int32 */
             siteId: number | string;
@@ -10593,6 +16983,11 @@ export interface components {
             sites: components["schemas"]["SystemMetadataObject"][];
             accessRules: components["schemas"]["SystemMetadataObject"][];
         };
+        UpdateAccessItemRequest: {
+            name: string;
+            description: null | string;
+            status: components["schemas"]["AccessItemStatus"];
+        };
         UpdateAccessRuleAssignmentRequest: {
             /** Format: uuid */
             locationId: string;
@@ -10604,8 +16999,24 @@ export interface components {
             gracePeriodMinutes: number | string;
             trigger: components["schemas"]["ReceptionAccessPolicyTrigger"];
         };
+        UpdateApprovalDefinitionRequest: {
+            /** Format: uuid */
+            destinationApprovalGroupId: null | string;
+            organizationalApprovalMode: components["schemas"]["OrganizationalApprovalMode"];
+            /** Format: int32 */
+            organizationalApprovalLevels: number | string;
+        };
+        UpdateApprovalGroupRequest: {
+            name: string;
+            status: components["schemas"]["ApprovalGroupStatus"];
+        };
         UpdateBuildingRequest: {
             name: string;
+        };
+        UpdateCatalogRequest: {
+            name: string;
+            description: null | string;
+            status: components["schemas"]["CatalogStatus"];
         };
         UpdateChipDesignRequest: {
             name: string;
@@ -10613,6 +17024,55 @@ export interface components {
             version: number | string;
             description: null | string;
             specification: components["schemas"]["TemplateSpecification"];
+        };
+        UpdateCredentialRangeRequest: {
+            /** Format: int64 */
+            rangeStart: number | string;
+            /** Format: int64 */
+            rangeStop: number | string;
+            isActive: boolean;
+        };
+        UpdateCredentialTypeRequest: {
+            name: string;
+            technology: components["schemas"]["CredentialTechnology"];
+            allocationMode: components["schemas"]["CredentialAllocationMode"];
+            /** Format: int32 */
+            nearLimitThreshold: null | number | string;
+        };
+        UpdateCredentialTypeTargetRequest: {
+            /** Format: uuid */
+            providerCredentialTypeId: null | string;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
+            isEnabled: boolean;
+        };
+        UpdateEmployeeLifecycleAutomationSettingsRequest: {
+            isEnabled: boolean;
+            disableEmployeeOnLeave: boolean;
+        };
+        UpdateEmployeePeriodRequest: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            reason: null | string;
+        };
+        UpdateEmployeeRequest: {
+            firstName: string;
+            lastName: string;
+            /** Format: date */
+            birthDate: null | string;
+            employeeNumber: null | string;
+            directoryId: null | string;
+            email: null | string;
+            /** Format: uuid */
+            organizationUnitId: string;
+            /** Format: uuid */
+            managerEmployeeId: null | string;
+            jobTitle: null | string;
+            /** Format: date */
+            contractStartDate: null | string;
+            /** Format: date */
+            contractEndDate: null | string;
         };
         UpdateEncoderRequest: {
             name: string;
@@ -10632,6 +17092,14 @@ export interface components {
         UpdateHardwareAgentRequest: {
             name: string;
             enabled: boolean;
+        };
+        UpdateIdentityProfileRequest: {
+            firstName: string;
+            middleName: null | string;
+            lastName: string;
+            preferredName: null | string;
+            email: null | string;
+            phone: null | string;
         };
         UpdateKeyDiversificationStrategyRequest: {
             name: string;
@@ -10665,10 +17133,23 @@ export interface components {
             clientId: string;
             requireHttpsMetadata: boolean;
         };
+        UpdateOrganizationUnitRequest: {
+            name: string;
+            code: null | string;
+            type: string;
+        };
         UpdateOrganizerRequest: {
             firstName: string;
             lastName: string;
             email: string;
+        };
+        UpdatePackageRequest: {
+            name: string;
+            description: null | string;
+            status: components["schemas"]["PackageStatus"];
+        };
+        UpdatePersonaRequest: {
+            name: string;
         };
         UpdateReceptionKioskRequest: {
             name: string;
@@ -10716,6 +17197,23 @@ export interface components {
             fromBlank: boolean;
             toChipDesignName: string;
             variables: components["schemas"]["TransformationVariableConfigRequest"][];
+        };
+        UpdateUnipassAccessControlSystemRequest: {
+            name: string;
+            endpoint: string;
+            sslValidation: boolean;
+            username: string;
+            password: null | string;
+            status: components["schemas"]["AccessControlSystemStatus"];
+        };
+        UpdateUnipassAccessLevelTargetRequest: {
+            name: string;
+            /** Format: int32 */
+            siteId: number | string;
+            /** Format: int32 */
+            accessRuleId: number | string;
+            isEnabled: boolean;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
         };
         UpdateUnipassConfigRequest: {
             endpoint: string;
@@ -10795,6 +17293,20 @@ export interface components {
             startButtonKey: string;
             backgroundAssetName: null | string;
             logoAssetName: null | string;
+        };
+        UpsertPACSSubjectProvisioningRequest: {
+            /** Format: uuid */
+            identityId: string;
+            /** Format: uuid */
+            accessControlSystemId: string;
+            desiredState: components["schemas"]["PACSSubjectState"];
+            desiredFirstName: string;
+            desiredLastName: string;
+            desiredEmail: null | string;
+            reason: components["schemas"]["PACSSubjectProvisioningReason"];
+            sourceKind: components["schemas"]["PACSSubjectProvisioningSourceKind"];
+            /** Format: uuid */
+            sourceId: string;
         };
         Variable: {
             name?: string;
@@ -10954,6 +17466,8 @@ export interface components {
         VisitorResponse: {
             /** Format: uuid */
             id: string;
+            /** Format: uuid */
+            identityId: string;
             firstName: string;
             lastName: string;
             email: string;

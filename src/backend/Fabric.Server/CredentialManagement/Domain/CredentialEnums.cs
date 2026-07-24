@@ -3,7 +3,8 @@ namespace Fabric.Server.CredentialManagement.Domain;
 public enum CredentialTechnology
 {
     Qr,
-    Desfire
+    Desfire,
+    LicensePlate
 }
 
 public enum CredentialTypeStatus
@@ -23,6 +24,12 @@ public enum CredentialDurationKind
 {
     Permanent,
     Temporary
+}
+
+public enum CredentialAllocationMode
+{
+    Range,
+    Provided
 }
 
 public enum CredentialStatus

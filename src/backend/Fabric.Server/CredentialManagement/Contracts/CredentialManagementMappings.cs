@@ -7,10 +7,9 @@ public static class CredentialManagementMappings
     public static CredentialTypeResponse ToResponse(
         this CredentialType credentialType,
         int usedCount,
-        CredentialTypeTargetResponse[]? targets = null)
+        int availableCount,
+        CredentialRangeResponse[]? ranges = null)
     {
-        int rangeSize = credentialType.RangeStop - credentialType.RangeStart + 1;
-        int availableCount = Math.Max(0, rangeSize - usedCount);
         CredentialCapacityState capacityState = availableCount == 0
             ? CredentialCapacityState.Limit
             : credentialType.NearLimitThreshold.HasValue && availableCount <= credentialType.NearLimitThreshold.Value
@@ -21,9 +20,7 @@ public static class CredentialManagementMappings
             credentialType.Id,
             credentialType.Name,
             credentialType.Technology,
-            credentialType.RangeStart,
-            credentialType.RangeStop,
-            rangeSize,
+            credentialType.AllocationMode,
             usedCount,
             availableCount,
             credentialType.NearLimitThreshold,
@@ -31,47 +28,18 @@ public static class CredentialManagementMappings
             credentialType.Status,
             credentialType.CreatedAt,
             credentialType.UpdatedAt,
-            targets ?? credentialType.Targets.Select(ToResponse).ToArray());
+            ranges ?? credentialType.Ranges.Select(ToResponse).ToArray());
     }
 
-    public static CredentialTypeTargetResponse ToResponse(this CredentialTypeTarget target) =>
-        new(
-            target.Id,
-            target.CredentialTypeId,
-            target.AccessControlSystemId,
-            target.ProviderCredentialTypeId,
-            target.ProvisioningTiming,
-            target.IsEnabled,
-            target.CreatedAt,
-            target.UpdatedAt);
+    public static CredentialRangeResponse ToResponse(this CredentialRange range) =>
+        new(range.Id, range.CredentialTypeId, range.RangeStart, range.RangeStop, range.IsActive);
 
-    public static CredentialReservationResponse ToResponse(this CredentialReservation reservation) =>
-        new(
-            reservation.Id,
-            reservation.CredentialTypeId,
-            reservation.CredentialNumber,
-            reservation.IdentityId,
-            reservation.Status,
-            reservation.Purpose,
-            reservation.SourceKind,
-            reservation.SourceId,
-            reservation.RequestedByIdentityId,
-            reservation.ReasonText,
-            reservation.ExpiresAt,
-            reservation.ConsumedAt,
-            reservation.ReleasedAt,
-            reservation.CreatedAt,
-            reservation.UpdatedAt);
-
-    public static CredentialResponse ToResponse(
-        this Credential credential,
-        CredentialProvisioningTransactionResponse[]? provisioning = null) =>
+    public static CredentialResponse ToResponse(this Credential credential) =>
         new(
             credential.Id,
             credential.CredentialTypeId,
-            credential.CredentialNumber,
+            credential.Identifier,
             credential.IdentityId,
-            credential.ReservationId,
             credential.DurationKind,
             credential.ValidFrom,
             credential.ValidUntil,
@@ -82,22 +50,5 @@ public static class CredentialManagementMappings
             credential.RequestedByIdentityId,
             credential.ReasonText,
             credential.CreatedAt,
-            credential.UpdatedAt,
-            provisioning ?? []);
-
-    public static CredentialProvisioningTransactionResponse ToResponse(this CredentialProvisioningTransaction transaction) =>
-        new(
-            transaction.Id,
-            transaction.CredentialId,
-            transaction.CredentialTypeTargetId,
-            transaction.AccessControlSystemId,
-            transaction.Status,
-            transaction.ScheduledFor,
-            transaction.AttemptCount,
-            transaction.LastAttemptAt,
-            transaction.ProvisionedAt,
-            transaction.RevokedAt,
-            transaction.ErrorMessage,
-            transaction.CreatedAt,
-            transaction.UpdatedAt);
+            credential.UpdatedAt);
 }

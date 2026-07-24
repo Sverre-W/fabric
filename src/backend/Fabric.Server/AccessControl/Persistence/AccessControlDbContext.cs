@@ -13,6 +13,8 @@ public class AccessControlDbContext : TenantDbContext
     public DbSet<AccessControlSystemLocation> AccessControlSystemLocations { get; set; } = null!;
     public DbSet<AccessItem> AccessItems { get; set; } = null!;
     public DbSet<AccessLevelTarget> AccessLevelTargets { get; set; } = null!;
+    public DbSet<CredentialTypeTarget> CredentialTypeTargets { get; set; } = null!;
+    public DbSet<CredentialPACSAssignment> CredentialPACSAssignments { get; set; } = null!;
     public DbSet<PACSSubject> PACSSubjects { get; set; } = null!;
     public DbSet<PACSAssignment> PACSAssignments { get; set; } = null!;
     public DbSet<PACSProvisioning> PACSProvisionings { get; set; } = null!;
@@ -38,6 +40,8 @@ public class AccessControlDbContext : TenantDbContext
         modelBuilder.ApplyConfiguration(new AccessItemConfiguration());
         modelBuilder.ApplyConfiguration(new AccessLevelTargetConfiguration());
         modelBuilder.ApplyConfiguration(new UnipassAccessLevelTargetConfiguration());
+        modelBuilder.ApplyConfiguration(new CredentialTypeTargetConfiguration());
+        modelBuilder.ApplyConfiguration(new CredentialPACSAssignmentConfiguration());
         modelBuilder.ApplyConfiguration(new PACSSubjectConfiguration());
         modelBuilder.ApplyConfiguration(new PACSAssignmentConfiguration());
         modelBuilder.ApplyConfiguration(new PACSProvisioningConfiguration());

@@ -1,3 +1,4 @@
+using Fabric.Server.AccessControl.Application;
 using Fabric.Server.Core;
 using Fabric.Server.CredentialManagement.Contracts;
 using Fabric.Server.CredentialManagement.Domain;
@@ -8,6 +9,7 @@ namespace Fabric.Server.CredentialManagement.Application;
 
 public sealed class CredentialManagementService(
     CredentialManagementDbContext db,
+    CredentialPACSAssignmentService credentialPacsAssignmentService,
     TimeProvider timeProvider)
 {
     public async Task<Result<CredentialType, CredentialManagementErrors>> CreateCredentialTypeAsync(
@@ -21,8 +23,7 @@ public sealed class CredentialManagementService(
         Result<CredentialType, CredentialManagementErrors> create = CredentialType.Create(
             name,
             request.Technology,
-            request.RangeStart,
-            request.RangeStop,
+            request.AllocationMode,
             request.NearLimitThreshold,
             timeProvider.GetUtcNow());
 
@@ -48,23 +49,10 @@ public sealed class CredentialManagementService(
         if (await db.CredentialTypes.AnyAsync(type => type.Id != id && type.Name == name, cancellationToken))
             return Result.Failure<CredentialType, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeAlreadyExists);
 
-        int currentMaxNumber = await db.Credentials
-            .Where(credential => credential.CredentialTypeId == id)
-            .Select(credential => (int?)credential.CredentialNumber)
-            .MaxAsync(cancellationToken) ?? int.MinValue;
-        int currentMinNumber = await db.Credentials
-            .Where(credential => credential.CredentialTypeId == id)
-            .Select(credential => (int?)credential.CredentialNumber)
-            .MinAsync(cancellationToken) ?? int.MaxValue;
-
-        if (currentMinNumber < request.RangeStart || currentMaxNumber > request.RangeStop)
-            return Result.Failure<CredentialType, CredentialManagementErrors>(CredentialManagementErrors.CredentialNumberOutsideRange);
-
         Result<CredentialManagementErrors> update = credentialType.Update(
             name,
             request.Technology,
-            request.RangeStart,
-            request.RangeStop,
+            request.AllocationMode,
             request.NearLimitThreshold,
             timeProvider.GetUtcNow());
 
@@ -94,102 +82,55 @@ public sealed class CredentialManagementService(
         return Result.Success<CredentialType, CredentialManagementErrors>(credentialType);
     }
 
-    public async Task<Result<CredentialTypeTarget, CredentialManagementErrors>> CreateCredentialTypeTargetAsync(
+    public async Task<Result<CredentialRange, CredentialManagementErrors>> CreateCredentialRangeAsync(
         Guid credentialTypeId,
-        CreateCredentialTypeTargetRequest request,
+        CreateCredentialRangeRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (!await db.CredentialTypes.AnyAsync(type => type.Id == credentialTypeId, cancellationToken))
-            return Result.Failure<CredentialTypeTarget, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeNotFound);
-
-        bool exists = await db.CredentialTypeTargets.AnyAsync(
-            target => target.CredentialTypeId == credentialTypeId && target.AccessControlSystemId == request.AccessControlSystemId,
-            cancellationToken);
-        if (exists)
-            return Result.Failure<CredentialTypeTarget, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeAlreadyExists);
-
-        CredentialTypeTarget target = CredentialTypeTarget.Create(
-            credentialTypeId,
-            request.AccessControlSystemId,
-            request.ProviderCredentialTypeId,
-            request.ProvisioningTiming,
-            timeProvider.GetUtcNow());
-
-        db.CredentialTypeTargets.Add(target);
-        await db.SaveChangesAsync(cancellationToken);
-        return Result.Success<CredentialTypeTarget, CredentialManagementErrors>(target);
-    }
-
-    public async Task<Result<CredentialTypeTarget, CredentialManagementErrors>> UpdateCredentialTypeTargetAsync(
-        Guid targetId,
-        UpdateCredentialTypeTargetRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        CredentialTypeTarget? target = await db.CredentialTypeTargets.SingleOrDefaultAsync(item => item.Id == targetId, cancellationToken);
-        if (target is null)
-            return Result.Failure<CredentialTypeTarget, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeTargetNotFound);
-
-        target.Update(request.ProviderCredentialTypeId, request.ProvisioningTiming, request.IsEnabled, timeProvider.GetUtcNow());
-        await db.SaveChangesAsync(cancellationToken);
-        return Result.Success<CredentialTypeTarget, CredentialManagementErrors>(target);
-    }
-
-    public async Task<Result<CredentialTypeTarget, CredentialManagementErrors>> SetCredentialTypeTargetEnabledAsync(
-        Guid targetId,
-        bool enabled,
-        CancellationToken cancellationToken = default)
-    {
-        CredentialTypeTarget? target = await db.CredentialTypeTargets.SingleOrDefaultAsync(item => item.Id == targetId, cancellationToken);
-        if (target is null)
-            return Result.Failure<CredentialTypeTarget, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeTargetNotFound);
-
-        target.SetEnabled(enabled, timeProvider.GetUtcNow());
-        await db.SaveChangesAsync(cancellationToken);
-        return Result.Success<CredentialTypeTarget, CredentialManagementErrors>(target);
-    }
-
-    public async Task<Result<CredentialReservation, CredentialManagementErrors>> ReserveCredentialAsync(
-        CreateCredentialReservationRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        CredentialType? credentialType = await db.CredentialTypes.SingleOrDefaultAsync(type => type.Id == request.CredentialTypeId, cancellationToken);
+        CredentialType? credentialType = await db.CredentialTypes
+            .Include(type => type.Ranges)
+            .SingleOrDefaultAsync(type => type.Id == credentialTypeId, cancellationToken);
         if (credentialType is null)
-            return Result.Failure<CredentialReservation, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeNotFound);
+            return Result.Failure<CredentialRange, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeNotFound);
 
-        if (credentialType.Status != CredentialTypeStatus.Active)
-            return Result.Failure<CredentialReservation, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeDisabled);
+        if (credentialType.AllocationMode != CredentialAllocationMode.Range)
+            return Result.Failure<CredentialRange, CredentialManagementErrors>(CredentialManagementErrors.CredentialRangeInvalid);
 
-        int? credentialNumber = request.CredentialNumber;
-        if (credentialNumber.HasValue && !credentialType.ContainsNumber(credentialNumber.Value))
-            return Result.Failure<CredentialReservation, CredentialManagementErrors>(CredentialManagementErrors.CredentialNumberOutsideRange);
+        bool overlaps = credentialType.Ranges.Any(range => !(request.RangeStop < range.RangeStart || request.RangeStart > range.RangeStop));
+        if (overlaps)
+            return Result.Failure<CredentialRange, CredentialManagementErrors>(CredentialManagementErrors.CredentialRangeInvalid);
 
-        credentialNumber ??= await TakeNextCredentialNumberAsync(credentialType, cancellationToken);
-        if (!credentialNumber.HasValue)
-            return Result.Failure<CredentialReservation, CredentialManagementErrors>(CredentialManagementErrors.CredentialNumberUnavailable);
-
-        if (!await IsCredentialNumberAvailableAsync(credentialType.Id, credentialNumber.Value, cancellationToken))
-            return Result.Failure<CredentialReservation, CredentialManagementErrors>(CredentialManagementErrors.CredentialNumberUnavailable);
-
-        DateTimeOffset now = timeProvider.GetUtcNow();
-        Result<CredentialReservation, CredentialManagementErrors> create = CredentialReservation.Create(
-            request.CredentialTypeId,
-            credentialNumber.Value,
-            request.IdentityId,
-            request.Purpose,
-            request.SourceKind,
-            request.SourceId,
-            request.RequestedByIdentityId,
-            request.ReasonText,
-            request.ExpiresAt,
-            now);
-
+        Result<CredentialRange, CredentialManagementErrors> create = CredentialRange.Create(credentialTypeId, request.RangeStart, request.RangeStop, request.IsActive);
         if (create.IsFailure(out CredentialManagementErrors error))
-            return Result.Failure<CredentialReservation, CredentialManagementErrors>(error);
+            return Result.Failure<CredentialRange, CredentialManagementErrors>(error);
 
-        create.IsSuccess(out CredentialReservation reservation);
-        db.CredentialReservations.Add(reservation);
+        create.IsSuccess(out CredentialRange range);
+        db.CredentialRanges.Add(range);
         await db.SaveChangesAsync(cancellationToken);
-        return Result.Success<CredentialReservation, CredentialManagementErrors>(reservation);
+        return Result.Success<CredentialRange, CredentialManagementErrors>(range);
+    }
+
+    public async Task<Result<CredentialRange, CredentialManagementErrors>> UpdateCredentialRangeAsync(
+        Guid rangeId,
+        UpdateCredentialRangeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        CredentialRange? range = await db.CredentialRanges.SingleOrDefaultAsync(item => item.Id == rangeId, cancellationToken);
+        if (range is null)
+            return Result.Failure<CredentialRange, CredentialManagementErrors>(CredentialManagementErrors.CredentialRangeNotFound);
+
+        bool overlaps = await db.CredentialRanges.AnyAsync(
+            item => item.Id != rangeId && item.CredentialTypeId == range.CredentialTypeId && !(request.RangeStop < item.RangeStart || request.RangeStart > item.RangeStop),
+            cancellationToken);
+        if (overlaps)
+            return Result.Failure<CredentialRange, CredentialManagementErrors>(CredentialManagementErrors.CredentialRangeInvalid);
+
+        Result<CredentialManagementErrors> update = range.Update(request.RangeStart, request.RangeStop, request.IsActive);
+        if (update.IsFailure(out CredentialManagementErrors error))
+            return Result.Failure<CredentialRange, CredentialManagementErrors>(error);
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Result.Success<CredentialRange, CredentialManagementErrors>(range);
     }
 
     public async Task<Result<Credential, CredentialManagementErrors>> IssueCredentialAsync(
@@ -197,46 +138,26 @@ public sealed class CredentialManagementService(
         CancellationToken cancellationToken = default)
     {
         DateTimeOffset now = timeProvider.GetUtcNow();
-        CredentialType? credentialType = await db.CredentialTypes.SingleOrDefaultAsync(type => type.Id == request.CredentialTypeId, cancellationToken);
+        CredentialType? credentialType = await db.CredentialTypes
+            .Include(type => type.Ranges)
+            .SingleOrDefaultAsync(type => type.Id == request.CredentialTypeId, cancellationToken);
         if (credentialType is null)
             return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeNotFound);
 
         if (credentialType.Status != CredentialTypeStatus.Active)
             return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialTypeDisabled);
 
-        CredentialReservation? reservation = null;
-        int? credentialNumber = request.CredentialNumber;
-        if (request.ReservationId.HasValue)
-        {
-            reservation = await db.CredentialReservations.SingleOrDefaultAsync(item => item.Id == request.ReservationId.Value, cancellationToken);
-            if (reservation is null)
-                return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialReservationNotFound);
+        string? identifier = await ResolveIdentifierAsync(credentialType, request.Identifier, cancellationToken);
+        if (identifier is null)
+            return Result.Failure<Credential, CredentialManagementErrors>(MapIdentifierError(credentialType, request.Identifier));
 
-            if (reservation.IdentityId != request.IdentityId)
-                return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialReservationIdentityMismatch);
-
-            Result<CredentialManagementErrors> consume = reservation.Consume(now);
-            if (consume.IsFailure(out CredentialManagementErrors consumeError))
-                return Result.Failure<Credential, CredentialManagementErrors>(consumeError);
-
-            credentialNumber = reservation.CredentialNumber;
-        }
-
-        if (credentialNumber.HasValue && !credentialType.ContainsNumber(credentialNumber.Value))
-            return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialNumberOutsideRange);
-
-        credentialNumber ??= await TakeNextCredentialNumberAsync(credentialType, cancellationToken);
-        if (!credentialNumber.HasValue)
-            return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialNumberUnavailable);
-
-        if (reservation is null && !await IsCredentialNumberAvailableAsync(credentialType.Id, credentialNumber.Value, cancellationToken))
-            return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialNumberUnavailable);
+        if (await db.Credentials.AnyAsync(item => item.Identifier == identifier, cancellationToken))
+            return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialIdentifierAlreadyExists);
 
         Result<Credential, CredentialManagementErrors> create = Credential.Create(
             request.CredentialTypeId,
-            credentialNumber.Value,
+            identifier,
             request.IdentityId,
-            request.ReservationId,
             request.DurationKind,
             request.ValidFrom,
             request.ValidUntil,
@@ -252,50 +173,59 @@ public sealed class CredentialManagementService(
 
         create.IsSuccess(out Credential credential);
         db.Credentials.Add(credential);
-
-        CredentialTypeTarget[] targets = await db.CredentialTypeTargets
-            .Where(target => target.CredentialTypeId == credentialType.Id && target.IsEnabled)
-            .ToArrayAsync(cancellationToken);
-        foreach (CredentialTypeTarget target in targets)
-            db.CredentialProvisioningTransactions.Add(CredentialProvisioningTransaction.Create(credential, target, now));
-
         await db.SaveChangesAsync(cancellationToken);
+
+        await credentialPacsAssignmentService.CreateAssignmentsForCredentialAsync(
+            credential.Id,
+            credential.CredentialTypeId,
+            credential.ValidFrom,
+            credential.ValidUntil,
+            cancellationToken);
+
         return Result.Success<Credential, CredentialManagementErrors>(credential);
     }
 
-    private async Task<int?> TakeNextCredentialNumberAsync(CredentialType credentialType, CancellationToken cancellationToken)
+    private async Task<string?> ResolveIdentifierAsync(CredentialType credentialType, string? requestedIdentifier, CancellationToken cancellationToken)
     {
-        int[] usedNumbers = await db.Credentials
-            .Where(credential => credential.CredentialTypeId == credentialType.Id)
-            .Select(credential => credential.CredentialNumber)
-            .Concat(db.CredentialReservations
-                .Where(reservation => reservation.CredentialTypeId == credentialType.Id && reservation.Status == CredentialReservationStatus.Active)
-                .Select(reservation => reservation.CredentialNumber))
-            .Distinct()
-            .ToArrayAsync(cancellationToken);
-
-        HashSet<int> used = usedNumbers.ToHashSet();
-        for (int number = credentialType.RangeStart; number <= credentialType.RangeStop; number++)
+        switch (credentialType.AllocationMode)
         {
-            if (!used.Contains(number))
-                return number;
+            case CredentialAllocationMode.Provided:
+                return string.IsNullOrWhiteSpace(requestedIdentifier) ? null : requestedIdentifier.Trim();
+            case CredentialAllocationMode.Range:
+                if (requestedIdentifier is not null)
+                {
+                    CredentialRange? matchedRange = credentialType.Ranges.FirstOrDefault(range => range.IsActive && range.Contains(requestedIdentifier));
+                    return matchedRange is null ? null : requestedIdentifier.Trim();
+                }
+
+                string[] usedIdentifiers = await db.Credentials
+                    .Where(credential => credential.CredentialTypeId == credentialType.Id)
+                    .Select(credential => credential.Identifier)
+                    .ToArrayAsync(cancellationToken);
+                HashSet<string> used = usedIdentifiers.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                foreach (CredentialRange range in credentialType.Ranges.Where(range => range.IsActive).OrderBy(range => range.RangeStart))
+                {
+                    for (long number = range.RangeStart; number <= range.RangeStop; number++)
+                    {
+                        string candidate = number.ToString();
+                        if (!used.Contains(candidate))
+                            return candidate;
+                    }
+                }
+
+                return null;
+            default:
+                return null;
         }
-
-        return null;
     }
 
-    private async Task<bool> IsCredentialNumberAvailableAsync(Guid credentialTypeId, int credentialNumber, CancellationToken cancellationToken)
+    private static CredentialManagementErrors MapIdentifierError(CredentialType credentialType, string? requestedIdentifier) => credentialType.AllocationMode switch
     {
-        bool issued = await db.Credentials.AnyAsync(
-            credential => credential.CredentialTypeId == credentialTypeId && credential.CredentialNumber == credentialNumber,
-            cancellationToken);
-        if (issued)
-            return false;
-
-        return !await db.CredentialReservations.AnyAsync(
-            reservation => reservation.CredentialTypeId == credentialTypeId
-                && reservation.CredentialNumber == credentialNumber
-                && reservation.Status == CredentialReservationStatus.Active,
-            cancellationToken);
-    }
+        CredentialAllocationMode.Range when requestedIdentifier is not null && !long.TryParse(requestedIdentifier, out _) => CredentialManagementErrors.CredentialIdentifierMustBeNumeric,
+        CredentialAllocationMode.Range when requestedIdentifier is not null => CredentialManagementErrors.CredentialIdentifierOutsideRange,
+        CredentialAllocationMode.Range => CredentialManagementErrors.CredentialIdentifierUnavailable,
+        CredentialAllocationMode.Provided => CredentialManagementErrors.CredentialIdentifierRequired,
+        _ => CredentialManagementErrors.CredentialIdentifierRequired,
+    };
 }

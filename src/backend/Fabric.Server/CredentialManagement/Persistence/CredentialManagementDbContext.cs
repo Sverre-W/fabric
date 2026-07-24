@@ -10,10 +10,8 @@ public sealed class CredentialManagementDbContext : TenantDbContext
     public const string Schema = "credential_management";
 
     public DbSet<CredentialType> CredentialTypes { get; set; } = null!;
-    public DbSet<CredentialTypeTarget> CredentialTypeTargets { get; set; } = null!;
-    public DbSet<CredentialReservation> CredentialReservations { get; set; } = null!;
+    public DbSet<CredentialRange> CredentialRanges { get; set; } = null!;
     public DbSet<Credential> Credentials { get; set; } = null!;
-    public DbSet<CredentialProvisioningTransaction> CredentialProvisioningTransactions { get; set; } = null!;
 
     public CredentialManagementDbContext(DbContextOptions<CredentialManagementDbContext> options, ITenantContext tenantContext)
         : base(options, tenantContext)
@@ -29,10 +27,8 @@ public sealed class CredentialManagementDbContext : TenantDbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfiguration(new CredentialTypeConfiguration());
-        modelBuilder.ApplyConfiguration(new CredentialTypeTargetConfiguration());
-        modelBuilder.ApplyConfiguration(new CredentialReservationConfiguration());
+        modelBuilder.ApplyConfiguration(new CredentialRangeConfiguration());
         modelBuilder.ApplyConfiguration(new CredentialConfiguration());
-        modelBuilder.ApplyConfiguration(new CredentialProvisioningTransactionConfiguration());
         ApplyTenantFilters(modelBuilder);
     }
 }

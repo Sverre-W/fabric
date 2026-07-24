@@ -1,4 +1,4 @@
-namespace Fabric.Server.CredentialManagement.Domain;
+namespace Fabric.Server.AccessControl.Domain;
 
 public sealed class CredentialTypeTarget
 {

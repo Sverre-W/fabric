@@ -45,6 +45,15 @@ public enum PACSProvisioningStatus
     Revoked
 }
 
+public enum CredentialPACSAssignmentStatus
+{
+    Pending,
+    Provisioned,
+    FailedRetryable,
+    FailedTerminal,
+    Revoked
+}
+
 public enum PACSSubjectState
 {
     Active,

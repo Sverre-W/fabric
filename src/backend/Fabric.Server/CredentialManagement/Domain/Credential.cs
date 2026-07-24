@@ -8,9 +8,8 @@ public sealed class Credential
 
     public Guid Id { get; private set; }
     public Guid CredentialTypeId { get; private set; }
-    public int CredentialNumber { get; private set; }
+    public string Identifier { get; private set; } = null!;
     public Guid IdentityId { get; private set; }
-    public Guid? ReservationId { get; private set; }
     public CredentialDurationKind DurationKind { get; private set; }
     public DateTimeOffset ValidFrom { get; private set; }
     public DateTimeOffset? ValidUntil { get; private set; }
@@ -25,9 +24,8 @@ public sealed class Credential
 
     public static Result<Credential, CredentialManagementErrors> Create(
         Guid credentialTypeId,
-        int credentialNumber,
+        string identifier,
         Guid identityId,
-        Guid? reservationId,
         CredentialDurationKind durationKind,
         DateTimeOffset validFrom,
         DateTimeOffset? validUntil,
@@ -38,11 +36,17 @@ public sealed class Credential
         string reasonText,
         DateTimeOffset now)
     {
+        if (string.IsNullOrWhiteSpace(identifier))
+            return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.CredentialIdentifierRequired);
+
         if (string.IsNullOrWhiteSpace(reasonText))
             return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.ReasonRequired);
 
         if (durationKind == CredentialDurationKind.Temporary && !validUntil.HasValue)
             return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.TemporaryCredentialRequiresValidUntil);
+
+        if (durationKind == CredentialDurationKind.Permanent && validUntil.HasValue)
+            return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.PermanentCredentialMustNotHaveValidUntil);
 
         if (validUntil.HasValue && validUntil.Value <= validFrom)
             return Result.Failure<Credential, CredentialManagementErrors>(CredentialManagementErrors.ValidUntilMustBeAfterValidFrom);
@@ -51,9 +55,8 @@ public sealed class Credential
         {
             Id = Guid.NewGuid(),
             CredentialTypeId = credentialTypeId,
-            CredentialNumber = credentialNumber,
+            Identifier = identifier.Trim(),
             IdentityId = identityId,
-            ReservationId = reservationId,
             DurationKind = durationKind,
             ValidFrom = validFrom,
             ValidUntil = validUntil,

@@ -1,3 +1,5 @@
+using Fabric.Server.Actors;
+using Fabric.Server.Actors.Endpoints;
 using Fabric.Server.AccessCatalog;
 using Fabric.Server.AccessCatalog.Endpoints;
 using Fabric.Server.AccessControl;
@@ -67,6 +69,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services
+    .SetupActors(builder.Configuration)
     .SetupTenants(builder.Configuration)
     .SetupIdentities(builder.Configuration)
     .SetupEmployees(builder.Configuration)
@@ -105,6 +108,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapTenantEndpoints();
+app.MapActorEndpoints();
 app.MapIdentityEndpoints();
 app.MapEmployeeEndpoints();
 app.MapCredentialManagementEndpoints();

@@ -21,5 +21,7 @@ public enum AccessControlErrors
     NoAccessLevelTargetsResolved,
     AccessControlSystemInactive,
     PACSSubjectNotFound,
-    PACSSubjectProvisioningNotFound
+    PACSSubjectProvisioningNotFound,
+    CredentialTypeTargetNotFound,
+    CredentialTypeTargetAlreadyExists
 }

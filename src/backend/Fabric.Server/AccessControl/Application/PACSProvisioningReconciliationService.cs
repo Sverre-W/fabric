@@ -86,9 +86,10 @@ public sealed class PACSProvisioningReconciliationService(
 
                 if (match is null)
                 {
-                    DateTimeOffset scheduledFor = desired.ProvisioningTiming == ProvisioningTiming.AtValidFrom
-                        ? desired.ValidFrom
-                        : timeProvider.GetUtcNow();
+                    DateTimeOffset scheduledFor = ProvisioningScheduling.GetScheduledFor(
+                        desired.ProvisioningTiming,
+                        desired.ValidFrom,
+                        timeProvider.GetUtcNow());
 
                     match = PACSProvisioning.Create(
                         desired.AccessLevelTargetId,
@@ -160,6 +161,18 @@ public sealed class PACSProvisioningReconciliationService(
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Guid>> GetExpiredProvisioningIdsAsync(CancellationToken cancellationToken = default)
+    {
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        return await db.PACSProvisionings
+            .AsNoTracking()
+            .Where(item => item.Status == PACSProvisioningStatus.Provisioned)
+            .Where(item => item.ValidUntil.HasValue && item.ValidUntil.Value <= now)
+            .OrderBy(item => item.ValidUntil)
+            .Select(item => item.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task ApplyProvisioningAsync(Guid provisioningId, CancellationToken cancellationToken = default)
     {
         PACSProvisioning? provisioning = await db.PACSProvisionings.SingleOrDefaultAsync(item => item.Id == provisioningId, cancellationToken);
@@ -180,6 +193,19 @@ public sealed class PACSProvisioningReconciliationService(
                 await db.SaveChangesAsync(cancellationToken);
                 break;
         }
+    }
+
+    public async Task RevokeExpiredProvisioningAsync(Guid provisioningId, CancellationToken cancellationToken = default)
+    {
+        PACSProvisioning? provisioning = await db.PACSProvisionings.SingleOrDefaultAsync(item => item.Id == provisioningId, cancellationToken);
+        if (provisioning is null)
+            return;
+
+        AccessControlSystem? system = await db.AccessControlSystems.SingleOrDefaultAsync(item => item.Id == provisioning.AccessControlSystemId, cancellationToken);
+        if (system is null)
+            return;
+
+        await RevokeProvisioningAsync(provisioning, system, cancellationToken);
     }
 
     private async Task<List<DesiredProvisioning>> BuildDesiredProvisioningsAsync(PACSAssignment[] assignments, CancellationToken cancellationToken)

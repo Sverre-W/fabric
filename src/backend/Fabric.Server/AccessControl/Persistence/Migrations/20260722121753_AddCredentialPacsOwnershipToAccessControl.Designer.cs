@@ -3,6 +3,7 @@ using System;
 using Fabric.Server.AccessControl.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fabric.Server.AccessControl.Persistence.Migrations
 {
     [DbContext(typeof(AccessControlDbContext))]
-    partial class AccessControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260722121753_AddCredentialPacsOwnershipToAccessControl")]
+    partial class AddCredentialPacsOwnershipToAccessControl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -241,19 +244,9 @@ namespace Fabric.Server.AccessControl.Persistence.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("error_message");
 
-                    b.Property<string>("FailureReasonCode")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("failure_reason_code");
-
                     b.Property<DateTimeOffset?>("LastAttemptAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_attempt_at");
-
-                    b.Property<string>("NativeAssignmentId")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("native_assignment_id");
 
                     b.Property<DateTimeOffset?>("ProvisionedAt")
                         .HasColumnType("timestamp with time zone")
