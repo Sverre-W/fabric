@@ -12,7 +12,7 @@ const printRunDetailEncodersQueryKey = ['card-management', 'printing', 'print-ru
 const printRunDetailTransformationsQueryKey = ['card-management', 'print-run-detail-page', 'transformations'] as const;
 
 export default function PrintRunDetailPage() {
-  const { runId } = useParams({ from: '/main/card-management/printing/runs/$runId' });
+  const { runId } = useParams({ from: '/main/old/card-management/printing/runs/$runId' });
 
   const runQuery = useQuery({
     queryKey: [...printingRunsQueryKey, runId],
@@ -61,7 +61,7 @@ export default function PrintRunDetailPage() {
 
   return (
     <section className="grid gap-6">
-      <Link to={run.batchId ? '/card-management/printing/$batchId' : '/card-management/printing'} params={run.batchId ? { batchId: run.batchId } : undefined} className="inline-flex w-fit items-center gap-2 text-[14px] font-medium text-muted-foreground transition hover:text-foreground"><ArrowLeft className="size-4" />Back to batch</Link>
+      <Link to={run.batchId ? '/old/card-management/printing/$batchId' : '/old/card-management/printing'} params={run.batchId ? { batchId: run.batchId } : undefined} className="inline-flex w-fit items-center gap-2 text-[14px] font-medium text-muted-foreground transition hover:text-foreground"><ArrowLeft className="size-4" />Back to batch</Link>
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">

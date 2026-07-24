@@ -3,6 +3,27 @@ import { lazy, Suspense } from 'react';
 
 import { AppLayout } from '@/shared/layout/app-layout';
 import { ProtectedRoute } from '@/shared/auth/protected-route';
+import EmployeeCreatePage from '@/features/administration/employee-create-page';
+import EmployeeEditPage from '@/features/administration/employee-edit-page';
+import AccessItemCreatePage from '@/features/administration/access-item-create-page';
+import AccessItemEditPage from '@/features/administration/access-item-edit-page';
+import AccessControlTargetEditPage from '@/features/administration/access-control-target-edit-page';
+import AccessControlPage from '@/features/administration/access-control-page';
+import AccessControlSystemCreatePage from '@/features/administration/access-control-system-create-page';
+import AccessControlSystemEditPage from '@/features/administration/access-control-system-edit-page';
+import AccessModelPage from '@/features/administration/access-model-page';
+import ApprovalGroupCreatePage from '@/features/administration/approval-group-create-page';
+import ApprovalGroupEditPage from '@/features/administration/approval-group-edit-page';
+import CatalogueCreatePage from '@/features/administration/catalogue-create-page';
+import CatalogueEditPage from '@/features/administration/catalogue-edit-page';
+import PackageCreatePage from '@/features/administration/package-create-page';
+import PackageEditPage from '@/features/administration/package-edit-page';
+import MyOrganizationPage from '@/features/administration/my-organization-page';
+import OrganizationUnitCreatePage from '@/features/administration/organization-unit-create-page';
+import OrganizationUnitEditPage from '@/features/administration/organization-unit-edit-page';
+import PersonaCreatePage from '@/features/administration/persona-create-page';
+import PersonaEditPage from '@/features/administration/persona-edit-page';
+import { PerspectiveHomePage } from '@/features/perspectives/perspective-home-page';
 import { ReceptionKioskLayout } from '@/features/reception-kiosk/layout/reception-kiosk-layout';
 
 const AccessPage = lazy(() => import('@/features/access/access-page'));
@@ -116,37 +137,221 @@ const authCallbackRoute = createRoute({
 
 const identitiesRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/identities',
+  path: '/old/identities',
   component: () => <ProtectedLazyRoute component={<IdentitiesPage />} />,
 });
 
 const accessRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/access',
+  path: '/old/access',
   component: () => <ProtectedLazyRoute component={<AccessPage />} />,
 });
 
 const credentialsRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/credentials',
+  path: '/old/credentials',
   component: () => <ProtectedLazyRoute component={<CredentialsPage />} />,
 });
 
 const organizationsRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/organizations',
+  path: '/old/organizations',
   component: () => <ProtectedLazyRoute component={<OrganizationsPage />} />,
 });
 
 const auditRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/audit',
+  path: '/old/audit',
   component: () => <ProtectedLazyRoute component={<AuditPage />} />,
+});
+
+const employeeRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: '/employee',
+  component: () => <ProtectedRoute><PerspectiveHomePage perspectiveId="employee" /></ProtectedRoute>,
+});
+
+const managerRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: '/manager',
+  component: () => <ProtectedRoute><PerspectiveHomePage perspectiveId="manager" /></ProtectedRoute>,
+});
+
+const securityOfficerRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: '/security-officer',
+  component: () => <ProtectedRoute><PerspectiveHomePage perspectiveId="security-officer" /></ProtectedRoute>,
+});
+
+const administrationRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: '/administration',
+  component: () => (
+    <ProtectedRoute>
+      <Outlet />
+    </ProtectedRoute>
+  ),
+});
+
+const administrationIndexRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/',
+  component: () => <Navigate to="/administration/sites" replace />,
+});
+
+const administrationSitesRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/sites',
+  component: () => <LazyRoute component={<FacilityLocationsPage />} />,
+});
+
+const administrationAccessModelRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-model',
+  component: () => <LazyRoute component={<AccessModelPage />} />,
+});
+
+const administrationAccessControlRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-control',
+  component: () => <LazyRoute component={<AccessControlPage />} />,
+});
+
+const administrationAccessItemCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-control/items/new',
+  component: () => <LazyRoute component={<AccessItemCreatePage />} />,
+});
+
+const administrationAccessItemEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-control/items/$itemId/edit',
+  component: () => <LazyRoute component={<AccessItemEditPage />} />,
+});
+
+const administrationAccessControlTargetEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-control/items/$itemId/targets/$targetId/edit',
+  component: () => <LazyRoute component={<AccessControlTargetEditPage />} />,
+});
+
+const administrationAccessControlSystemCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-control/systems/new',
+  component: () => <LazyRoute component={<AccessControlSystemCreatePage />} />,
+});
+
+const administrationAccessControlSystemEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-control/systems/$systemId/edit',
+  component: () => <LazyRoute component={<AccessControlSystemEditPage />} />,
+});
+
+const administrationPackageCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-model/packages/new',
+  component: () => <LazyRoute component={<PackageCreatePage />} />,
+});
+
+const administrationPackageEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-model/packages/$packageId/edit',
+  component: () => <LazyRoute component={<PackageEditPage />} />,
+});
+
+const administrationCatalogueCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-model/catalogues/new',
+  component: () => <LazyRoute component={<CatalogueCreatePage />} />,
+});
+
+const administrationCatalogueEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-model/catalogues/$catalogueId/edit',
+  component: () => <LazyRoute component={<CatalogueEditPage />} />,
+});
+
+const administrationApprovalGroupCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-model/approval-groups/new',
+  component: () => <LazyRoute component={<ApprovalGroupCreatePage />} />,
+});
+
+const administrationApprovalGroupEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/access-model/approval-groups/$approvalGroupId/edit',
+  component: () => <LazyRoute component={<ApprovalGroupEditPage />} />,
+});
+
+const administrationMyOrganizationRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/my-organization',
+  component: () => <LazyRoute component={<MyOrganizationPage />} />,
+});
+
+const administrationEmployeeCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/my-organization/employees/new',
+  component: () => <LazyRoute component={<EmployeeCreatePage />} />,
+});
+
+const administrationEmployeeEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/my-organization/employees/$employeeId/edit',
+  component: () => <LazyRoute component={<EmployeeEditPage />} />,
+});
+
+const administrationOrganizationUnitCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/my-organization/organizational-units/new',
+  component: () => <LazyRoute component={<OrganizationUnitCreatePage />} />,
+});
+
+const administrationOrganizationUnitEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/my-organization/organizational-units/$organizationUnitId/edit',
+  component: () => <LazyRoute component={<OrganizationUnitEditPage />} />,
+});
+
+const administrationPersonaCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/my-organization/personas/new',
+  component: () => <LazyRoute component={<PersonaCreatePage />} />,
+});
+
+const administrationPersonaEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/my-organization/personas/$personaId/edit',
+  component: () => <LazyRoute component={<PersonaEditPage />} />,
+});
+
+const administrationSiteCreateRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/sites/new',
+  component: () => <LazyRoute component={<FacilitySiteCreatePage />} />,
+});
+
+const administrationSiteEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/sites/$siteId/edit',
+  component: () => <LazyRoute component={<FacilitySiteEditPage />} />,
+});
+
+const administrationBuildingEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/sites/$siteId/buildings/$buildingId/edit',
+  component: () => <LazyRoute component={<FacilityBuildingEditPage />} />,
+});
+
+const administrationRoomEditRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: '/sites/$siteId/buildings/$buildingId/rooms/$roomId/edit',
+  component: () => <LazyRoute component={<FacilityRoomEditPage />} />,
 });
 
 const automationRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/automation',
+  path: '/old/automation',
   component: () => (
     <ProtectedRoute>
       <Outlet />
@@ -156,7 +361,7 @@ const automationRoute = createRoute({
 
 const workflowsAliasRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/workflows',
+  path: '/old/workflows',
   component: () => (
     <ProtectedRoute>
       <Outlet />
@@ -167,7 +372,7 @@ const workflowsAliasRoute = createRoute({
 const automationIndexRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/',
-  component: () => <Navigate to="/automation/workflow" search={{ tab: 'definitions' } as never} />,
+  component: () => <Navigate to="/old/automation/workflow" search={{ tab: 'definitions' } as never} />,
 });
 
 const automationWorkflowRoute = createRoute({
@@ -179,7 +384,7 @@ const automationWorkflowRoute = createRoute({
 const automationWorkflowDefinitionsRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/workflow-definitions',
-  component: () => <Navigate to="/automation/workflow" search={{ tab: 'definitions' } as never} />,
+  component: () => <Navigate to="/old/automation/workflow" search={{ tab: 'definitions' } as never} />,
 });
 
 const automationWorkflowDefinitionEditorRoute = createRoute({
@@ -191,7 +396,7 @@ const automationWorkflowDefinitionEditorRoute = createRoute({
 const automationWorkflowInstancesRoute = createRoute({
   getParentRoute: () => automationRoute,
   path: '/workflow-instances',
-  component: () => <Navigate to="/automation/workflow" search={{ tab: 'history' } as never} />,
+  component: () => <Navigate to="/old/automation/workflow" search={{ tab: 'history' } as never} />,
 });
 
 const automationWorkflowInstanceViewerRoute = createRoute({
@@ -205,7 +410,7 @@ const workflowDefinitionEditorAliasRoute = createRoute({
   path: '/definitions/$definitionId/edit',
   beforeLoad: ({ params }) => {
     throw redirect({
-      to: '/automation/workflow-definitions/$definitionId/edit',
+      to: '/old/automation/workflow-definitions/$definitionId/edit',
       params: { definitionId: params.definitionId },
       replace: true,
     });
@@ -217,7 +422,7 @@ const workflowInstanceViewerAliasRoute = createRoute({
   path: '/instances/$instanceId/view',
   beforeLoad: ({ params }) => {
     throw redirect({
-      to: '/automation/workflow-instances/$instanceId',
+      to: '/old/automation/workflow-instances/$instanceId',
       params: { instanceId: params.instanceId },
       replace: true,
     });
@@ -244,7 +449,7 @@ const automationKioskProfileEditRoute = createRoute({
 
 const cardManagementRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/card-management',
+  path: '/old/card-management',
   component: () => (
     <ProtectedRoute>
       <Outlet />
@@ -255,7 +460,7 @@ const cardManagementRoute = createRoute({
 const cardManagementIndexRoute = createRoute({
   getParentRoute: () => cardManagementRoute,
   path: '/',
-  component: () => <Navigate to="/card-management/key-management" />,
+  component: () => <Navigate to="/old/card-management/key-management" />,
 });
 
 const cardManagementKeyManagementRoute = createRoute({
@@ -362,7 +567,7 @@ const cardManagementPrintRunDetailRoute = createRoute({
 
 const receptionDeskRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/reception-desk',
+  path: '/old/reception-desk',
   component: () => <ProtectedLazyRoute component={<ReceptionDeskPage />} />,
 });
 
@@ -374,24 +579,12 @@ const visitorConfirmationRoute = createRoute({
 
 const facilityRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/facility',
+  path: '/old/facility',
   component: () => (
     <ProtectedRoute>
       <Outlet />
     </ProtectedRoute>
   ),
-});
-
-const facilityIndexRoute = createRoute({
-  getParentRoute: () => facilityRoute,
-  path: '/',
-  component: () => <LazyRoute component={<FacilityLocationsPage />} />,
-});
-
-const facilityLocationsRoute = createRoute({
-  getParentRoute: () => facilityRoute,
-  path: '/locations',
-  component: () => <LazyRoute component={<FacilityLocationsPage />} />,
 });
 
 const facilityAccessControlRoute = createRoute({
@@ -418,33 +611,9 @@ const facilityAccessControlEditRoute = createRoute({
   component: () => <LazyRoute component={<FacilityAccessControlEditPage />} />,
 });
 
-const facilitySiteCreateRoute = createRoute({
-  getParentRoute: () => facilityRoute,
-  path: '/locations/new',
-  component: () => <LazyRoute component={<FacilitySiteCreatePage />} />,
-});
-
-const facilitySiteEditRoute = createRoute({
-  getParentRoute: () => facilityRoute,
-  path: '/locations/$siteId/edit',
-  component: () => <LazyRoute component={<FacilitySiteEditPage />} />,
-});
-
-const facilityBuildingEditRoute = createRoute({
-  getParentRoute: () => facilityRoute,
-  path: '/locations/$siteId/buildings/$buildingId/edit',
-  component: () => <LazyRoute component={<FacilityBuildingEditPage />} />,
-});
-
-const facilityRoomEditRoute = createRoute({
-  getParentRoute: () => facilityRoute,
-  path: '/locations/$siteId/buildings/$buildingId/rooms/$roomId/edit',
-  component: () => <LazyRoute component={<FacilityRoomEditPage />} />,
-});
-
 const settingsRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/settings',
+  path: '/old/settings',
   component: () => <ProtectedLazyRoute component={<SettingsLayout />} />,
 });
 
@@ -474,7 +643,7 @@ const tenantSettingsRoute = createRoute({
 
 const visitorsManagementRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
-  path: '/visitors-management',
+  path: '/old/visitors-management',
   component: () => <ProtectedLazyRoute component={<VisitorsManagementLayout />} />,
 });
 
@@ -607,6 +776,37 @@ const routeTree = rootRoute.addChildren([
     credentialsRoute,
     organizationsRoute,
     auditRoute,
+    employeeRoute,
+    managerRoute,
+    securityOfficerRoute,
+    administrationRoute.addChildren([
+      administrationIndexRoute,
+      administrationSitesRoute,
+      administrationAccessModelRoute,
+      administrationAccessControlRoute,
+      administrationAccessItemCreateRoute,
+      administrationAccessItemEditRoute,
+      administrationAccessControlTargetEditRoute,
+      administrationAccessControlSystemCreateRoute,
+      administrationAccessControlSystemEditRoute,
+      administrationPackageCreateRoute,
+      administrationPackageEditRoute,
+      administrationCatalogueCreateRoute,
+      administrationCatalogueEditRoute,
+      administrationApprovalGroupCreateRoute,
+      administrationApprovalGroupEditRoute,
+      administrationMyOrganizationRoute,
+      administrationEmployeeCreateRoute,
+      administrationEmployeeEditRoute,
+      administrationOrganizationUnitCreateRoute,
+      administrationOrganizationUnitEditRoute,
+      administrationPersonaCreateRoute,
+      administrationPersonaEditRoute,
+      administrationSiteCreateRoute,
+      administrationSiteEditRoute,
+      administrationBuildingEditRoute,
+      administrationRoomEditRoute,
+    ]),
     automationRoute.addChildren([
       automationIndexRoute,
       automationWorkflowRoute,
@@ -644,18 +844,7 @@ const routeTree = rootRoute.addChildren([
     ]),
     receptionDeskRoute,
     visitorConfirmationRoute,
-    facilityRoute.addChildren([
-      facilityIndexRoute,
-      facilityLocationsRoute,
-      facilityAccessControlRoute,
-      facilityHardwareRoute,
-      facilityHardwareAgentDetailRoute,
-      facilityAccessControlEditRoute,
-      facilitySiteCreateRoute,
-      facilitySiteEditRoute,
-      facilityBuildingEditRoute,
-      facilityRoomEditRoute,
-    ]),
+    facilityRoute.addChildren([facilityAccessControlRoute, facilityHardwareRoute, facilityHardwareAgentDetailRoute, facilityAccessControlEditRoute]),
     settingsRoute.addChildren([settingsIndexRoute, visitorsSettingsRoute, receptionDeskSettingsRoute, tenantSettingsRoute]),
     visitorsManagementRoute.addChildren([visitsIndexRoute, visitsRoute, visitCreateRoute, visitEditRoute, visitorsRoute, organizersRoute, organizerCreateRoute, organizerEditRoute, visitorReportingRoute]),
   ]),

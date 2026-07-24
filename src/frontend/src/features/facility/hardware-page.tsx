@@ -324,7 +324,7 @@ function AgentActions({ agent, onRotate, onDelete, busy, className }: AgentActio
         <RotateCcw className="size-4" aria-hidden="true" />
         Rotate key
       </Button>
-      <Link className={buttonVariants({ variant: 'outline', size: 'sm' })} to="/facility/hardware/$agentId" params={{ agentId: agent.id }}>
+      <Link className={buttonVariants({ variant: 'outline', size: 'sm' })} to="/old/facility/hardware/$agentId" params={{ agentId: agent.id }}>
         <Eye className="size-4" aria-hidden="true" />
         Details
       </Link>

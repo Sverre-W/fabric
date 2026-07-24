@@ -57,7 +57,7 @@ export default function WorkflowPage() {
       await queryClient.invalidateQueries({ queryKey: workflowHistoryQueryKey });
       setIsCreateOpen(false);
       setNewDefinitionName('');
-      void navigate({ to: '/automation/workflow-definitions/$definitionId/edit', params: { definitionId: definition.definitionId ?? definition.id ?? '' } });
+      void navigate({ to: '/old/automation/workflow-definitions/$definitionId/edit', params: { definitionId: definition.definitionId ?? definition.id ?? '' } });
     },
     onError: () => toast.error('Could not create workflow definition.'),
   });
@@ -66,7 +66,7 @@ export default function WorkflowPage() {
     const nextTab = tab === 'history' ? 'history' : 'definitions';
     void queryClient.invalidateQueries({ queryKey: workflowDefinitionsQueryKey });
     void queryClient.invalidateQueries({ queryKey: workflowHistoryQueryKey });
-    void navigate({ to: '/automation/workflow', search: { tab: nextTab } as never });
+    void navigate({ to: '/old/automation/workflow', search: { tab: nextTab } as never });
   }
 
   function submitCreateDefinition(event: FormEvent<HTMLFormElement>) {
@@ -233,7 +233,7 @@ function WorkflowDefinitionsTable({ definitions, onPublish, onRetract, onDelete,
   const navigate = useNavigate();
 
   function openDefinition(definition: WorkflowDefinition) {
-    void navigate({ to: '/automation/workflow-definitions/$definitionId/edit', params: { definitionId: getDefinitionRouteId(definition) } });
+    void navigate({ to: '/old/automation/workflow-definitions/$definitionId/edit', params: { definitionId: getDefinitionRouteId(definition) } });
   }
 
   return (
@@ -315,7 +315,7 @@ function WorkflowHistoryTable({ instances, definitions }: { readonly instances: 
   const definitionsById = new Map(definitions.filter((definition): definition is WorkflowDefinition & { definitionId: string } => !!definition.definitionId).map((definition) => [definition.definitionId, definition]));
 
   function openInstance(instance: WorkflowInstance) {
-    void navigate({ to: '/automation/workflow-instances/$instanceId', params: { instanceId: instance.id ?? '' } });
+    void navigate({ to: '/old/automation/workflow-instances/$instanceId', params: { instanceId: instance.id ?? '' } });
   }
 
   return (

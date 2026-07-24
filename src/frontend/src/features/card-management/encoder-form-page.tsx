@@ -82,7 +82,7 @@ export default function EncoderFormPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: encodersQueryKey });
       toast.success(mode === 'create' ? 'Encoder created.' : 'Encoder updated.');
-      window.location.assign('/card-management/printing');
+      window.location.assign('/old/card-management/printing');
     },
     onError: () => toast.error(mode === 'create' ? 'Could not create encoder.' : 'Could not update encoder.'),
   });
@@ -102,7 +102,7 @@ export default function EncoderFormPage() {
 
   return (
     <section className="grid gap-6">
-      <Link to="/card-management/printing" className="inline-flex w-fit items-center gap-2 text-[14px] font-medium text-muted-foreground transition hover:text-foreground"><ArrowLeft className="size-4" />Back to printing</Link>
+      <Link to="/old/card-management/printing" className="inline-flex w-fit items-center gap-2 text-[14px] font-medium text-muted-foreground transition hover:text-foreground"><ArrowLeft className="size-4" />Back to printing</Link>
       <Card>
         <CardHeader>
           <CardTitle>{mode === 'create' ? 'Add Encoder' : 'Edit Encoder'}</CardTitle>
@@ -133,6 +133,6 @@ function supportsEncoding(device: HardwareDevice) {
 }
 
 function getEncoderIdFromPath() {
-  const match = window.location.pathname.match(/\/card-management\/printing\/encoders\/([^/]+)\/edit$/);
+  const match = window.location.pathname.match(/\/old\/card-management\/printing\/encoders\/([^/]+)\/edit$/);
   return match?.[1] ?? null;
 }

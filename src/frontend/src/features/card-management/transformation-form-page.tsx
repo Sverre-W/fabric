@@ -28,7 +28,7 @@ export function TransformationCreatePage() {
 }
 
 export default function TransformationEditPage() {
-  const { transformationId } = useParams({ from: '/main/card-management/transformations/$transformationId/edit' });
+  const { transformationId } = useParams({ from: '/main/old/card-management/transformations/$transformationId/edit' });
   return <TransformationFormPage mode="edit" transformationId={transformationId} />;
 }
 

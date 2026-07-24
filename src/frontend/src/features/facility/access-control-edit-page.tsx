@@ -27,7 +27,7 @@ const systemsQueryKey = ['facility', 'access-control-systems'] as const;
 const emptyConfig: ConfigValues = { endpoint: '', sslValidation: true, username: '', secret: '' };
 
 export default function AccessControlEditPage() {
-  const { systemId } = useParams({ from: '/main/facility/access-control/$systemId/edit' });
+  const { systemId } = useParams({ from: '/main/old/facility/access-control/$systemId/edit' });
   const queryClient = useQueryClient();
   const [configValues, setConfigValues] = useState<ConfigValues>(emptyConfig);
   const [badgeName, setBadgeName] = useState('');

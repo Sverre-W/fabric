@@ -81,7 +81,7 @@ export default function OrganizersPage() {
           <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">Manage hosts and organizers responsible for coordinating visits.</p>
         </div>
         <Link
-          to="/visitors-management/organizers/new"
+          to="/old/visitors-management/organizers/new"
           className="inline-flex w-full items-center justify-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90 sm:w-fit"
         >
           <Plus className="size-4" aria-hidden="true" />
@@ -104,7 +104,7 @@ export default function OrganizersPage() {
             </EmptyHeader>
             <EmptyContent>
               <Link
-                to="/visitors-management/organizers/new"
+                to="/old/visitors-management/organizers/new"
                 className="inline-flex items-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90"
               >
                 <Plus className="size-4" aria-hidden="true" />
@@ -155,7 +155,7 @@ export default function OrganizersPage() {
                         <div className="flex justify-end gap-2">
                           {organizer.id ? (
                             <Link
-                              to="/visitors-management/organizers/$organizerId/edit"
+                              to="/old/visitors-management/organizers/$organizerId/edit"
                               params={{ organizerId: organizer.id }}
                               className="inline-flex size-9 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
                               aria-label={`Edit ${getOrganizerName(organizer)}`}
@@ -232,7 +232,7 @@ function OrganizerCard({ organizer, isDeleting, onDelete }: { readonly organizer
         <div className="flex shrink-0 gap-2">
           {organizer.id ? (
             <Link
-              to="/visitors-management/organizers/$organizerId/edit"
+              to="/old/visitors-management/organizers/$organizerId/edit"
               params={{ organizerId: organizer.id }}
               className="inline-flex size-10 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
               aria-label={`Edit ${name}`}

@@ -1,37 +1,38 @@
 import { ArrowRight, ShieldCheck } from 'lucide-react';
+import { Navigate } from '@tanstack/react-router';
 import { useAuth } from 'react-oidc-context';
 
+import { useCurrentActor } from '@/shared/actors/current-actor';
 import { FabricLogo } from '@/shared/branding/fabric-logo';
 import { useBranding } from '@/shared/branding/branding-context';
 import { Button } from '@/shared/components/ui/button';
-import { appModules } from '@/shared/modules/app-modules';
-
-import { ModuleCard } from './module-card';
+import { getDefaultPerspective } from '@/shared/perspectives/app-perspectives';
+import { NoPerspectiveWarning } from '@/shared/perspectives/no-perspective-warning';
 
 export default function HomePage() {
   const auth = useAuth();
   const branding = useBranding();
+  const actorQuery = useCurrentActor();
 
   if (!auth.isAuthenticated) {
     return <PublicHomePage />;
   }
 
-  return (
-    <section className="grid gap-6">
-      <div className="rounded-structural border border-border bg-content p-4 sm:p-6 md:p-8">
-        <p className="text-[14px] font-semibold uppercase text-primary">PIAM platform</p>
-        <h1 className="mt-3 text-[28px] font-semibold tracking-tight sm:text-[32px]">{branding.appName} modules</h1>
-        <p className="mt-3 max-w-2xl text-[14px] text-muted-foreground">
-          Select a module to manage a focused part of your physical identity and access workflows.
-        </p>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {appModules.map((module) => (
-          <ModuleCard key={module.id} module={module} />
-        ))}
-      </div>
-    </section>
-  );
+  const defaultPerspective = getDefaultPerspective(actorQuery.data);
+
+  if (actorQuery.isLoading) {
+    return <div className="rounded-structural border border-border bg-content p-6 text-[14px] text-muted-foreground">Loading perspectives...</div>;
+  }
+
+  if (actorQuery.isError) {
+    return <div className="rounded-structural border border-error bg-error-background p-6 text-[14px] text-error">Could not load current actor.</div>;
+  }
+
+  if (!defaultPerspective) {
+    return <NoPerspectiveWarning />;
+  }
+
+  return <Navigate to={defaultPerspective.to} replace />;
 }
 
 function PublicHomePage() {

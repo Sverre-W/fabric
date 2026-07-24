@@ -90,7 +90,7 @@ export default function VisitsPage() {
           <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">Plan visits, check expected arrivals, and coordinate visitor access workflows.</p>
         </div>
         <Link
-          to="/visitors-management/visits/new"
+          to="/old/visitors-management/visits/new"
           className="inline-flex w-full items-center justify-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90 sm:w-fit"
         >
           <Plus className="size-4" aria-hidden="true" />
@@ -229,7 +229,7 @@ function VisitCard({ visit }: { readonly visit: Visit }) {
 
   return (
     <Link
-      to="/visitors-management/visits/$visitId/edit"
+      to="/old/visitors-management/visits/$visitId/edit"
       params={{ visitId: visit.id ?? '' }}
       className="grid gap-2 rounded-interactive border border-border bg-content p-3 shadow-sm transition hover:border-primary/40 hover:shadow-md"
     >

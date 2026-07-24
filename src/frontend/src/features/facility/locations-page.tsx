@@ -32,11 +32,11 @@ export default function LocationsPage() {
       <div className="border-b border-border p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-[20px] font-semibold tracking-tight">Locations</h1>
-            <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">View sites available for facility and visitor workflows.</p>
+            <h1 className="text-[20px] font-semibold tracking-tight">Sites</h1>
+            <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">Manage sites available for organizational, facility, and visitor workflows.</p>
           </div>
           <Link
-            to="/facility/locations/new"
+            to="/administration/sites/new"
             className="inline-flex w-full items-center justify-center gap-2 rounded-interactive bg-primary px-4 py-2 text-[14px] font-semibold text-white transition hover:opacity-90 sm:w-fit"
           >
             <Plus className="size-4" aria-hidden="true" />
@@ -110,7 +110,7 @@ function SiteCard({ site }: { site: Site }) {
           <p className="mt-1 text-[14px] text-muted-foreground">{site.address || 'No address'}</p>
         </div>
         <Link
-          to="/facility/locations/$siteId/edit"
+          to="/administration/sites/$siteId/edit"
           params={{ siteId: site.id }}
           className="inline-flex size-10 shrink-0 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
           aria-label={`Edit ${site.name}`}
@@ -130,7 +130,7 @@ function SiteRow({ site }: { site: Site }) {
       <td className="px-4 py-4">
         <div className="flex justify-end">
           <Link
-            to="/facility/locations/$siteId/edit"
+            to="/administration/sites/$siteId/edit"
             params={{ siteId: site.id }}
             className="inline-flex size-9 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
             aria-label={`Edit ${site.name}`}

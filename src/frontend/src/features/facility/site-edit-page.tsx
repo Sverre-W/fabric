@@ -17,7 +17,7 @@ const locationsQueryKey = ['facility', 'locations'] as const;
 const emptySite: SiteFormValues = { name: '', address: '' };
 
 export default function SiteEditPage() {
-  const { siteId } = useParams({ from: '/main/facility/locations/$siteId/edit' });
+  const { siteId } = useParams({ from: '/main/administration/sites/$siteId/edit' });
   const queryClient = useQueryClient();
   const [isAddingBuilding, setIsAddingBuilding] = useState(false);
   const [buildingName, setBuildingName] = useState('');
@@ -257,7 +257,7 @@ function BuildingsList({
               </div>
               <div className="flex shrink-0 gap-2">
                 <Link
-                  to="/facility/locations/$siteId/buildings/$buildingId/edit"
+                  to="/administration/sites/$siteId/buildings/$buildingId/edit"
                   params={{ siteId, buildingId: building.id }}
                   className="inline-flex size-10 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
                   aria-label={`Edit ${building.name}`}
@@ -295,7 +295,7 @@ function BuildingsList({
               <td className="px-4 py-4">
                 <div className="flex justify-end gap-2">
                   <Link
-                    to="/facility/locations/$siteId/buildings/$buildingId/edit"
+                    to="/administration/sites/$siteId/buildings/$buildingId/edit"
                     params={{ siteId, buildingId: building.id }}
                     className="inline-flex size-9 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
                     aria-label={`Edit ${building.name}`}

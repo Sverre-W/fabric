@@ -9,6 +9,7 @@ import { BrandingProvider } from '@/shared/branding/branding-context';
 import { appBranding } from '@/shared/branding/fabric-branding';
 import { FabricAuthProvider } from '@/shared/auth/auth-provider';
 import { AuthTokenBridge } from '@/shared/auth/auth-token-bridge';
+import { TenantSettingsProvider } from '@/shared/tenant/tenant-settings-context';
 import { fetchTenantSettings, getLogoDataUrl, type TenantSettings } from '@/shared/tenant/tenant-settings';
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -62,12 +63,14 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
-        <BrandingProvider branding={branding}>
-          <FabricAuthProvider tenantSettings={tenantSettings}>
-            <AuthTokenBridge />
-            {children}
-          </FabricAuthProvider>
-        </BrandingProvider>
+        <TenantSettingsProvider settings={tenantSettings}>
+          <BrandingProvider branding={branding}>
+            <FabricAuthProvider tenantSettings={tenantSettings}>
+              <AuthTokenBridge />
+              {children}
+            </FabricAuthProvider>
+          </BrandingProvider>
+        </TenantSettingsProvider>
         <Toaster />
       </QueryClientProvider>
     </I18nextProvider>

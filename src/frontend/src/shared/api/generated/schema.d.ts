@@ -3173,6 +3173,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/employees/personas/{id}/employees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List persona employees */
+        get: {
+            parameters: {
+                query: {
+                    Query?: string;
+                    Status: components["schemas"]["EmployeeStatus"][];
+                    OrganizationUnitId?: string;
+                    IncludeDescendants: boolean;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageOfEmployeeResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/employees/personas/{id}/activate": {
         parameters: {
             query?: never;
@@ -3918,6 +3968,50 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["AccessControlSystemResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-control/systems/{systemId}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    systemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessControlSystemDetailsResponse"];
                     };
                 };
                 /** @description Not Found */
@@ -13811,6 +13905,16 @@ export interface components {
     schemas: {
         /** @enum {unknown} */
         AccessControlProviderKind: "Unipass";
+        AccessControlSystemConfigurationResponse: components["schemas"]["AccessControlSystemConfigurationResponseUnipassAccessControlSystemConfigurationResponse"];
+        AccessControlSystemConfigurationResponseUnipassAccessControlSystemConfigurationResponse: {
+            /** @enum {string} */
+            type?: "unipass";
+            username: string;
+        };
+        AccessControlSystemDetailsResponse: {
+            system: components["schemas"]["AccessControlSystemResponse"];
+            configuration: components["schemas"]["AccessControlSystemConfigurationResponse"];
+        };
         AccessControlSystemLocationResponse: {
             /** Format: uuid */
             id: string;
@@ -13827,7 +13931,6 @@ export interface components {
             status: components["schemas"]["AccessControlSystemStatus"];
             endpoint: string;
             sslValidation: boolean;
-            username: string;
             hasSecret: boolean;
         };
         /** @enum {unknown} */
@@ -13869,7 +13972,6 @@ export interface components {
         AccessLevelTargetResponseUnipassAccessLevelTargetResponse: {
             /** @enum {string} */
             type?: "unipass";
-            provisioningTiming: components["schemas"]["ProvisioningTiming"];
             /** Format: int32 */
             siteId: number | string;
             siteName: string;
@@ -13884,6 +13986,7 @@ export interface components {
             accessControlSystemId: string;
             name: string;
             isEnabled: boolean;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
         };
         AccessLevelTypeResponse: components["schemas"]["AccessLevelTypeResponseUnipassAccessLevelTypeResponse"] | components["schemas"]["AccessLevelTypeResponseLenelAccessLevelTypeResponse"];
         AccessLevelTypeResponseLenelAccessLevelTypeResponse: {
@@ -16846,10 +16949,16 @@ export interface components {
                 [key: string]: string;
             };
         };
-        SystemMetadata: Record<string, never>;
+        SystemMetadata: components["schemas"]["SystemMetadataUnipassMetadata"];
         SystemMetadataObject: {
             id: string;
             name: string;
+        };
+        SystemMetadataUnipassMetadata: {
+            /** @enum {string} */
+            type?: "unipass";
+            sites: components["schemas"]["SystemMetadataObject"][];
+            accessRules: components["schemas"]["SystemMetadataObject"][];
         };
         SystemProviderResponse: {
             /** Format: uuid */
@@ -16941,7 +17050,6 @@ export interface components {
         TransformationVariableKind: "UserProvided" | "SystemProvided";
         Type: unknown;
         UnipassAccessLevelTargetResponse: {
-            provisioningTiming: components["schemas"]["ProvisioningTiming"];
             /** Format: int32 */
             siteId: number | string;
             siteName: string;
@@ -16956,6 +17064,7 @@ export interface components {
             accessControlSystemId: string;
             name: string;
             isEnabled: boolean;
+            provisioningTiming: components["schemas"]["ProvisioningTiming"];
         };
         UnipassAccessLevelTypeResponse: {
             /** Format: int32 */

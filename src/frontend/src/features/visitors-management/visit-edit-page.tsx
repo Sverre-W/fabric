@@ -44,7 +44,7 @@ function formatInvitationName(invitation: VisitInvitationResponse) {
 }
 
 export default function VisitEditPage() {
-  const { visitId } = useParams({ from: '/main/visitors-management/visits/$visitId/edit' });
+  const { visitId } = useParams({ from: '/main/old/visitors-management/visits/$visitId/edit' });
   const queryClient = useQueryClient();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);

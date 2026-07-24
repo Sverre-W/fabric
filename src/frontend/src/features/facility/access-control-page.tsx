@@ -281,7 +281,7 @@ function SystemCard({ system }: { readonly system: AccessControlSystem }) {
           </p>
         </div>
         <Link
-          to="/facility/access-control/$systemId/edit"
+          to="/old/facility/access-control/$systemId/edit"
           params={{ systemId: system.id }}
           className="ml-auto inline-flex size-10 shrink-0 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
           aria-label={`Edit ${system.name}`}
@@ -303,7 +303,7 @@ function SystemRow({ system }: { readonly system: AccessControlSystem }) {
       <td className="px-4 py-4">
         <div className="flex justify-end">
           <Link
-            to="/facility/access-control/$systemId/edit"
+            to="/old/facility/access-control/$systemId/edit"
             params={{ systemId: system.id }}
             className="inline-flex size-9 items-center justify-center rounded-interactive border border-border text-muted-foreground transition hover:bg-hover-blue hover:text-foreground"
             aria-label={`Edit ${system.name}`}

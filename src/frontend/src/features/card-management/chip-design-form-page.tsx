@@ -56,7 +56,7 @@ export function ChipDesignCreatePage() {
 }
 
 export default function ChipDesignEditPage() {
-  const { chipDesignId } = useParams({ from: '/main/card-management/chip-designs/$chipDesignId/edit' });
+  const { chipDesignId } = useParams({ from: '/main/old/card-management/chip-designs/$chipDesignId/edit' });
   return <ChipDesignFormPage mode="edit" chipDesignId={chipDesignId} />;
 }
 
