@@ -71,15 +71,11 @@ public sealed class EmployeeService(
         if (addAffiliation.IsFailure(out _))
             return Result.Failure<Employee, EmployeeErrors>(EmployeeErrors.IdentityCreationFailed);
 
-        await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await identitiesDb.Database.UseTransactionAsync(transaction.GetDbTransaction(), cancellationToken);
+        db.Employees.Add(employee);
+        await db.SaveChangesAsync(cancellationToken);
 
         identitiesDb.Identities.Add(identity);
-        db.Employees.Add(employee);
-
         await identitiesDb.SaveChangesAsync(cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
         await lifecycleService.ReconcileNowAndRescheduleAsync(employee.Id, EmployeeLifecycleSource.EmployeeCreated, "Employee created", cancellationToken);
         await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeeCreated", cancellationToken);
 
@@ -138,11 +134,9 @@ public sealed class EmployeeService(
         if (updateIdentity.IsFailure(out _))
             return Result.Failure<Employee, EmployeeErrors>(EmployeeErrors.IdentityUpdateFailed);
 
-        await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await identitiesDb.Database.UseTransactionAsync(transaction.GetDbTransaction(), cancellationToken);
-        await identitiesDb.SaveChangesAsync(cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+
+        await identitiesDb.SaveChangesAsync(cancellationToken);
         await lifecycleService.ReconcileNowAndRescheduleAsync(employee.Id, EmployeeLifecycleSource.EmployeeUpdated, "Employee updated", cancellationToken);
         await employeeLifecycleAutomationService.EnqueueAsync(employee.Id, "EmployeeUpdated", cancellationToken);
 

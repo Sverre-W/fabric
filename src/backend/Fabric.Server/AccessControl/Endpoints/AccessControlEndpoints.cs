@@ -30,6 +30,9 @@ public static class AccessControlEndpoints
         systems.MapGet("/{systemId:guid}", GetSystem)
             .Produces<AccessControlSystemResponse>()
             .Produces(StatusCodes.Status404NotFound);
+        systems.MapGet("/{systemId:guid}/details", GetSystemDetails)
+            .Produces<AccessControlSystemDetailsResponse>()
+            .Produces(StatusCodes.Status404NotFound);
         systems.MapPut("/{systemId:guid}/unipass", UpdateUnipassSystem)
             .Produces<AccessControlSystemResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
@@ -165,6 +168,15 @@ public static class AccessControlEndpoints
     {
         AccessControlSystem? system = await db.AccessControlSystems.AsNoTracking().SingleOrDefaultAsync(item => item.Id == systemId, cancellationToken);
         return system is null ? Results.NotFound() : Results.Ok(system.ToResponse());
+    }
+
+    private static async Task<IResult> GetSystemDetails(
+        Guid systemId,
+        AccessControlDbContext db,
+        CancellationToken cancellationToken = default)
+    {
+        AccessControlSystem? system = await db.AccessControlSystems.AsNoTracking().SingleOrDefaultAsync(item => item.Id == systemId, cancellationToken);
+        return system is null ? Results.NotFound() : Results.Ok(system.ToDetailsResponse());
     }
 
     private static async Task<IResult> UpdateUnipassSystem(

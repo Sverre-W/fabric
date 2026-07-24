@@ -2,8 +2,8 @@ namespace Fabric.Server.Infrastructure.Authentication;
 
 public static class FabricRoleDefaults
 {
-    public const string AdminRole = "Admin";
-    public const string SecurityOfficerRole = "SecurityOfficer";
+    public const string AdminRole = "admin";
+    public const string SecurityOfficerRole = "security-officer";
 
     public const string AdminPolicy = "AdminOnly";
     public const string SecurityOfficerPolicy = "SecurityOfficerOnly";

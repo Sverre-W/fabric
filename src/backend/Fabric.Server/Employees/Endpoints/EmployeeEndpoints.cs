@@ -157,6 +157,10 @@ public static class EmployeeEndpoints
             .WithSummary("Get persona")
             .Produces<PersonaResponse>()
             .Produces(StatusCodes.Status404NotFound);
+        personas.MapGet("/{id:guid}/employees", ListPersonaEmployees)
+            .WithSummary("List persona employees")
+            .Produces<Page<EmployeeResponse>>()
+            .Produces(StatusCodes.Status404NotFound);
         personas.MapPost("", CreatePersona)
             .WithSummary("Create persona")
             .Produces<PersonaResponse>(StatusCodes.Status201Created)
@@ -187,52 +191,8 @@ public static class EmployeeEndpoints
         TimeProvider timeProvider,
         CancellationToken cancellationToken = default)
     {
-        IQueryable<Employee> query = db.Employees
-            .AsNoTracking()
-            .Include(employee => employee.WorkLocations)
-            .Include(employee => employee.Personas)
-            .Include(employee => employee.LeavePeriods)
-            .Include(employee => employee.SuspensionPeriods);
-
-        if (request.OrganizationUnitId.HasValue)
-        {
-            if (request.IncludeDescendants)
-            {
-                Guid[] unitIds = await db.OrganizationUnitClosures
-                    .Where(closure => closure.AncestorId == request.OrganizationUnitId.Value)
-                    .Select(closure => closure.DescendantId)
-                    .ToArrayAsync(cancellationToken);
-                query = query.Where(employee => unitIds.Contains(employee.OrganizationUnitId));
-            }
-            else
-            {
-                query = query.Where(employee => employee.OrganizationUnitId == request.OrganizationUnitId.Value);
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Query))
-        {
-            string filter = $"%{request.Query}%";
-            query = query.Where(employee =>
-                EF.Functions.ILike(employee.FirstName, filter)
-                || EF.Functions.ILike(employee.LastName, filter)
-                || EF.Functions.ILike(employee.FirstName + " " + employee.LastName, filter)
-                || employee.Email != null && EF.Functions.ILike(employee.Email, filter)
-                || employee.EmployeeNumber != null && EF.Functions.ILike(employee.EmployeeNumber, filter)
-                || employee.DirectoryId != null && EF.Functions.ILike(employee.DirectoryId, filter)
-                || employee.JobTitle != null && EF.Functions.ILike(employee.JobTitle, filter));
-        }
-
-        List<Employee> employees = await query
-            .OrderBy(employee => employee.LastName)
-            .ThenBy(employee => employee.FirstName)
-            .ThenBy(employee => employee.Id)
-            .ToListAsync(cancellationToken);
-
+        List<Employee> employees = await ListEmployeesAsync(db.Employees, request, db, timeProvider, cancellationToken);
         DateOnly today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
-        if (request.Status is { Length: > 0 })
-            employees = employees.Where(employee => request.Status.Contains(EmployeeLifecycleCalculator.Calculate(employee, today))).ToList();
-
         return Results.Ok(await MapEmployeePageAsync(employees, request.Page, request.PageSize, db, today, cancellationToken));
     }
 
@@ -663,6 +623,28 @@ public static class EmployeeEndpoints
         return persona is null ? Results.NotFound() : Results.Ok(persona.ToResponse());
     }
 
+    private static async Task<IResult> ListPersonaEmployees(
+        Guid id,
+        [AsParameters] ListEmployeesRequest request,
+        EmployeesDbContext db,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken = default)
+    {
+        bool personaExists = await db.Personas.AsNoTracking().AnyAsync(item => item.Id == id, cancellationToken);
+        if (!personaExists)
+            return Results.NotFound();
+
+        List<Employee> employees = await ListEmployeesAsync(
+            db.Employees.Where(employee => employee.Personas.Any(link => link.PersonaId == id)),
+            request,
+            db,
+            timeProvider,
+            cancellationToken);
+
+        DateOnly today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+        return Results.Ok(await MapEmployeePageAsync(employees, request.Page, request.PageSize, db, today, cancellationToken));
+    }
+
     private static async Task<IResult> CreatePersona(
         [FromBody] CreatePersonaRequest request,
         EmployeeService employeeService,
@@ -759,6 +741,62 @@ public static class EmployeeEndpoints
             .Where(persona => personaIds.Contains(persona.Id))
             .ToDictionaryAsync(persona => persona.Id, cancellationToken);
         return aggregate.ToResponse(organizationUnit, personas, today);
+    }
+
+    private static async Task<List<Employee>> ListEmployeesAsync(
+        IQueryable<Employee> source,
+        ListEmployeesRequest request,
+        EmployeesDbContext db,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<Employee> query = source
+            .AsNoTracking()
+            .Include(employee => employee.WorkLocations)
+            .Include(employee => employee.Personas)
+            .Include(employee => employee.LeavePeriods)
+            .Include(employee => employee.SuspensionPeriods);
+
+        if (request.OrganizationUnitId.HasValue)
+        {
+            if (request.IncludeDescendants)
+            {
+                Guid[] unitIds = await db.OrganizationUnitClosures
+                    .Where(closure => closure.AncestorId == request.OrganizationUnitId.Value)
+                    .Select(closure => closure.DescendantId)
+                    .ToArrayAsync(cancellationToken);
+                query = query.Where(employee => unitIds.Contains(employee.OrganizationUnitId));
+            }
+            else
+            {
+                query = query.Where(employee => employee.OrganizationUnitId == request.OrganizationUnitId.Value);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            string filter = $"%{request.Query}%";
+            query = query.Where(employee =>
+                EF.Functions.ILike(employee.FirstName, filter)
+                || EF.Functions.ILike(employee.LastName, filter)
+                || EF.Functions.ILike(employee.FirstName + " " + employee.LastName, filter)
+                || employee.Email != null && EF.Functions.ILike(employee.Email, filter)
+                || employee.EmployeeNumber != null && EF.Functions.ILike(employee.EmployeeNumber, filter)
+                || employee.DirectoryId != null && EF.Functions.ILike(employee.DirectoryId, filter)
+                || employee.JobTitle != null && EF.Functions.ILike(employee.JobTitle, filter));
+        }
+
+        List<Employee> employees = await query
+            .OrderBy(employee => employee.LastName)
+            .ThenBy(employee => employee.FirstName)
+            .ThenBy(employee => employee.Id)
+            .ToListAsync(cancellationToken);
+
+        DateOnly today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+        if (request.Status is { Length: > 0 })
+            employees = employees.Where(employee => request.Status.Contains(EmployeeLifecycleCalculator.Calculate(employee, today))).ToList();
+
+        return employees;
     }
 
     private static async Task<int> GetUnitDepthAsync(Guid id, EmployeesDbContext db, CancellationToken cancellationToken)

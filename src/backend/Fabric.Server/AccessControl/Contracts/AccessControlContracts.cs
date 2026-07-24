@@ -219,8 +219,18 @@ public sealed record AccessControlSystemResponse(
     AccessControlSystemStatus Status,
     string Endpoint,
     bool SslValidation,
-    string Username,
     bool HasSecret);
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(UnipassAccessControlSystemConfigurationResponse), "unipass")]
+public abstract record AccessControlSystemConfigurationResponse;
+
+public sealed record UnipassAccessControlSystemConfigurationResponse(
+    string Username) : AccessControlSystemConfigurationResponse;
+
+public sealed record AccessControlSystemDetailsResponse(
+    AccessControlSystemResponse System,
+    AccessControlSystemConfigurationResponse Configuration);
 
 public sealed record AccessItemResponse(
     Guid Id,
@@ -230,24 +240,23 @@ public sealed record AccessItemResponse(
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(UnipassAccessLevelTargetResponse), "unipass")]
-public abstract record AccessLevelTargetResponse(
-    Guid Id,
-    Guid AccessItemId,
-    Guid AccessControlSystemId,
-    string Name,
-    bool IsEnabled);
+public abstract record AccessLevelTargetResponse
+{
+    public required Guid Id { get; init; }
+    public required Guid AccessItemId { get; init; }
+    public required Guid AccessControlSystemId { get; init; }
+    public required string Name { get; init; }
+    public required bool IsEnabled { get; init; }
+    public required ProvisioningTiming ProvisioningTiming { get; init; }
+}
 
-public sealed record UnipassAccessLevelTargetResponse(
-    Guid Id,
-    Guid AccessItemId,
-    Guid AccessControlSystemId,
-    string Name,
-    bool IsEnabled,
-    ProvisioningTiming ProvisioningTiming,
-    int SiteId,
-    string SiteName,
-    int AccessRuleId,
-    string AccessRuleName) : AccessLevelTargetResponse(Id, AccessItemId, AccessControlSystemId, Name, IsEnabled);
+public sealed record UnipassAccessLevelTargetResponse : AccessLevelTargetResponse
+{
+    public required int SiteId { get; init; }
+    public required string SiteName { get; init; }
+    public required int AccessRuleId { get; init; }
+    public required string AccessRuleName { get; init; }
+}
 
 public static class AccessControlMapper
 {
@@ -259,8 +268,20 @@ public static class AccessControlMapper
             system.Status,
             system.UnipassConfig?.Endpoint ?? string.Empty,
             system.UnipassConfig?.SslValidation ?? false,
-            system.UnipassConfig?.Username ?? string.Empty,
             !string.IsNullOrWhiteSpace(system.UnipassConfig?.Password));
+
+    public static AccessControlSystemDetailsResponse ToDetailsResponse(this AccessControlSystem system) =>
+        new(
+            system.ToResponse(),
+            system.ToConfigurationResponse());
+
+    public static AccessControlSystemConfigurationResponse ToConfigurationResponse(this AccessControlSystem system) =>
+        system.ProviderKind switch
+        {
+            AccessControlProviderKind.Unipass => new UnipassAccessControlSystemConfigurationResponse(
+                system.UnipassConfig?.Username ?? string.Empty),
+            _ => throw new InvalidOperationException("Unknown access control system type.")
+        };
 
     public static AccessControlSystemLocationResponse ToResponse(this AccessControlSystemLocation link) =>
         new(link.Id, link.AccessControlSystemId, link.LocationId);
@@ -271,17 +292,19 @@ public static class AccessControlMapper
     public static AccessLevelTargetResponse ToResponse(this AccessLevelTarget target) =>
         target switch
         {
-            UnipassAccessLevelTarget unipass => new UnipassAccessLevelTargetResponse(
-                unipass.Id,
-                unipass.AccessItemId,
-                unipass.AccessControlSystemId,
-                unipass.Name,
-                unipass.IsEnabled,
-                unipass.ProvisioningTiming,
-                unipass.SiteId,
-                unipass.SiteName,
-                unipass.AccessRuleId,
-                unipass.AccessRuleName),
+            UnipassAccessLevelTarget unipass => new UnipassAccessLevelTargetResponse
+            {
+                Id = unipass.Id,
+                AccessItemId = unipass.AccessItemId,
+                AccessControlSystemId = unipass.AccessControlSystemId,
+                Name = unipass.Name,
+                IsEnabled = unipass.IsEnabled,
+                ProvisioningTiming = unipass.ProvisioningTiming,
+                SiteId = unipass.SiteId,
+                SiteName = unipass.SiteName,
+                AccessRuleId = unipass.AccessRuleId,
+                AccessRuleName = unipass.AccessRuleName
+            },
             _ => throw new InvalidOperationException("Unknown access level target type.")
         };
 
